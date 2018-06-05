@@ -1,0 +1,41 @@
+---
+Language:        Cpp
+BasedOnStyle:  LLVM
+AlignAfterOpenBracket: DontAlign
+AlignEscapedNewlines: DontAlign
+AlignOperands:   false
+AlignTrailingComments: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortBlocksOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: true
+AlwaysBreakBeforeMultilineStrings: true
+AlwaysBreakTemplateDeclarations: true
+BinPackArguments: false
+BinPackParameters: false
+BreakBeforeBinaryOperators: All
+BreakBeforeInheritanceComma: true 
+BreakConstructorInitializersBeforeComma: true
+BreakConstructorInitializers: BeforeComma
+ColumnLimit: 100
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+ConstructorInitializerIndentWidth: 2
+ContinuationIndentWidth: 2
+IncludeCategories:
+  - Regex:           'catch.hpp>'
+    Priority:        4
+  - Regex:           '^"'
+    Priority:        3
+  - Regex:           '<[^/]*/'
+    Priority:        1
+  - Regex:           '<[^.]*>'
+    Priority:        2
+IncludeIsMainRegex: '$'
+JavaScriptQuotes: Single
+KeepEmptyLinesAtTheStartOfBlocks: false
+NamespaceIndentation: All
+PointerAlignment: Left
+SpaceAfterCStyleCast: true
+SpacesInContainerLiterals: false
+TabWidth:        2
+...
