@@ -39,30 +39,33 @@
 #include <stdio.h> // for snprintf_l
 namespace np {
     namespace internal {
-        inline struct ScopedLoc{
+        auto locale = []() {
+            static struct ScopedLoc {
 #ifdef _WIN32
-            using locale_t = _locale_t;
+                using locale_t = _locale_t;
 #endif
-            ScopedLoc() :
+                ScopedLoc() :
 #ifdef _WIN32
-                _create_locale(LC_ALL, "C");
+                    _create_locale(LC_ALL, "C");
 #else
-            loc(newlocale(LC_ALL_MASK, "C", 0))
+                loc(newlocale(LC_ALL_MASK, "C", 0))
 #endif
-            {}
+                {}
 
-            ~ScopedLoc()
-            {
+                ~ScopedLoc()
+                {
 #ifdef _WIN32
-                _free_locale(loc);
+                    _free_locale(loc);
 #else
-                freelocale(loc);
+                    freelocale(loc);
 #endif
-            }
+                }
 
 
-            locale_t loc;
-        } locale;
+                locale_t loc;
+            } locale;
+            return locale;
+        }();
 #ifdef _WIN32
         using locale_t = _locale_t;
         locale_t _create_locale(LC_ALL, "C");
@@ -132,12 +135,15 @@ namespace np {
         auto logStringify(str_out_iter it, const T& val) -> typename std::enable_if<std::is_floating_point<T>::value, str_out_iter>::type
 {
     char buf[32];
+#ifdef _WIN32
+    const auto len = _snprintf_l(buf, 32, "%f", val, internal::locale.loc); // WIN32
+#elif defined(__linux__)
+    const auto len = snprintf(buf, 32, "%f", val);
+#else
     const auto len = snprintf_l(buf, 32, internal::locale.loc, "%f", val);
-//    const auto len = _snprintf_l(buf, 32, "%f", val, internal::locale.loc); // WIN32
+#endif
     return std::copy_n(buf, len, it);
 }
-
-
 
     str_out_iter logStringify(str_out_iter it, Severity s) {
 //    const char* logStringify(Severity s) {
