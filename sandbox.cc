@@ -230,7 +230,6 @@ struct ScopedMessage {
         return (*this)(default_log, str, args...);
     }
 
-
     std::string header;
     const char* literal;
     std::vector<std::string> args;
@@ -239,8 +238,8 @@ struct ScopedMessage {
 int main() {
     NP_INFO(Log(), "hello1");
     NP_WARNING("hello2", ARG(2+2));
-    NP_ERROR("hello3", ARG(2+2), ARG("foo", 42), ARG(np::Severity::Debug, std::sqrt(42)));
-    NP_ERROR("hello4", ARG(2+2), ARG("foo", 42), ARG(np::Severity::All, std::sqrt(42)));
-
-    NP_INFO(Log(), "hello1", ARG(10000.1));
+    NP_ERROR("hello3", ARG("foo", 42), ARG(np::Severity::Debug, std::sqrt(42)));
+    NP_ERROR("hello4", ARG("foo", 42), ARG(np::Severity::All, std::sqrt(42)));
+    int bar = 99;
+    NP_INFO("hello5", ARG(bar));
 }
