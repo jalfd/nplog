@@ -17,6 +17,15 @@ namespace np::log {
           std::get<0>(args) >= min_arg_level, std::get<1>(args), std::get<2>(args))...);
     }
 
+    void setSeverity(Severity messages, Severity args) {
+      min_level = messages;
+      min_arg_level = args;
+      }
+
+    void setSeverity(Severity messages) {
+      setSeverity(messages, messages);
+    }
+
   private:
     ComposerType composer;
     Severity min_level = Severity::All;

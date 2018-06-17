@@ -134,3 +134,107 @@ TEST_CASE("frontend 2 messages") {
   CHECK(std::get<2>(arg) == &c1);
 }
 
+SCENARIO("frontend filter message severity") {
+  GIVEN("a logger") {
+    TestComposer<char> c;
+    std::remove_reference_t<decltype(*(c.ptr))> data;
+    c.ptr = &data;
+    char arg;
+
+    np::log::Log<decltype(c)> log(c);
+
+    WHEN("log level is high") {
+      log.setSeverity(np::log::Severity::Debug);
+
+      THEN("messages with lower levels are not logged") {
+          np::log::Header h = hdr;
+          h.severity = np::log::Severity::Trace;
+        np::log::scopedMessage(log, h)(
+          "msg0", FrontendArg<char>{np::log::Severity::Trace, std::string_view("arg0"), &arg});
+        CHECK(data.call_count == 0);
+      }
+      THEN("messages with higher levels are logged") {
+          np::log::Header h = hdr;
+          h.severity = np::log::Severity::Info;
+        np::log::scopedMessage(log, h)(
+          "msg0", FrontendArg<char>{np::log::Severity::Info, std::string_view("arg0"), &arg});
+        CHECK(data.call_count == 1);
+      }
+      THEN("messages with equal levels are logged") {
+          np::log::Header h = hdr;
+          h.severity = np::log::Severity::Debug;
+        np::log::scopedMessage(log, h)(
+          "msg0", FrontendArg<char>{np::log::Severity::Debug, std::string_view("arg0"), &arg});
+        CHECK(data.call_count == 1);
+      }
+    }
+    WHEN("log level is low") {
+      log.setSeverity(np::log::Severity::Warning);
+
+      THEN("messages with lower levels are not logged") {
+          np::log::Header h = hdr;
+          h.severity = np::log::Severity::Info;
+        np::log::scopedMessage(log, h)(
+          "msg0", FrontendArg<char>{np::log::Severity::Info, std::string_view("arg0"), &arg});
+        CHECK(data.call_count == 0);
+      }
+      THEN("messages with higher levels are logged") {
+          np::log::Header h = hdr;
+          h.severity = np::log::Severity::Error;
+        np::log::scopedMessage(log, h)(
+          "msg0", FrontendArg<char>{np::log::Severity::Error, std::string_view("arg0"), &arg});
+        CHECK(data.call_count == 1);
+      }
+      THEN("messages with equal levels are logged") {
+          np::log::Header h = hdr;
+          h.severity = np::log::Severity::Warning;
+        np::log::scopedMessage(log, h)(
+          "msg0", FrontendArg<char>{np::log::Severity::Warning, std::string_view("arg0"), &arg});
+        CHECK(data.call_count == 1);
+      }
+    }
+  }
+}
+
+TEST_CASE("frontend filter argument severity") {
+  GIVEN("a logger") {
+    TestComposer<char> c;
+    std::remove_reference_t<decltype(*(c.ptr))> data;
+    c.ptr = &data;
+    char arg;
+
+    np::log::Log<decltype(c)> log(c);
+
+    WHEN("arg level is higher than message level") {
+      log.setSeverity(np::log::Severity::Debug, np::log::Severity::Warning);
+      np::log::Header h = hdr;
+      h.severity = np::log::Severity::Debug;
+
+      THEN("args with lower levels are not logged") {
+        np::log::scopedMessage(log, h)(
+          "msg0", FrontendArg<char>{np::log::Severity::Info, std::string_view("arg0"), &arg});
+        CHECK(data.call_count == 1);
+        const auto &arg = std::get<0>(data.args);
+        CHECK(!std::get<0>(arg));
+      }
+      THEN("args with higher levels are logged") {
+          np::log::Header h = hdr;
+          h.severity = np::log::Severity::Info;
+        np::log::scopedMessage(log, h)(
+          "msg0", FrontendArg<char>{np::log::Severity::Warning, std::string_view("arg0"), &arg});
+        CHECK(data.call_count == 1);
+        const auto &arg = std::get<0>(data.args);
+        CHECK(std::get<0>(arg));
+      }
+      THEN("args with equal levels are logged") {
+          np::log::Header h = hdr;
+          h.severity = np::log::Severity::Debug;
+        np::log::scopedMessage(log, h)(
+          "msg0", FrontendArg<char>{np::log::Severity::Error, std::string_view("arg0"), &arg});
+        CHECK(data.call_count == 1);
+        const auto &arg = std::get<0>(data.args);
+        CHECK(std::get<0>(arg));
+      }
+    }
+  }
+}
