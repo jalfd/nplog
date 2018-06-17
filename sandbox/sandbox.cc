@@ -9,6 +9,8 @@
 // store args jsonified
 // extend logStringify with a bool& json_literal
 
+#include "iterator.hpp"
+
 // Just for testing. In real usage, including FMT is up to the user
 #define FMT_HEADER_ONLY
 #include "../fmt/include/fmt/core.h"
@@ -37,41 +39,10 @@
 #include <xlocale.h>
 #endif
 #include <stdio.h> // for snprintf_l
+
+#include "formatters.hpp"
 namespace np {
-    namespace internal {
-        auto locale = []() {
-            static struct ScopedLoc {
-#ifdef _WIN32
-                using locale_t = _locale_t;
-#endif
-                ScopedLoc() :
-#ifdef _WIN32
-                    _create_locale(LC_ALL, "C");
-#else
-                loc(newlocale(LC_ALL_MASK, "C", 0))
-#endif
-                {}
-
-                ~ScopedLoc()
-                {
-#ifdef _WIN32
-                    _free_locale(loc);
-#else
-                    freelocale(loc);
-#endif
-                }
-
-
-                locale_t loc;
-            } locale;
-            return locale;
-        }();
-#ifdef _WIN32
-        using locale_t = _locale_t;
-        locale_t _create_locale(LC_ALL, "C");
-#endif
-    }
-    using str_out_iter = std::back_insert_iterator<std::string>; // FIXME: should be vector
+    using str_out_iter = std::back_insert_iterator<std::vector<char>>;
 
     template <typename T, size_t N>
     constexpr inline size_t arraySize(const T (&)[N]) { return N; }
@@ -84,69 +55,8 @@ namespace np {
         Error,
         All
     };
-    static const Severity min_severity = Severity::Info;
-
-    template <typename T>
-    using ArgType = std::tuple<Severity, const char*, const T&>;
-
-    template <typename T>
-    auto expandArg(Severity s, const char* name, const T& val) {
-        return ArgType<T>(s, name, val);;
-    }
-
-    template <typename T>
-    auto expandArg(Severity s, const char* name, const char *, const T& val) {
-        return expandArg(s, name, val);
-    }
-
-    template <typename T>
-    auto expandArg(const char* name, const char *, const T& val) {
-        return expandArg<T>(Severity::All, name, val);
-    }
-
-    template <typename T>
-    auto expandArg(const char* name, const T& val) {
-        return expandArg(Severity::All, name, val);
-    }
-
-    template <typename T>
-    auto logStringify(str_out_iter it, const T& val) -> typename std::enable_if<!std::is_floating_point<T>::value, str_out_iter>::type
-    {
-//    str_out_iter logStringify(str_out_iter it, const T& val) {
-#ifdef FMT_VERSION
-        return fmt::format_to(it, "{}", val);
-#else
-        /*
-        struct np_osstream : std::ostringstream {
-
-            public:
-        };
-        std::ostringstream strm;
-        strm << val;
-        return std::copy(strm.rdbuf()->pbase, strm.rdbuf()->pptr, it);
-        */
-
-        const auto str = (std::ostringstream() << val).str();
-        return std::copy(str.begin(), str.end(), it);
-#endif
-    }
-
-    template <typename T>
-        auto logStringify(str_out_iter it, const T& val) -> typename std::enable_if<std::is_floating_point<T>::value, str_out_iter>::type
-{
-    char buf[32];
-#ifdef _WIN32
-    const auto len = _snprintf_l(buf, 32, "%f", val, internal::locale.loc); // WIN32
-#elif defined(__linux__)
-    const auto len = snprintf(buf, 32, "%f", val);
-#else
-    const auto len = snprintf_l(buf, 32, internal::locale.loc, "%f", val);
-#endif
-    return std::copy_n(buf, len, it);
-}
-
-    str_out_iter logStringify(str_out_iter it, Severity s) {
-//    const char* logStringify(Severity s) {
+    template <typename OutIter>
+    OutIter logStringify(OutIter it, Severity s) {
         const char (&str)[8] = [s]() -> const char(&)[8] {
             switch (s) {
                 case Severity::Never:
@@ -166,6 +76,31 @@ namespace np {
 
         return std::copy_n(str, 8, it);
     }
+
+static const Severity min_severity = Severity::Info;
+
+template <typename T>
+using ArgType = std::tuple<Severity, const char*, const T&>;
+
+template <typename T>
+auto expandArg(Severity s, const char* name, const T& val) {
+    return ArgType<T>(s, name, val);;
+}
+
+template <typename T>
+auto expandArg(Severity s, const char* name, const char *, const T& val) {
+    return expandArg(s, name, val);
+}
+
+template <typename T>
+auto expandArg(const char* name, const char *, const T& val) {
+    return expandArg<T>(Severity::All, name, val);
+}
+
+template <typename T>
+auto expandArg(const char* name, const T& val) {
+    return expandArg(Severity::All, name, val);
+}
 }
 struct Log {};
 
@@ -202,11 +137,29 @@ struct ScopedMessage {
 
     template <typename T>
     void serializeArg(const np::ArgType<T> arg) {
-        if (std::get<0>(arg) >= np::min_severity) {
-            std::string tmp;
-            np::logStringify(std::back_inserter(tmp), std::get<2>(arg));
-            args.push_back(std::string(std::get<1>(arg)) + " := " + tmp);
+        using iter_t = np::JsonOutIterator<std::back_insert_iterator<std::vector<char>>>;
+
+        if (std::get<0>(arg) < np::min_severity) {
+            return;
         }
+
+        {
+            auto it = std::back_inserter(buffer);
+            *it++ = '"';
+        }
+        np::logStringify(iter_t(std::back_inserter(buffer)), std::get<1>(arg));
+        {
+            auto it = std::back_inserter(buffer);
+            *it++ = '"';
+            *it++ = ':';
+        }
+        // FIXME: we need to figure out whether to quote this
+        // I guess this is where traits come in
+        np::logStringify(iter_t(std::back_inserter(buffer)), std::get<2>(arg));
+        // FIXME: also need to figure out trailing comma
+
+        // non-JSON variant:
+        // args.push_back(std::string(std::get<1>(arg)) + " := " + tmp);
     }
 
     void applyArgs() {}
@@ -233,6 +186,7 @@ struct ScopedMessage {
     std::string header;
     const char* literal;
     std::vector<std::string> args;
+    std::vector<char> buffer;
 };
 
 int main() {
@@ -242,4 +196,31 @@ int main() {
     NP_ERROR("hello4", ARG("foo", 42), ARG(np::Severity::All, std::sqrt(42)));
     int bar = 99;
     NP_INFO("hello5", ARG(bar));
+}
+
+namespace { // FIXME: ad hoc stuff I haven't decided where to put
+    struct Header
+    {
+        np::Severity severity;
+        const std::string_view<char> file;
+        const std::string_view<char> line;
+    };
+
+    using ArgStr = std::pair<std::string_view<char>, std::string<view>>;
+    void write_backend(Header h, const std::string_view<char> &message, const ArgStr* first_arg, const ArgStr* last_arg);
+
+struct state {
+    std::vector<char> buffer;
+    // some kind of effective log level?
+};
+
+    template <typename Traits, typename ...Args>
+    void write(Header h, const std::string_view<char> &message, Args... args) // should be a member of log, or take a state arg, so we can have a buffer
+    {
+        // ok, now how do we format stuff in a generic way?
+        // Do we take in a trait which tells us how to format?
+
+        // stringify every argument, then pass to a backend.write(header, message, first_arg, last_arg);
+        write_backend(h, stringify(message), stringify(args)...);
+    }
 }
