@@ -13,5 +13,7 @@ rule link
 
 build $objdir/tests.o: cc tests.cc
 build $objdir/frontend-test.o: cc frontend-test.cc
+build $objdir/macros-sandbox.o: cc macros-sandbox.cc
 build $bindir/tests: link $objdir/tests.o $objdir/frontend-test.o
+build $bindir/macros: link $objdir/macros-sandbox.o
 
