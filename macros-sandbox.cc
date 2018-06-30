@@ -25,7 +25,7 @@ struct ScopedMessage {
   }
 
   template <typename ...Args>
-  ScopedMessage& operator()(std::tuple<int, const char*, Args>... args) {
+  ScopedMessage& var(std::tuple<int, const char*, Args>... args) {
       handleArg0(args...);
     return *this;
   }
@@ -37,7 +37,7 @@ struct ScopedMessage {
   }
 
   template <typename ...Args>
-  ScopedMessage& operator()(Args... args) {
+  ScopedMessage& opt(Args... args) {
       handleArg1(args...);
     return *this;
   }
@@ -150,20 +150,20 @@ void burp() {
   // Impl C
 #elif defined(V0)
   {
-    ScopedMessage({})(
+    ScopedMessage({}).var(
       std::make_tuple(1, "2 + 2", [&]() { return 2 + 2; }), std::make_tuple(2, "foo()", [&]() { return foo(); }));
   }
 
 #define SHORT(N) \
-  ScopedMessage({})(std::make_tuple(1, "S", [&]() { return S ## N{}; }));
+  ScopedMessage({}).var(std::make_tuple(1, "S", [&]() { return S ## N{}; }));
 
 #elif defined(V2)
   {
-    ScopedMessage({})("foo()", test(1) ? optional<decltype(foo())>(foo()) : optional<decltype(foo())>{}, "2+2", test(1) ? optional<decltype(2+2)>(2+2) : optional<decltype(2+2)>{});
+    ScopedMessage({}).opt("foo()", test(1) ? optional<decltype(foo())>(foo()) : optional<decltype(foo())>{}, "2+2", test(1) ? optional<decltype(2+2)>(2+2) : optional<decltype(2+2)>{});
   }
 
 #define SHORT(N) \
-  ScopedMessage({})( "S", test(1) ? optional<decltype(S ## N{})>(S ## N{}) : optional<decltype(S ## N{})>{})
+  ScopedMessage({}).opt( "S", test(1) ? optional<decltype(S ## N{})>(S ## N{}) : optional<decltype(S ## N{})>{})
 #endif
 
 #ifndef SAME
@@ -236,14 +236,14 @@ void burp() {
 #ifdef MAIN
 int main() {
   {
-    ScopedMessage({})(std::make_tuple(1, "S", [&]() { return Chatty<0>{}; }));
+    ScopedMessage({}).var(std::make_tuple(1, "S", [&]() { return Chatty<0>{}; }));
 
     {
       ScopedMessage msg({});
       if (test(1)) { msg.arg("S", Chatty<1>{}); }
     }
 
-    ScopedMessage({})("S",
+    ScopedMessage({}).opt("S",
       test(1) ? optional<decltype(Chatty<2>{})>(Chatty<2>{}) : optional<decltype(Chatty<2>{})>{});
   }
   std::cout << "fun\n";
