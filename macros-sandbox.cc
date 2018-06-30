@@ -1,11 +1,10 @@
 #include <experimental/optional>
 #include <string>
-#include <tuple>
 #include <iostream>
 
 template <typename T>
 using optional = std::experimental::optional<T>;
-extern void doIt(void*);
+extern void doIt(const void*);
 
 struct NoArg{};
 
@@ -17,15 +16,19 @@ struct ScopedMessage {
   void handleArg0() {}
 
   template <typename Head, typename ...Args>
-  void handleArg0(std::tuple<int, const char*, Head> head, std::tuple<int, const char*, Args>... args) {
-    if (test(std::get<0>(head))) {
-        auto x = std::get<2>(head)();
-        doIt(&x); }
-    handleArg0(args...);
+  void handleArg0(int level, const char*, Head head, Args... args) {
+      std::cout << "handlearg0\n";
+      if (test(level)) {
+        std::cout << "doing it\n";
+        const auto &it = head();
+        doIt(&it);
+      }
+      handleArg0(args...);
   }
 
   template <typename ...Args>
-  ScopedMessage& var(std::tuple<int, const char*, Args>... args) {
+  ScopedMessage& var(Args... args) {
+      std::cout << "var\n";
       handleArg0(args...);
     return *this;
   }
@@ -84,7 +87,6 @@ struct Chatty {
     Chatty& operator=(Chatty&&) { ++moveass; }
 
     void hello(){
-        abort();
     }
 };
 
@@ -151,11 +153,11 @@ void burp() {
 #elif defined(V0)
   {
     ScopedMessage({}).var(
-      std::make_tuple(1, "2 + 2", [&]() { return 2 + 2; }), std::make_tuple(2, "foo()", [&]() { return foo(); }));
+      1, "2 + 2", [&]() { return 2 + 2; }, 2, "foo()", [&]() { return foo(); });
   }
 
 #define SHORT(N) \
-  ScopedMessage({}).var(std::make_tuple(1, "S", [&]() { return S ## N{}; }));
+  ScopedMessage({}).var(1, "S", [&]() { return S ## N{}; });
 
 #elif defined(V2)
   {
@@ -236,7 +238,7 @@ void burp() {
 #ifdef MAIN
 int main() {
   {
-    ScopedMessage({}).var(std::make_tuple(1, "S", [&]() { return Chatty<0>{}; }));
+    ScopedMessage({}).var(1, "S", [&]() { return Chatty<0>{}; });
 
     {
       ScopedMessage msg({});
@@ -280,6 +282,6 @@ void flumph() {
 // ok, now ditch all the log specific stuff, and just try to set up the impls. Then we can mess with
 // compile times and look at side effects more closely
 #ifdef MAIN
-void doIt(void*) {}
+void doIt(const void*) {}
 bool test(int) { return true; }
 #endif
