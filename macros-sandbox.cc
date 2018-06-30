@@ -14,37 +14,33 @@ bool test(int level);
 struct ScopedMessage {
   ScopedMessage(std::string) {}
 
-  void handleArg() {}
-#if defined(V0)
+  void handleArg0() {}
 
   template <typename Head, typename ...Args>
-  void handleArg(std::tuple<int, const char*, Head> head, std::tuple<int, const char*, Args>... args) {
+  void handleArg0(std::tuple<int, const char*, Head> head, std::tuple<int, const char*, Args>... args) {
     if (test(std::get<0>(head))) {
         auto x = std::get<2>(head)();
         doIt(&x); }
-    handleArg(args...);
+    handleArg0(args...);
   }
 
   template <typename ...Args>
   ScopedMessage& operator()(std::tuple<int, const char*, Args>... args) {
-      handleArg(args...);
+      handleArg0(args...);
     return *this;
   }
-#endif
-#if defined(V2)
+  void handleArg1() {}
   template <typename Head, typename ...Args>
-  void handleArg(std::tuple<const char*, optional<Head>> head, std::tuple<const char*, optional<Args>>... args) {
-    if (std::get<1>(head)) { doIt(&head); }
-    handleArg(args...);
+  void handleArg1(const char*, optional<Head> head, Args... args) {
+    if (head) { doIt(&head); }
+    handleArg1(args...);
   }
 
   template <typename ...Args>
-  ScopedMessage& operator()(std::tuple<const char*, optional<Args>>... args) {
-      handleArg(args...);
+  ScopedMessage& operator()(Args... args) {
+      handleArg1(args...);
     return *this;
   }
-#endif
-#ifdef V1
 //  template <typename Func>
 //  ScopedMessage& arg(int level, const char* name, Func f) {
 //    if (test(level)) { f(); }
@@ -60,7 +56,6 @@ struct ScopedMessage {
   ScopedMessage& arg(const char* name, NoArg) {
     return *this;
   }
-#endif
 };
 
 template <int I>
@@ -83,10 +78,14 @@ struct Chatty {
 
     Chatty() {++ctor; }
     ~Chatty() {++dtor; }
-    Chatty(const Chatty&) {++copyctor; }
-    Chatty(Chatty&&) {++movector; }
-    Chatty& operator=(const Chatty&) {++copyass; }
-    Chatty& operator=(Chatty&&) {++moveass; }
+    Chatty(const Chatty&) {++copyctor; hello(); }
+    Chatty(Chatty&&) {++movector; hello(); }
+    Chatty& operator=(const Chatty&) { ++copyass; }
+    Chatty& operator=(Chatty&&) { ++moveass; }
+
+    void hello(){
+        abort();
+    }
 };
 
 int foo() { return 42; }
@@ -160,12 +159,11 @@ void burp() {
 
 #elif defined(V2)
   {
-    ScopedMessage({})(
-      std::make_tuple("foo()", test(1) ? optional<decltype(foo())>(foo()) : optional<decltype(foo())>{}));
+    ScopedMessage({})("foo()", test(1) ? optional<decltype(foo())>(foo()) : optional<decltype(foo())>{}, "2+2", test(1) ? optional<decltype(2+2)>(2+2) : optional<decltype(2+2)>{});
   }
 
 #define SHORT(N) \
-  ScopedMessage({})( std::make_tuple("S", test(1) ? optional<decltype(S ## N{})>(S ## N{}) : optional<decltype(S ## N{})>{}))
+  ScopedMessage({})( "S", test(1) ? optional<decltype(S ## N{})>(S ## N{}) : optional<decltype(S ## N{})>{})
 #endif
 
 #ifndef SAME
@@ -235,6 +233,7 @@ void burp() {
 #endif
 }
 
+#ifdef MAIN
 int main() {
   {
     ScopedMessage({})(std::make_tuple(1, "S", [&]() { return Chatty<0>{}; }));
@@ -244,8 +243,8 @@ int main() {
       if (test(1)) { msg.arg("S", Chatty<1>{}); }
     }
 
-    ScopedMessage({})(std::make_tuple("S",
-      test(1) ? optional<decltype(Chatty<2>{})>(Chatty<2>{}) : optional<decltype(Chatty<2>{})>{}));
+    ScopedMessage({})("S",
+      test(1) ? optional<decltype(Chatty<2>{})>(Chatty<2>{}) : optional<decltype(Chatty<2>{})>{});
   }
   std::cout << "fun\n";
   Chatty<0>::dump();
@@ -254,6 +253,7 @@ int main() {
   std::cout << "opt\n";
   Chatty<2>::dump();
 }
+#endif
 
 #if 0
 #ifdef V1
