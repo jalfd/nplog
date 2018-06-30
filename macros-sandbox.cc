@@ -44,11 +44,6 @@ struct ScopedMessage {
       handleArg1(args...);
     return *this;
   }
-//  template <typename Func>
-//  ScopedMessage& arg(int level, const char* name, Func f) {
-//    if (test(level)) { f(); }
-//    return *this;
-//  }
 
   template <typename T>
   ScopedMessage& arg(const char* name, T result) {
@@ -59,6 +54,10 @@ struct ScopedMessage {
   ScopedMessage& arg(const char* name, NoArg) {
     return *this;
   }
+
+  using BufIter = char*;
+  BufIter putIter() { return nullptr; }
+  void putEnd(BufIter) {}
 };
 
 template <int I>
@@ -123,11 +122,19 @@ struct S27 {};
 struct S28 {};
 struct S29 {};
 
+template <typename T>
+bool serialize(ScopedMessage m, const char* name, const T& expr);
+void test_instantiate() {
+#if defined(V0)
+  {
+    ScopedMessage({}).var(
+      1, "2 + 2", [&]() { return 2 + 2; }, 2, "foo()", [&]() { return foo(); });
+  }
 
-void burp() {
-  //    LOG("hello", ARG(2+2), ARG(foo()));
+#define SHORT(N) \
+  ScopedMessage({}).var(1, "S", [&]() { return S ## N{}; });
 
-#ifdef V1
+#elif defined(V1)
   // Impl A
   {
     ScopedMessage msg({});
@@ -142,23 +149,6 @@ void burp() {
 #define SHORT(N) \
   { ScopedMessage msg({}); if (test(1)) { msg.arg("S", S ## N{}); } }
 
-#elif defined(BORKED)
-  // Impl B: no-go: differing types for filtered-out args
-  {
-//      ScopedMessage({})
-//      .arg("2 + 2", test(1) ? 2 + 2 : NoArg{})
-//      .arg("foo()", test(2) ? foo() : NoArg{});
-  }
-  // Impl C
-#elif defined(V0)
-  {
-    ScopedMessage({}).var(
-      1, "2 + 2", [&]() { return 2 + 2; }, 2, "foo()", [&]() { return foo(); });
-  }
-
-#define SHORT(N) \
-  ScopedMessage({}).var(1, "S", [&]() { return S ## N{}; });
-
 #elif defined(V2)
   {
     ScopedMessage({}).opt("foo()", test(1) ? optional<decltype(foo())>(foo()) : optional<decltype(foo())>{}, "2+2", test(1) ? optional<decltype(2+2)>(2+2) : optional<decltype(2+2)>{});
@@ -166,6 +156,19 @@ void burp() {
 
 #define SHORT(N) \
   ScopedMessage({}).opt( "S", test(1) ? optional<decltype(S ## N{})>(S ## N{}) : optional<decltype(S ## N{})>{})
+#elif defined(V3)
+  {
+    ScopedMessage log({});
+    (void)(test(1) ? serialize(log, "2 + 2", 2 + 2) : false), (test(1) ? serialize(log, "foo()", foo()) : false);
+  }
+
+#define SHORT(N) \
+  { \
+    ScopedMessage log({}); \
+    (void)(test(1) ? serialize(log, "S", S ## N{}) : false); \
+  }
+
+//#error Integrate with the others
 #endif
 
 #ifndef SAME
@@ -247,6 +250,12 @@ int main() {
 
     ScopedMessage({}).opt("S",
       test(1) ? optional<decltype(Chatty<2>{})>(Chatty<2>{}) : optional<decltype(Chatty<2>{})>{});
+
+    {
+        ScopedMessage log({}); \
+            (void)(test(1) ? serialize(log, "S", Chatty<3>{}) : false); \
+
+    }
   }
   std::cout << "fun\n";
   Chatty<0>::dump();
@@ -254,10 +263,12 @@ int main() {
   Chatty<1>::dump();
   std::cout << "opt\n";
   Chatty<2>::dump();
+  std::cout << "new\n";
+  Chatty<3>::dump();
 }
 #endif
 
-#if 0
+#if MACROSTEST
 #ifdef V1
 #define ARG(level, name, value) if (test(level)) { sm.arg(name, value); }
 #define LOG(msg, ...) \
@@ -271,17 +282,17 @@ int main() {
 #ifdef V0
 #define LOG ScopedMessage({})
 #endif
-#endif
 
 void flumph() {
     // fails because of comma between args. There might be some clever way to work around, but....
     //    LOG("hello", ARG(1, "2 + 2", 2 + 2), ARG(3, "foo()", foo()));
 
 }
+#endif
 
 // ok, now ditch all the log specific stuff, and just try to set up the impls. Then we can mess with
 // compile times and look at side effects more closely
 #ifdef MAIN
 void doIt(const void*) {}
-bool test(int) { return true; }
+bool test(int i) { return i < 5; }
 #endif
