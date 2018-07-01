@@ -1,63 +1,26 @@
-#include <experimental/optional>
 #include <string>
 #include <iostream>
-
-template <typename T>
-using optional = std::experimental::optional<T>;
-extern void doIt(const void*);
-
-struct NoArg{};
-
-bool test(int level);
 
 struct ScopedMessage {
   ScopedMessage(std::string) {}
 
-  void handleArg0() {}
-
-  template <typename Head, typename ...Args>
-  void handleArg0(int level, const char*, Head head, Args... args) {
-      std::cout << "handlearg0\n";
-      if (test(level)) {
-        std::cout << "doing it\n";
-        const auto &it = head();
-        doIt(&it);
-      }
-      handleArg0(args...);
-  }
-
-  template <typename ...Args>
-  ScopedMessage& var(Args... args) {
-      std::cout << "var\n";
-      handleArg0(args...);
-    return *this;
-  }
-  void handleArg1() {}
-  template <typename Head, typename ...Args>
-  void handleArg1(const char*, optional<Head> head, Args... args) {
-    if (head) { doIt(&head); }
-    handleArg1(args...);
-  }
-
-  template <typename ...Args>
-  ScopedMessage& opt(Args... args) {
-      handleArg1(args...);
-    return *this;
-  }
-
-  template <typename T>
-  ScopedMessage& arg(const char* name, T result) {
-    doIt(&result);
-    return *this;
-  }
-
-  ScopedMessage& arg(const char* name, NoArg) {
-    return *this;
-  }
-
   using BufIter = char*;
   BufIter putIter() { return nullptr; }
   void putEnd(BufIter) {}
+
+  // helpers to be used by args:
+  
+  bool testArg(int i); // test against log's settings
+  bool testArg(const char* = nullptr); // assume arg uses the same debug level as the log message
+
+  template <typename T>
+      bool serialize(const char* name, const T& expr);
+
+  const char* getName(const char* name, const char*) { return name; }
+  const char* getName(int, const char* name) { return name; }
+
+private:
+  int level;
 };
 
 template <int I>
@@ -80,16 +43,11 @@ struct Chatty {
 
     Chatty() {++ctor; }
     ~Chatty() {++dtor; }
-    Chatty(const Chatty&) {++copyctor; hello(); }
-    Chatty(Chatty&&) {++movector; hello(); }
+    Chatty(const Chatty&) {++copyctor; }
+    Chatty(Chatty&&) {++movector; }
     Chatty& operator=(const Chatty&) { ++copyass; }
     Chatty& operator=(Chatty&&) { ++moveass; }
-
-    void hello(){
-    }
 };
-
-int foo() { return 42; }
 
 struct S0 {};
 struct S1 {};
@@ -122,53 +80,24 @@ struct S27 {};
 struct S28 {};
 struct S29 {};
 
-template <typename T>
-bool serialize(ScopedMessage m, const char* name, const T& expr);
+int foo() { return 42; }
+
 void test_instantiate() {
-#if defined(V0)
+#if defined(V3)
   {
-    ScopedMessage({}).var(
-      1, "2 + 2", [&]() { return 2 + 2; }, 2, "foo()", [&]() { return foo(); });
-  }
-
-#define SHORT(N) \
-  ScopedMessage({}).var(1, "S", [&]() { return S ## N{}; });
-
-#elif defined(V1)
-  // Impl A
-  {
-    ScopedMessage msg({});
-    if (test(1)) { msg.arg("2 + 2", 2 + 2); }
-    if (test(2)) { msg.arg("foo()", foo()); }
-  }
-  {
-    ScopedMessage msg({});
-    if (test(1)) { msg.arg("S0", S0{}); }
-  }
-
-#define SHORT(N) \
-  { ScopedMessage msg({}); if (test(1)) { msg.arg("S", S ## N{}); } }
-
-#elif defined(V2)
-  {
-    ScopedMessage({}).opt("foo()", test(1) ? optional<decltype(foo())>(foo()) : optional<decltype(foo())>{}, "2+2", test(1) ? optional<decltype(2+2)>(2+2) : optional<decltype(2+2)>{});
-  }
-
-#define SHORT(N) \
-  ScopedMessage({}).opt( "S", test(1) ? optional<decltype(S ## N{})>(S ## N{}) : optional<decltype(S ## N{})>{})
-#elif defined(V3)
-  {
-    ScopedMessage log({});
-    (void)(test(1) ? serialize(log, "2 + 2", 2 + 2) : false), (test(1) ? serialize(log, "foo()", foo()) : false);
+    ScopedMessage sm({});
+    (void)(sm.testArg(1) ? sm.serialize("2 + 2", 2 + 2) : false), (sm.testArg(1) ? sm.serialize("foo()", foo()) : false);
   }
 
 #define SHORT(N) \
   { \
-    ScopedMessage log({}); \
-    (void)(test(1) ? serialize(log, "S", S ## N{}) : false); \
+    ScopedMessage sm({}); \
+    (void)(sm.testArg(1) ? sm.serialize("S", S ## N{}) : false); \
   }
 
-//#error Integrate with the others
+#else
+#define SHORT(N) \
+  (void)S ## N{};
 #endif
 
 #ifndef SAME
@@ -241,58 +170,41 @@ void test_instantiate() {
 #ifdef MAIN
 int main() {
   {
-    ScopedMessage({}).var(1, "S", [&]() { return Chatty<0>{}; });
-
-    {
-      ScopedMessage msg({});
-      if (test(1)) { msg.arg("S", Chatty<1>{}); }
-    }
-
-    ScopedMessage({}).opt("S",
-      test(1) ? optional<decltype(Chatty<2>{})>(Chatty<2>{}) : optional<decltype(Chatty<2>{})>{});
-
-    {
-        ScopedMessage log({}); \
-            (void)(test(1) ? serialize(log, "S", Chatty<3>{}) : false); \
-
-    }
+    ScopedMessage sm({});
+    (void) (sm.testArg(1) ? sm.serialize("S", Chatty<3>{}) : false);
   }
-  std::cout << "fun\n";
-  Chatty<0>::dump();
-  std::cout << "safe\n";
-  Chatty<1>::dump();
-  std::cout << "opt\n";
-  Chatty<2>::dump();
-  std::cout << "new\n";
   Chatty<3>::dump();
 }
 #endif
 
 #if MACROSTEST
-#ifdef V1
-#define ARG(level, name, value) if (test(level)) { sm.arg(name, value); }
+
+#define ARG3(arg0, arg1, arg2) ((sm.testArg(arg0)) ? sm.serialize(arg1, arg2) : false)
+#define ARG2(arg0, arg1) ((sm.testArg(arg0)) ? sm.serialize(sm.getName(arg0, #arg1), arg1) : false)
+#define ARG1(arg0) ((sm.testArg()) ? sm.serialize(#arg0, arg0) : false)
+
+#define INTERNAL_NP_VAR_MACRO_SELECTOR(_1,_2,_3,NAME,...) NAME
+#define ARG(...) INTERNAL_NP_VAR_MACRO_SELECTOR(__VA_ARGS__, ARG3, ARG2, ARG1)(__VA_ARGS__)
+
+
+//#define ARG(level, name, value) ((test(level)) ? serialize(sm, name, value) : false)
 #define LOG(msg, ...) \
   { \
     ScopedMessage sm({}); \
-    __VA_ARGS__ \
+    (void) __VA_ARGS__ ; \
   }
 
-#endif
-
-#ifdef V0
-#define LOG ScopedMessage({})
-#endif
-
-void flumph() {
-    // fails because of comma between args. There might be some clever way to work around, but....
-    //    LOG("hello", ARG(1, "2 + 2", 2 + 2), ARG(3, "foo()", foo()));
-
+int bar(int x, int y) { return x + y}
+void macros() {
+    LOG("hello", ARG(1, "2 + 2", 2 + 2), ARG(3, "foo()", foo()), ARG(3, "bar()", bar(3,4)), ARG(3, bar(3,4)), ARG("name", bar(3,4)));
 }
 #endif
 
-// ok, now ditch all the log specific stuff, and just try to set up the impls. Then we can mess with
-// compile times and look at side effects more closely
 #ifdef MAIN
-void doIt(const void*) {}
-bool test(int i) { return i < 5; }
+bool ScopedMessage::testArg(int i) { return i < 5; }
+bool ScopedMessage::testArg(const char*) { return testArg(level);} // assume same debug level as the log message
+
+template <typename T>
+bool ScopedMessage::serialize(const char* name, const T& expr){ return true;}
 #endif
+
