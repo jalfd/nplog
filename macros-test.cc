@@ -10,7 +10,7 @@ namespace {
 
       inline bool testArg(int i) { return i < level_threshold; };
       inline bool testArg(const char* = nullptr) {
-          return testArg(level);
+          return testArg(default_level);
       }
 
       template <typename T>
@@ -24,7 +24,7 @@ namespace {
 
       static inline std::string msg;
       static inline int level_threshold = 5;
-      static inline int level = 3;
+      static inline int default_level = 3;
       static inline std::function<void(const char*, const void*)> serialize_callback;
     };
   } // namespace np
@@ -36,7 +36,7 @@ TEST_CASE("macros") {
   int calls = 0;
   np::ScopedMessage::serialize_callback = nullptr;
   np::ScopedMessage::level_threshold = 5;
-  np::ScopedMessage::level = 3;
+  np::ScopedMessage::default_level = 3;
 
   SECTION("No args") {
     np::ScopedMessage::serialize_callback = [&](auto name, const void* expr) { ++calls; };
@@ -123,7 +123,7 @@ TEST_CASE("macros") {
       CHECK(*static_cast<const char*>(expr) == 'x');
     };
 
-    np::ScopedMessage::level = 5;
+    np::ScopedMessage::default_level = 5;
     LOG("hello8", ARG('x'));
     CHECK(calls == 0);
     CHECK(np::ScopedMessage::msg == "hello8");
