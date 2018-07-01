@@ -17,7 +17,4 @@
 #define LOG(...) \
     LOG_IMPL(__VA_ARGS__, (void)nullptr)
 
-//#define INTERNAL_NP_LOG_MACRO_SELECTOR(_1, NAME,...) NAME
-//#define LOG(...) INTERNAL_NP_LOG_MACRO_SELECTOR(__VA_ARGS__, ARG1)(__VA_ARGS__)
-
 #endif
