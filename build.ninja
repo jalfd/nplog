@@ -12,9 +12,10 @@ rule link
   command = clang++ $ldflags $in -o $out
 
 build $objdir/tests.o: cc tests.cc
-build $objdir/frontend-test.o: cc frontend-test.cc
 build $objdir/macros-test.o: cc macros-test.cc
+build $objdir/ScopedMessage-test.o: cc ScopedMessage-test.cc
+build $bindir/tests: link $objdir/tests.o $objdir/macros-test.o $objdir/ScopedMessage-test.o
+
 build $objdir/macros-sandbox.o: cc macros-sandbox.cc
-build $bindir/tests: link $objdir/tests.o $objdir/frontend-test.o $objdir/macros-test.o
 build $bindir/macros: link $objdir/macros-sandbox.o
 
