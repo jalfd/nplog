@@ -7,43 +7,28 @@
 // either provide the one we have, or create a new one
 // Also, need a reentrancy test then
 
-namespace {
-  namespace np {
+namespace np {
+  namespace {
     struct Log {
       bool testMessage(int level) { return level < 5; }
-
-      // TODO: not needed in this test case, but implement where needed
-      // caller should treat the buffer as an opaque type
-      using buffer_type = std::vector<char>;
-      // caller must be able to go "give me a buffer"
-      buffer_type messageBuffer();
-      // caller must be able to go "please serialize this for me and put it in this buffer"
-      template <typename T>
-      void serialize(const char* name, const T& expr, buffer_type& buffer);
-      // caller must be able to go "ok, flush this message buffer (and take it back if you want it)
-      void submitMessage(buffer_type buffer);
     };
 
     // Mock class for testing
     struct ScopedMessage {
       // mocked class interface
-      ScopedMessage(const char* m) {
-          msg = m;
-          ++message_counter;
+      ScopedMessage(const char*, int, int, const char* m) {
+        msg = m;
+        ++message_counter;
       }
 
       inline bool testArg(int i) { return i < level_threshold; };
       inline bool testArg(const char* = nullptr) { return testArg(default_level); }
 
       template <typename T>
-      bool serialize(const char* name, const T& expr) {
+      bool addArg(const char* name, const T& expr) {
         serialize_callback(name, &expr);
         return true;
       }
-
-      // should be outside the class, so it doesn't need to be mocked
-      const char* getName(const char* name, const char*) { return name; }
-      const char* getName(int, const char* name) { return name; }
 
       // for testability only
       static inline std::string msg;
@@ -52,8 +37,8 @@ namespace {
       static inline std::function<void(const char*, const void*)> serialize_callback;
       static inline int message_counter = 0;
     };
-  } // namespace np
-} // namespace
+  } // namespace
+} // namespace np
 
 int foo(int i, int j) { return i + j; }
 

@@ -5,7 +5,7 @@ struct LogType; //TODO: parametrize this properly
 // template <typename LogType>
 namespace np {
   struct ScopedMessage {
-    ScopedMessage(const char*) {}
+      ScopedMessage(const char* file, int line, int level, const char* m){}
 
     using BufIter = char*;
     BufIter putIter() { return nullptr; }
@@ -17,11 +17,7 @@ namespace np {
     inline bool testArg(const char* = nullptr) { return testArg(level); }
 
     template <typename T>
-    inline bool serialize(const char* name, const T& expr){ return true;}
-
-    const char* getName(const char* name, const char*) { return name; }
-    const char* getName(int, const char* name) { return name; }
-
+    inline bool addArg(const char* name, const T& expr){ return true;}
   private:
     int level;
 //    LogType* log;
