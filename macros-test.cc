@@ -11,7 +11,7 @@ namespace np {
     // Mock class for testing
     struct ScopedMessage {
       // mocked class interface
-      ScopedMessage(const char*, int, int, const char* m) {
+      ScopedMessage(Log&, const char*, int, int, const char* m) {
         msg = m;
         ++message_counter;
       }
