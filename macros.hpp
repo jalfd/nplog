@@ -18,7 +18,7 @@ namespace np::log::internal {
 // (TLS-)global object.
 #define LOG_IMPL(log, level, msg, ...) \
   if (log.testMessage(level)) { \
-    ::np::ScopedMessage sm(__FILE__, __LINE__, level, msg); \
+    ::np::ScopedMessage sm(log, __FILE__, __LINE__, level, msg); \
     (void) __VA_ARGS__; \
   }
 
