@@ -1,6 +1,8 @@
 #include <string>
 #include <iostream>
 
+// just throw the version with main into ninja. We don't really need this file any more, but just to keep it alive for now
+#define MAIN 1
 struct ScopedMessage {
   ScopedMessage(std::string) {}
 
