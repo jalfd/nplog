@@ -98,6 +98,6 @@ TEST_CASE("ScopedMessage") {
     }
     CHECK(np::Log::buffersRequested == 1);
     CHECK(output == "|0|0|>name|42");
-    // arg should be passed through formatter in addition to the serializer that other parts go through
+    // TODO: arg should be passed through formatter in addition to the serializer that other parts go through
   }
 }
