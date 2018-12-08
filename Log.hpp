@@ -5,9 +5,6 @@ namespace np {
   struct Log {
     bool testMessage(int level);
 
-    // TODO: not needed in this test case, but implement where needed
-    // caller should treat the buffer as an opaque type
-    using buffer_type = std::vector<char>;
     // caller must be able to go "give me a buffer"
     buffer_type messageBuffer();
     // caller must be able to go "please serialize this for me and put it in this buffer"
