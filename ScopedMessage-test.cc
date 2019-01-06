@@ -10,60 +10,64 @@ bool operator==(const std::vector<char>& result, const std::string& expected);
 static std::vector<char> output;
 namespace np {
   namespace {
-    template <typename BufferIter>
-    struct Serializer {
-      Serializer(BufferIter it) : iter(it) {}
-      void header(std::string_view file, int line, int level, std::string_view msg) {
-          std::ostringstream ostr;
-          ostr << file << '|' << line << '|' << level << '|' << msg;
-          const auto str = ostr.str();
-          std::copy(str.begin(), str.end(), iter);
-      }
+    struct MockSerializer {
+      using buffer_type = std::vector<char>;
+      explicit MockSerializer(buffer_type& buffer) : buffer(buffer) {}
 
-      void arg(std::string_view name, std::string_view value) {
-          std::ostringstream ostr;
-          ostr << '>' << name << '|' << value;
-          const auto str = ostr.str();
-          std::copy(str.begin(), str.end(), iter);
-      }
-      void arg(std::string_view name, double value) {
-          std::ostringstream ostr;
-          ostr << '>' << name << '|' << value;
-          const auto str = ostr.str();
-          std::copy(str.begin(), str.end(), iter);
-      }
-      void arg(std::string_view name, bool value) {
-          std::ostringstream ostr;
-          ostr << '>' << name << '|' << value;
-          const auto str = ostr.str();
-          std::copy(str.begin(), str.end(), iter);
-      }
-      void arg_literal(std::string_view name, std::string_view value) {
-          std::ostringstream ostr;
-          ostr << '>' << name << '|' << value;
-          const auto str = ostr.str();
-          std::copy(str.begin(), str.end(), iter);
-      }
+      void prologue(std::string_view, int line, int level, std::string_view msg);
+      void epilogue();
 
-      BufferIter iter;
+      void writeNumber(int val);
+      void writeNumber(unsigned int val);
+      void writeNumber(int64_t val);
+      void writeNumber(uint64_t val);
+      void writeNumber(double val);
+
+      void writeString(std::string_view val);
+      void writeBool(bool val);
+      void writeRawJson(std::string_view val);
+
+    private:
+      buffer_type& buffer;
     };
 
-    struct Log {
-      static inline int buffersRequested = 0;
+  struct Log {
+    // FIXME: should this be wrapped in a unique ptr? It'd be an extra template instantiation, but would let us ensure no copies are accidentally made
+    using buffer_type = std::vector<char>;
+    using serializer_type = Serializer<buffer_type>;
 
+    bool testMessage(int level);
+
+    // caller must be able to go "give me a buffer"
+    buffer_type acquireBuffer();
+
+    // caller must be able to go "ok, flush this message buffer (and take it back if you want it)
+    void submitMessage(buffer_type buffer);
+    // caller must be able to return ownership of the buffer
+    void releaseBuffer(buffer_type buffer);
+
+  private:
+    std::mutex buffer_mutex;
+    std::vector<buffer_type> buffers;
+  };
+    struct MockLog {
       using buffer_type = std::vector<char>;
-      using serializer_type = Serializer<std::back_insert_iterator<std::vector<char>>>;
+      using serializer_type = MockSerializer<std::back_insert_iterator<std::vector<char>>>;
 
-      buffer_type messageBuffer() {
-          ++buffersRequested;
-          return std::vector<char>();
+      bool testMessage(int level);
+
+      // caller must be able to go "give me a buffer"
+      buffer_type acquireBuffer() {
+        ++buffersRequested;
+        return std::vector<char>();
       }
 
-      template <typename T>
-      void serialize(const char* name, const T& expr, buffer_type& buffer);
+      // caller must be able to go "ok, flush this message buffer (and take it back if you want it)
       void submitMessage(buffer_type buffer) { output = buffer; }
+      // caller must be able to return ownership of the buffer
+      void releaseBuffer(buffer_type buffer);
 
-      uint32_t arg_threshold() const { return 0; }
+      static inline int buffersRequested = 0;
     };
 
   } // namespace
@@ -99,5 +103,9 @@ TEST_CASE("ScopedMessage") {
     CHECK(np::Log::buffersRequested == 1);
     CHECK(output == "|0|0|>name|42");
     // TODO: arg should be passed through formatter in addition to the serializer that other parts go through
+  }
+
+  SECTION("TODO: Somehow ensure that if I define a format specialization after defining ScopedMessage, the specialization is picked up") {
+
   }
 }
