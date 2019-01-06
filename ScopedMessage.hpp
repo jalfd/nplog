@@ -2,6 +2,7 @@
 #define NP_LOG_SCOPEDMESSAGE_HPP
 
 #include <string_view>
+#include "Log.hpp"
 
 // TODO: what happens in case of reentrancy?
 // I guess it could just be a protocol where message ctor goes "can I have a buffer please?", and we
@@ -16,8 +17,8 @@ namespace np {
       , argThreshold(log.argThreshold())
       , scratch_buffer(log.acquireBuffer())
       , message_buffer(log.acquireBuffer())
-      , message_level(level)
-      , serializer(message_buffer) {
+      , serializer(message_buffer)
+      , message_level(level) {
       serializer.prologue(file, line, level, m);
     }
 

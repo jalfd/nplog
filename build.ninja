@@ -11,10 +11,11 @@ rule link
   description = linking C++ file $out
   command = clang++ $ldflags $in -o $out
 
+build $objdir/Log.o: cc Log.cc
 build $objdir/tests.o: cc tests.cc
 build $objdir/macros-test.o: cc macros-test.cc
 build $objdir/ScopedMessage-test.o: cc ScopedMessage-test.cc
-build $bindir/tests: link $objdir/tests.o $objdir/macros-test.o $objdir/ScopedMessage-test.o
+build $bindir/tests: link $objdir/tests.o $objdir/macros-test.o $objdir/ScopedMessage-test.o $objdir/Log.o
 
 build $objdir/macros-sandbox.o: cc macros-sandbox.cc
 build $bindir/macros: link $objdir/macros-sandbox.o
