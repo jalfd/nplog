@@ -32,7 +32,7 @@ namespace np {
     template <typename T>
     bool addArg(const char* name, T&& expr) {
       serializer.writeKey(name);
-      np::format(std::forward<T>(expr), scratch_buffer, serializer);
+      format<T>(std::forward<T>(expr), scratch_buffer, serializer);
       return true;
     }
 
