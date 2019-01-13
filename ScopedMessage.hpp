@@ -15,7 +15,6 @@ namespace np {
     ScopedMessage(LogType& log, const char* file, int line, int level, const char* m)
       : log(log)
       , argThreshold(log.argThreshold())
-      , scratch_buffer(log.acquireBuffer())
       , message_buffer(log.acquireBuffer())
       , serializer(message_buffer)
       , message_level(level) {
@@ -24,15 +23,14 @@ namespace np {
 
     ~ScopedMessage() {
       serializer.epilogue();
-      log.submitMessage(message_buffer);
-      log.releaseBuffer(message_buffer);
-      log.releaseBuffer(scratch_buffer);
+      log.submitMessage(std::move(message_buffer));
+      log.releaseBuffer(std::move(message_buffer));
     }
 
     template <typename T>
     bool addArg(const char* name, T&& expr) {
       serializer.writeKey(name);
-      format<T>(std::forward<T>(expr), scratch_buffer, serializer);
+      format<T>(std::forward<T>(expr), serializer);
       return true;
     }
 
@@ -42,7 +40,6 @@ namespace np {
   private:
     LogType& log;
     uint32_t argThreshold;
-    typename LogType::buffer_type scratch_buffer;
     typename LogType::buffer_type message_buffer;
     typename LogType::serializer_type serializer;
 
