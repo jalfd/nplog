@@ -51,7 +51,7 @@ namespace np {
   // TODO: think about handling standard types as non-template overloads, so we can push them to .cc
   // files
   template <typename T>
-  void format(T&& val, Serializer::buffer_type&, Serializer& srl) {
+  void format(T&& val, Serializer& srl) {
     srl.write(val);
   }
 
