@@ -99,14 +99,16 @@ void printOps() { // TODO: shouldn't need this
 namespace TestTypes {
   struct Foo {};
 
-  void format(const Foo& val, MockSerializer& srl) { srl.write("Foo"); }
-
   struct Bar {};
 
 } // namespace TestTypes
 template <>
+void format<TestTypes::Foo>(TestTypes::Foo&& val, MockSerializer& srl) {
+//    srl.write(std::string_view("Foo"));
+}
+template <>
 void format<TestTypes::Bar>(TestTypes::Bar&& val, MockSerializer& srl) {
-    srl.write("Bar");
+//    srl.write(std::string_view("Bar"));
 }
 
 TEST_CASE("ScopedMessage") {
