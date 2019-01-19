@@ -19,46 +19,53 @@ struct MockBuffer {
     const int id;
 };
 
-struct MockSerializer {
+struct MockSerializer : np::Serializer {
     using buffer_type = MockBuffer;
-    explicit MockSerializer(buffer_type& buffer) {
-        ops.emplace_back("ctor", buffer.id);
+    explicit MockSerializer(buffer_type* buffer) : np::Serializer(nullptr) {
+        ops.emplace_back("ctor", buffer->id);
     }
     ~MockSerializer() {
         ops.emplace_back("dtor", nullptr);
     }
 
-    void prologue(std::string_view file, int line, int level, std::string_view msg) {
+    void prologue(std::string_view file, int line, int level, std::string_view msg) override {
         ops.emplace_back("prologue", std::make_tuple(file, line, level, msg));
     }
 
-    void epilogue() {
+    void epilogue() override {
         ops.emplace_back("epilogue", nullptr);
     }
 
-    void writeKey(std::string_view name) {
+    void writeKey(std::string_view name) override {
         ops.emplace_back("writeKey", name);
     }
 
-    void write(double val) {
+    void write(double val) override {}
+    void write(int val) override {}
+    void write(unsigned int val) override {}
+    void write(int64_t val) override {}
+    void write(uint64_t val) override {}
+    void write(std::string_view val) override {
         ops.emplace_back("write", val);
     }
-    void write(int val) {
-        ops.emplace_back("write", val);
-    }
-    void write(unsigned int val);
-    void write(int64_t val);
-    void write(uint64_t val);
-    void write(std::string_view val);
-    void write(bool val);
-    void writeRawJson(std::string_view val);
+    void write(bool val) override {}
+    void writeRawJson(std::string_view val) override {}
     private:
 };
 
-// ADL to the rescue
-template <typename T>
-void format(T&& val, MockSerializer& srl) {
-    srl.write(-val);
+namespace test1 {
+    struct Foo {};
+}
+
+namespace np {
+  template <>
+  struct Formatter<test1::Foo>
+  {
+      void operator()(test1::Foo&& val, Serializer& srl)
+      {
+          srl.write(std::string_view("Foo"));
+      }
+  };
 }
 
 namespace {
@@ -94,21 +101,6 @@ void printOps() { // TODO: shouldn't need this
   for (const auto& op : ops) {
     std::cout << std::get<0>(op) << ": " << std::get<1>(op).type().name() << '\n';
   }
-}
-
-namespace TestTypes {
-  struct Foo {};
-
-  struct Bar {};
-
-} // namespace TestTypes
-template <>
-void format<TestTypes::Foo>(TestTypes::Foo&& val, MockSerializer& srl) {
-//    srl.write(std::string_view("Foo"));
-}
-template <>
-void format<TestTypes::Bar>(TestTypes::Bar&& val, MockSerializer& srl) {
-//    srl.write(std::string_view("Bar"));
 }
 
 TEST_CASE("ScopedMessage") {
@@ -147,7 +139,7 @@ TEST_CASE("ScopedMessage") {
   SECTION("ScopedMessage writes arguments to the buffer") {
     {
       np::ScopedMessage<MockLog> msg(log, "", 0, 0, "");
-      msg.addArg("name", 42.0);
+      msg.addArg("name", test1::Foo());
     }
     CHECK(log.buffersRequested == 1);
     CHECK(ops.size() == 8);
@@ -156,27 +148,10 @@ TEST_CASE("ScopedMessage") {
     CHECK(std::get<0>(ops.at(2)) == "writeKey");
     CHECK(std::any_cast<std::string_view>(std::get<1>(ops.at(2))) == "name");
     CHECK(std::get<0>(ops.at(3)) == "write");
-    // arg was 42.0; mockformatter inverts it, so expect -42.0
-    CHECK(std::any_cast<double>(std::get<1>(ops.at(3))) == -42.0);
+    CHECK(std::any_cast<std::string_view>(std::get<1>(ops.at(3))) == "Foo");
     CHECK(std::get<0>(ops.at(4)) == "epilogue");
     CHECK(std::get<0>(ops.at(5)) == "submitMessage");
     CHECK(std::get<0>(ops.at(6)) == "releaseBuffer");
     CHECK(std::get<0>(ops.at(7)) == "dtor");
-  }
-
-  SECTION(
-    "TODO: Somehow ensure that if I define a format specialization after defining ScopedMessage, "
-    "the specialization is picked up") {}
-  SECTION("foo") {
-    {
-      np::ScopedMessage<MockLog> msg(log, "", 0, 0, "");
-      msg.addArg("name", TestTypes::Foo());
-    }
-  }
-  SECTION("bar") {
-    {
-      np::ScopedMessage<MockLog> msg(log, "", 0, 0, "");
-      msg.addArg("name", TestTypes::Bar());
-    }
   }
 }

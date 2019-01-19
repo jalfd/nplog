@@ -40,10 +40,10 @@ namespace np {
     srl.writePending(",");
   }
 
-  Serializer::Serializer(buffer_type& buffer) : buffer(buffer) {}
+  Serializer::Serializer(buffer_type* buffer) : buffer(buffer) {}
 
   void Serializer::prologue(std::string_view file, int line, int level, std::string_view msg) {
-    buffer.push_back('{');
+    buffer->push_back('{');
     writeKey("file");
     write(file);
     writeKey("line");
@@ -52,19 +52,19 @@ namespace np {
     write(level);
     writeKey("message");
     write(msg);
-    buffer.resize(buffer.size() - pending_length);
+    buffer->resize(buffer->size() - pending_length);
     writePending(",\"params\":{");
   }
 
   void Serializer::epilogue() {
-    buffer.resize(buffer.size() - pending_length);
-    if (pending_length == 1) { buffer.push_back('}'); }
-    buffer.push_back('}');
+    buffer->resize(buffer->size() - pending_length);
+    if (pending_length == 1) { buffer->push_back('}'); }
+    buffer->push_back('}');
   }
 
   void Serializer::writeKey(std::string_view name) {
     writeEscaped(name);
-    buffer.push_back(':');
+    buffer->push_back(':');
   }
 
   void Serializer::write(double val) { writeFormat(val, "%f", *this); }
@@ -92,51 +92,51 @@ namespace np {
   }
 
   void Serializer::writeEscaped(std::string_view val) {
-    buffer.push_back('"');
+    buffer->push_back('"');
     std::for_each(val.begin(), val.end(), [this](char c) {
       switch (c) {
       case '"':
-        buffer.push_back('\\');
-        buffer.push_back('"');
+        buffer->push_back('\\');
+        buffer->push_back('"');
         return;
       case '\\':
-        buffer.push_back('\\');
-        buffer.push_back('\\');
+        buffer->push_back('\\');
+        buffer->push_back('\\');
         return;
       case '\n':
-        buffer.push_back('\\');
-        buffer.push_back('n');
+        buffer->push_back('\\');
+        buffer->push_back('n');
         return;
       case '\r':
-        buffer.push_back('\\');
-        buffer.push_back('r');
+        buffer->push_back('\\');
+        buffer->push_back('r');
         return;
       case '\t':
-        buffer.push_back('\\');
-        buffer.push_back('t');
+        buffer->push_back('\\');
+        buffer->push_back('t');
         return;
       default:
         if (c < 0x20) {
-          buffer.push_back('\\');
-          buffer.push_back('u');
-          buffer.push_back('0');
-          buffer.push_back('0');
-          buffer.push_back(c < 0x10 ? '0' : '1');
-          buffer.push_back(c & 0xf);
+          buffer->push_back('\\');
+          buffer->push_back('u');
+          buffer->push_back('0');
+          buffer->push_back('0');
+          buffer->push_back(c < 0x10 ? '0' : '1');
+          buffer->push_back(c & 0xf);
         } else {
-          buffer.push_back(c);
+          buffer->push_back(c);
         }
       }
     });
-    buffer.push_back('"');
+    buffer->push_back('"');
   }
 
   void Serializer::writeLiteral(std::string_view val) {
-    std::copy(val.begin(), val.end(), std::back_inserter(buffer));
+    std::copy(val.begin(), val.end(), std::back_inserter(*buffer));
   }
 
   void Serializer::writePending(std::string_view val) {
-    std::copy(val.begin(), val.end(), std::back_inserter(buffer));
+    std::copy(val.begin(), val.end(), std::back_inserter(*buffer));
     pending_length = val.size();
   }
 
