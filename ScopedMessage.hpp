@@ -16,7 +16,7 @@ namespace np {
       : log(log)
       , argThreshold(log.argThreshold())
       , message_buffer(log.acquireBuffer())
-      , serializer(message_buffer)
+      , serializer(&message_buffer)
       , message_level(level) {
       serializer.prologue(file, line, level, m);
     }
@@ -30,7 +30,7 @@ namespace np {
     template <typename T>
     bool addArg(const char* name, T&& expr) {
       serializer.writeKey(name);
-      format<T>(std::forward<T>(expr), serializer);
+      np::Formatter<T>()(std::forward<T>(expr), serializer);
       return true;
     }
 

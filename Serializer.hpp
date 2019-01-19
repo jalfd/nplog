@@ -7,29 +7,30 @@
 namespace np {
   struct Serializer {
     using buffer_type = std::vector<char>;
-    explicit Serializer(buffer_type& buffer);
+    explicit Serializer(buffer_type* buffer);
 
-    void prologue(std::string_view file, int line, int level, std::string_view msg);
+    virtual void prologue(std::string_view file, int line, int level, std::string_view msg);
 
-    void epilogue();
+    virtual void epilogue();
 
-    void writeKey(std::string_view name);
+    virtual void writeKey(std::string_view name);
 
-    void write(double val);
-    void write(int val);
-    void write(unsigned int val);
-    void write(int64_t val);
-    void write(uint64_t val);
-    void write(std::string_view val);
-    void write(bool val);
-    void writeRawJson(std::string_view val);
+    virtual void write(double val);
+    virtual void write(int val);
+    virtual void write(unsigned int val);
+    virtual void write(int64_t val);
+    virtual void write(uint64_t val);
+    virtual void write(std::string_view val);
+    virtual void write(bool val);
+    virtual void writeRawJson(std::string_view val);
 
+    // TODO: should not be public, not part of the public interface
     void writeLiteral(std::string_view val);
     void writePending(std::string_view val);
   private:
     void writeEscaped(std::string_view val);
 
-    buffer_type& buffer;
+    buffer_type* buffer;
     size_t pending_length = 0;
   };
 }
