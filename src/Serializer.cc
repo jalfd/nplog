@@ -1,40 +1,42 @@
 #include <nplog/Serializer.hpp>
 #if defined(_WIN32) || defined(__linux__)
-#define has_to_char
+#define has_to_chars
 #endif
-#ifdef has_to_char
+#ifdef has_to_chars
 #include <charconv>
 #else
 #include <xlocale.h>
 #endif
 
 namespace np {
-  namespace internal {
-#ifndef has_to_char
-    static struct ScopedLocale {
-      ScopedLocale() : loc(newlocale(LC_ALL_MASK, "C", 0)) {}
+  namespace {
+#ifndef has_to_chars
+    namespace internal {
+      static struct ScopedLocale {
+        ScopedLocale() : loc(newlocale(LC_ALL_MASK, "C", 0)) {}
 
-      ~ScopedLocale() { freelocale(loc); }
-      locale_t loc;
-      ScopedLocale(const ScopedLocale&) = delete;
-      ScopedLocale& operator=(const ScopedLocale&) = delete;
-    } c_locale;
+        ~ScopedLocale() { freelocale(loc); }
+        locale_t loc;
+        ScopedLocale(const ScopedLocale&) = delete;
+        ScopedLocale& operator=(const ScopedLocale&) = delete;
+      } c_locale;
+    } // namespace internal
 #endif
-  } // namespace internal
 
-  template <typename T>
-  void writeFormat(T val, const char* format, Serializer& srl) {
-    char buf[32];
-#ifndef has_to_char
-    const auto len = snprintf_l(buf, 32, internal::c_locale.loc, format, val);
+    template <typename T>
+    void writeNumber(T val, const char* format, Serializer& srl) {
+      char buf[32];
+#ifndef has_to_chars
+      const auto len = snprintf_l(buf, 32, internal::c_locale.loc, format, val);
 #else
-    const auto result = std::to_chars(buf, buf + 32, val);
-    if (result.ec) { std::terminate(); }
-    const auto len = result.ptr - buf;
+      const auto result = std::to_chars(buf, buf + 32, val);
+      if (result.ec) { std::terminate(); }
+      const auto len = result.ptr - buf;
 #endif
-    srl.writeLiteral(std::string_view(buf, len));
-    srl.writePending(",");
-  }
+      srl.writeLiteral(std::string_view(buf, len));
+      srl.writePending(",");
+    }
+  } // namespace
 
   Serializer::Serializer(buffer_type* buffer) : buffer(buffer) {}
 
@@ -63,14 +65,14 @@ namespace np {
     buffer->push_back(':');
   }
 
-  void Serializer::write(double val) { writeFormat(val, "%f", *this); }
+  void Serializer::write(double val) { writeNumber(val, "%f", *this); }
 
-  void Serializer::write(int val) { writeFormat(val, "%d", *this); }
+  void Serializer::write(int val) { writeNumber(val, "%d", *this); }
 
-  void Serializer::write(unsigned int val) { writeFormat(val, "%u", *this); }
-  void Serializer::write(int64_t val) { writeFormat(val, "%dll", *this); }
+  void Serializer::write(unsigned int val) { writeNumber(val, "%u", *this); }
+  void Serializer::write(int64_t val) { writeNumber(val, "%dll", *this); }
 
-  void Serializer::write(uint64_t val) { writeFormat(val, "%ull", *this); }
+  void Serializer::write(uint64_t val) { writeNumber(val, "%ull", *this); }
 
   void Serializer::write(std::string_view val) {
     writeEscaped(val);
