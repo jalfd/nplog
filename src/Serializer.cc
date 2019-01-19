@@ -1,4 +1,4 @@
-#include "Serializer.hpp"
+#include <nplog/Serializer.hpp>
 #if defined(_WIN32) || defined(__linux__)
 #define has_to_char
 #endif

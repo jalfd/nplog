@@ -1,6 +1,6 @@
-#include "macros.hpp"
+#include <nplog/macros.hpp>
 #include "test-utils.hpp"
-#include <catch.hpp>
+#include <catch/catch.hpp>
 
 namespace np {
   namespace {

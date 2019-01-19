@@ -1,4 +1,2 @@
-/obj/
-/bin/
-/.ninja*
+/build*
 .DS_store
