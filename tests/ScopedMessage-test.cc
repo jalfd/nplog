@@ -1,12 +1,10 @@
-#include <sstream>
 #include <vector>
-#include "ScopedMessage.hpp"
-#include "test-utils.hpp"
+#include <nplog/ScopedMessage.hpp>
+#include <catch/catch.hpp>
+#include<any> 
 
 // convenience operator for catch to use
 bool operator==(const std::vector<char>& result, const std::string& expected);
-#include <catch.hpp>
-#include<any> 
 
 using SerializerOp = std::tuple<std::string, std::any>;
 std::vector<SerializerOp> ops;

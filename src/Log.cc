@@ -1,4 +1,4 @@
-#include "Log.hpp"
+#include <nplog/Log.hpp>
 
 #include <algorithm>
 #include <mutex>
