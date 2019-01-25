@@ -34,6 +34,10 @@ PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
+# For exporting target "the nice way",
+# see https://cmake.org/cmake/help/latest/command/install.html?highlight=install#export
+# and https://pabloariasal.github.io/2018/02/19/its-time-to-do-cmake-right/
+
 add_subdirectory(tests)
 
 install(TARGETS nplog DESTINATION lib)
