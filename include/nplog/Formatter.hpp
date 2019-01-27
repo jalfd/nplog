@@ -2,6 +2,7 @@
 #define NP_FORMATTER_HPP
 
 namespace np {
+  struct Serializer;
   template <typename T>
   struct Formatter
   {
