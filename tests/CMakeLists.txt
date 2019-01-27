@@ -3,6 +3,7 @@ add_executable(tests
     test-utils.hpp
     macros-test.cc
     ScopedMessage-test.cc
+    FormatterTest.cc
 )
 target_link_libraries(tests PRIVATE Catch nplog)
 
