@@ -23,6 +23,7 @@ add_library(nplog SHARED
     include/nplog/Log.hpp
     src/Log.cc
     src/Serializer.cc
+    src/Formatter.cc
     ${nplog_public_headers}
 )
 

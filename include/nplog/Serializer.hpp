@@ -8,6 +8,7 @@ namespace np {
   struct Serializer {
     using buffer_type = std::vector<char>;
     explicit Serializer(buffer_type* buffer);
+    virtual ~Serializer() = default;
 
     virtual void prologue(std::string_view file, int line, int level, std::string_view msg);
 
@@ -16,10 +17,11 @@ namespace np {
     virtual void writeKey(std::string_view name);
 
     virtual void write(double val);
+    virtual void write(long double val);
     virtual void write(int val);
     virtual void write(unsigned int val);
-    virtual void write(int64_t val);
-    virtual void write(uint64_t val);
+    virtual void write(long long val);
+    virtual void write(unsigned long long val);
     virtual void write(std::string_view val);
     virtual void write(bool val);
     virtual void writeRawJson(std::string_view val);
