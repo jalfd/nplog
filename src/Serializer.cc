@@ -24,13 +24,17 @@ namespace np {
 #endif
 
     template <typename T>
-    void writeNumber(T val, const char* format, Serializer& srl) {
-      char buf[32];
+    void writeNumber(T val, const char* format, Serializer& srl) noexcept {
+        static constexpr int bufsize = 1024;
+      char buf[bufsize];
 #ifndef has_to_chars
       const auto len = snprintf_l(buf, 32, internal::c_locale.loc, format, val);
+      if (len > bufsize) {
+          std::abort();
+      }
 #else
       const auto result = std::to_chars(buf, buf + 32, val);
-      if (result.ec) { std::terminate(); }
+      if (result.ec) { std::abort(); }
       const auto len = result.ptr - buf;
 #endif
       srl.writeLiteral(std::string_view(buf, len));
@@ -66,6 +70,8 @@ namespace np {
   }
 
   void Serializer::write(double val) { writeNumber(val, "%f", *this); }
+
+  void Serializer::write(long double val) { writeNumber(val, "%Le", *this); }
 
   void Serializer::write(int val) { writeNumber(val, "%d", *this); }
 

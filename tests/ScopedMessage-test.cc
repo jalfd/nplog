@@ -47,12 +47,6 @@ bool operator==(const std::vector<char>& result, const std::string& expected) {
   return result == e;
 }
 
-void printOps() { // TODO: shouldn't need this
-  for (const auto& op : ops) {
-    std::cout << std::get<0>(op) << ": " << std::get<1>(op).type().name() << '\n';
-  }
-}
-
 TEST_CASE("ScopedMessage") {
   ops.clear();
   MockLog log;
@@ -97,7 +91,7 @@ TEST_CASE("ScopedMessage") {
     CHECK(std::get<0>(ops.at(1)) == "prologue");
     CHECK(std::get<0>(ops.at(2)) == "writeKey");
     CHECK(std::any_cast<std::string_view>(std::get<1>(ops.at(2))) == "name");
-    CHECK(std::get<0>(ops.at(3)) == "write");
+    CHECK(std::get<0>(ops.at(3)) == "writeVal");
     CHECK(std::any_cast<std::string_view>(std::get<1>(ops.at(3))) == "Foo");
     CHECK(std::get<0>(ops.at(4)) == "epilogue");
     CHECK(std::get<0>(ops.at(5)) == "submitMessage");
