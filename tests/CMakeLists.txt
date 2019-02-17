@@ -27,3 +27,10 @@ ExternalProject_Add(
 add_library(Catch INTERFACE)
 add_dependencies(Catch CatchDownload)
 target_include_directories(Catch INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/external/include)
+
+add_executable(compile_benchmark time_nplog_build.cc)
+target_link_libraries(compile_benchmark PRIVATE nplog)
+target_compile_definitions(compile_benchmark PRIVATE "CYCLE_TYPES")
+set_target_properties(compile_benchmark PROPERTIES EXCLUDE_FROM_ALL TRUE)
+# To get build command: jq -r 'map(select(.file | endswith("time_nplog_build.cc"))) | .[] | .command' compile_commands.json
+# to build: time the above
