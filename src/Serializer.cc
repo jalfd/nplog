@@ -22,24 +22,6 @@ namespace np {
       } c_locale;
     } // namespace internal
 #endif
-
-    template <typename T>
-    void writeNumber(T val, const char* format, Serializer& srl) noexcept {
-        static constexpr int bufsize = 1024;
-      char buf[bufsize];
-#ifndef has_to_chars
-      const auto len = snprintf_l(buf, 32, internal::c_locale.loc, format, val);
-      if (len > bufsize) {
-          std::abort();
-      }
-#else
-      const auto result = std::to_chars(buf, buf + 32, val);
-      if (result.ec) { std::abort(); }
-      const auto len = result.ptr - buf;
-#endif
-      srl.writeLiteral(std::string_view(buf, len));
-      srl.writePending(",");
-    }
   } // namespace
 
   Serializer::Serializer(buffer_type* buffer) : buffer(buffer) {}
@@ -54,13 +36,13 @@ namespace np {
     write(level);
     writeKey("message");
     write(msg);
-    buffer->resize(buffer->size() - pending_length);
-    writePending(",\"params\":{");
+    args_count = 0;
+    // TODO: hmm... this doesn't quite work
+    // and it hasn't solved the problem of separating json structure from content
   }
 
   void Serializer::epilogue() {
-    buffer->resize(buffer->size() - pending_length);
-    if (pending_length == 1) { buffer->push_back('}'); }
+    if (args_count > 0) { buffer->push_back('}'); }
     buffer->push_back('}');
   }
 
@@ -69,30 +51,30 @@ namespace np {
     buffer->push_back(':');
   }
 
-  void Serializer::write(double val) { writeNumber(val, "%f", *this); }
+  void Serializer::write(double val) { writeNumber(val, "%.12g"); }
 
-  void Serializer::write(long double val) { writeNumber(val, "%Le", *this); }
+  void Serializer::write(long double val) { writeNumber(val, "%.12Lg"); }
 
-  void Serializer::write(int val) { writeNumber(val, "%d", *this); }
+  void Serializer::write(int val) { writeNumber(val, "%d"); }
 
-  void Serializer::write(unsigned int val) { writeNumber(val, "%u", *this); }
-  void Serializer::write(int64_t val) { writeNumber(val, "%dll", *this); }
+  void Serializer::write(unsigned int val) { writeNumber(val, "%u"); }
+  void Serializer::write(int64_t val) { writeNumber(val, "%dll"); }
 
-  void Serializer::write(uint64_t val) { writeNumber(val, "%ull", *this); }
+  void Serializer::write(uint64_t val) { writeNumber(val, "%ull"); }
 
   void Serializer::write(std::string_view val) {
+    writeLiteral(args_count++ ? std::string_view(",", 1) : std::string_view(",params:{", 9));
     writeEscaped(val);
-    writePending(",");
   }
 
   void Serializer::write(bool val) {
+    writeLiteral(args_count++ ? std::string_view(",", 1) : std::string_view(",params:{", 9));
     writeLiteral(val ? "true" : "false");
-    writePending(",");
   }
 
   void Serializer::writeRawJson(std::string_view val) {
+    writeLiteral(args_count++ ? std::string_view(",", 1) : std::string_view(",params:{", 9));
     writeLiteral(val);
-    writePending(",");
   }
 
   void Serializer::writeEscaped(std::string_view val) {
@@ -139,8 +121,20 @@ namespace np {
     std::copy(val.begin(), val.end(), std::back_inserter(*buffer));
   }
 
-  void Serializer::writePending(std::string_view val) {
-    std::copy(val.begin(), val.end(), std::back_inserter(*buffer));
-    pending_length = val.size();
+  template <typename T>
+  void Serializer::writeNumber(T val, const char* format) noexcept {
+    static constexpr int bufsize = 1024;
+    char buf[bufsize];
+#ifndef has_to_chars
+    const auto len = snprintf_l(buf, 32, internal::c_locale.loc, format, val);
+    if (len > bufsize) { std::abort(); }
+#else
+    const auto result = std::to_chars(buf, buf + 32, val);
+    if (result.ec) { std::abort(); }
+    const auto len = result.ptr - buf;
+#endif
+
+    writeLiteral(args_count++ ? std::string_view(",", 1) : std::string_view(",params:{", 9));
+    writeLiteral(std::string_view(buf, len));
   }
-}
+} // namespace np

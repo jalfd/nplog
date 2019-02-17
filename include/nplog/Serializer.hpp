@@ -26,14 +26,31 @@ namespace np {
     virtual void write(bool val);
     virtual void writeRawJson(std::string_view val);
 
-    // TODO: should not be public, not part of the public interface
-    void writeLiteral(std::string_view val);
-    void writePending(std::string_view val);
+  private:
+    struct JsonBuilder {
+      void beginObject();
+      void endObject();
+      void beginArray();
+      void endArray();
+
+      virtual void writeString();
+      virtual void writeNumber();
+      virtual void writeBool();
+
+      template <typename T>
+      size_t maxLength(const T& val){
+
+      }
+    };
+
   private:
     void writeEscaped(std::string_view val);
+    template <typename T>
+    void writeNumber(T val, const char* format) noexcept;
+    void writeLiteral(std::string_view val);
 
     buffer_type* buffer;
-    size_t pending_length = 0;
+    int args_count = 0;
   };
 }
 #endif
