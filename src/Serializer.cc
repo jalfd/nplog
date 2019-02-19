@@ -27,57 +27,59 @@ namespace np {
   Serializer::Serializer(buffer_type* buffer) : buffer(buffer) {}
 
   void Serializer::prologue(std::string_view file, int line, int level, std::string_view msg) {
-    buffer->push_back('{');
-    writeKey("file");
-    write(file);
-    writeKey("line");
-    write(line);
-    writeKey("level");
-    write(level);
-    writeKey("message");
-    write(msg);
-    args_count = 0;
-    // TODO: hmm... this doesn't quite work
-    // and it hasn't solved the problem of separating json structure from content
+    auto vs = valueSerializer();
+    vs.writeLiteral("{\"file\":");
+    vs.write(file);
+    vs.writeLiteral(",\"line\":");
+    vs.write(line);
+    vs.writeLiteral(",\"level\":");
+    vs.write(level);
+    vs.writeLiteral(",\"message\":");
+    vs.write(msg);
   }
 
   void Serializer::epilogue() {
-    if (args_count > 0) { buffer->push_back('}'); }
+    if (has_params) { buffer->push_back('}'); }
     buffer->push_back('}');
   }
 
   void Serializer::writeKey(std::string_view name) {
-    writeEscaped(name);
+    auto vs = valueSerializer();
+    if (!has_params) { vs.writeLiteral(",\"params\":{"); }
+    else { vs.writeLiteral(","); }
+    vs.writeString(name);
     buffer->push_back(':');
+    has_params = true;
   }
 
-  void Serializer::write(double val) { writeNumber(val, "%.12g"); }
+  ValueSerializer Serializer::valueSerializer() { return ValueSerializer(buffer); }
 
-  void Serializer::write(long double val) { writeNumber(val, "%.12Lg"); }
+  ValueSerializer::ValueSerializer(buffer_type* buffer) : buffer(buffer) {}
 
-  void Serializer::write(int val) { writeNumber(val, "%d"); }
+  void ValueSerializer::write(double val) { writeNumber(val, "%.12g"); }
 
-  void Serializer::write(unsigned int val) { writeNumber(val, "%u"); }
-  void Serializer::write(int64_t val) { writeNumber(val, "%dll"); }
+  void ValueSerializer::write(long double val) { writeNumber(val, "%.12Lg"); }
 
-  void Serializer::write(uint64_t val) { writeNumber(val, "%ull"); }
+  void ValueSerializer::write(int val) { writeNumber(val, "%d"); }
 
-  void Serializer::write(std::string_view val) {
-    writeLiteral(args_count++ ? std::string_view(",", 1) : std::string_view(",params:{", 9));
-    writeEscaped(val);
+  void ValueSerializer::write(unsigned int val) { writeNumber(val, "%u"); }
+  void ValueSerializer::write(long long val) { writeNumber(val, "%lld"); }
+
+  void ValueSerializer::write(unsigned long long val) { writeNumber(val, "%llu"); }
+
+  void ValueSerializer::write(std::string_view val) {
+    writeString(val);
   }
 
-  void Serializer::write(bool val) {
-    writeLiteral(args_count++ ? std::string_view(",", 1) : std::string_view(",params:{", 9));
+  void ValueSerializer::write(bool val) {
     writeLiteral(val ? "true" : "false");
   }
 
-  void Serializer::writeRawJson(std::string_view val) {
-    writeLiteral(args_count++ ? std::string_view(",", 1) : std::string_view(",params:{", 9));
+  void ValueSerializer::writeRawJson(std::string_view val) {
     writeLiteral(val);
   }
 
-  void Serializer::writeEscaped(std::string_view val) {
+  void ValueSerializer::writeString(std::string_view val) {
     buffer->push_back('"');
     std::for_each(val.begin(), val.end(), [this](char c) {
       switch (c) {
@@ -117,12 +119,12 @@ namespace np {
     buffer->push_back('"');
   }
 
-  void Serializer::writeLiteral(std::string_view val) {
+  void ValueSerializer::writeLiteral(std::string_view val) {
     std::copy(val.begin(), val.end(), std::back_inserter(*buffer));
   }
 
   template <typename T>
-  void Serializer::writeNumber(T val, const char* format) noexcept {
+  void ValueSerializer::writeNumber(T val, const char* format) noexcept {
     static constexpr int bufsize = 1024;
     char buf[bufsize];
 #ifndef has_to_chars
@@ -134,7 +136,6 @@ namespace np {
     const auto len = result.ptr - buf;
 #endif
 
-    writeLiteral(args_count++ ? std::string_view(",", 1) : std::string_view(",params:{", 9));
     writeLiteral(std::string_view(buf, len));
   }
 } // namespace np

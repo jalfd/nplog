@@ -3,88 +3,96 @@
 #include "mocks.hpp"
 #include <numeric>
 
-template <typename In, typename Out>
-void checkType()
-{
-  MockBuffer b;
-  MockSerializer srl(&b);
-  ops.clear();
-  np::format(std::numeric_limits<In>::min(), srl);
-  np::format(std::numeric_limits<In>::max(), srl);
-  REQUIRE(ops.size() == 2);
-  REQUIRE(std::get<0>(ops[0]) == "writeVal");
-  REQUIRE(std::any_cast<Out>(std::get<1>(ops[0])) == std::numeric_limits<In>::min());
-  REQUIRE(std::get<0>(ops[1]) == "writeVal");
-  REQUIRE(std::any_cast<Out>(std::get<1>(ops[1])) == std::numeric_limits<In>::max());
-}
-
 TEST_CASE("Formatter works for built-in numeric types") {
     SECTION("short") {
-        checkType<short, int>();
+        std::vector<char> b;
+        np::ValueSerializer srl(&b);
+        np::format(std::numeric_limits<short>::min(), srl);
+        REQUIRE(std::numeric_limits<short>::min() == std::stoi(std::string(b.begin(), b.end())));
     }
     SECTION("unsigned short") {
-        checkType<unsigned short, unsigned int>();
+        std::vector<char> b;
+        np::ValueSerializer srl(&b);
+        np::format(std::numeric_limits<unsigned short>::min(), srl);
+        REQUIRE(std::numeric_limits<unsigned short>::min() == std::stoul(std::string(b.begin(), b.end())));
     }
     SECTION("int") {
-        checkType<int, int>();
+        std::vector<char> b;
+        np::ValueSerializer srl(&b);
+        np::format(std::numeric_limits<int>::min(), srl);
+        REQUIRE(std::numeric_limits<int>::min() == std::stoi(std::string(b.begin(), b.end())));
     }
     SECTION("unsigned int") {
-        checkType<unsigned int, unsigned int>();
+        std::vector<char> b;
+        np::ValueSerializer srl(&b);
+        np::format(std::numeric_limits<unsigned int>::min(), srl);
+        REQUIRE(std::numeric_limits<unsigned int>::min() == std::stoul(std::string(b.begin(), b.end())));
     }
     SECTION("long") {
-      if constexpr (sizeof(long) == sizeof(int)) {
-        checkType<long, int>();
-      } else {
-        checkType<long, long long>();
-      }
+        std::vector<char> b;
+        np::ValueSerializer srl(&b);
+        np::format(std::numeric_limits<long>::min(), srl);
+        REQUIRE(std::numeric_limits<long>::min() == std::stol(std::string(b.begin(), b.end())));
     }
     SECTION("unsigned long") {
-      if constexpr (sizeof(unsigned long) == sizeof(unsigned int)) {
-        checkType<unsigned long, unsigned int>();
-      } else {
-        checkType<unsigned long, unsigned long long>();
-      }
+        std::vector<char> b;
+        np::ValueSerializer srl(&b);
+        np::format(std::numeric_limits<unsigned long>::min(), srl);
+        REQUIRE(std::numeric_limits<unsigned long>::min() == std::stoul(std::string(b.begin(), b.end())));
     }
     SECTION("long long") {
-        checkType<long long, long long>();
+        std::vector<char> b;
+        np::ValueSerializer srl(&b);
+        np::format(std::numeric_limits<long long>::min(), srl);
+        REQUIRE(std::numeric_limits<long long>::min() == std::stoll(std::string(b.begin(), b.end())));
     }
     SECTION("unsigned long long") {
-        checkType<unsigned long long, unsigned long long>();
+        std::vector<char> b;
+        np::ValueSerializer srl(&b);
+        np::format(std::numeric_limits<unsigned long long>::min(), srl);
+        REQUIRE(std::numeric_limits<unsigned long long>::min() == std::stoull(std::string(b.begin(), b.end())));
     }
     SECTION("float") {
-        checkType<float, double>();
+        std::vector<char> b;
+        np::ValueSerializer srl(&b);
+        np::format(std::numeric_limits<float>::min(), srl);
+        REQUIRE(Approx(std::numeric_limits<float>::min()) == std::stof(std::string(b.begin(), b.end())));
     }
     SECTION("double") {
-        checkType<double, double>();
+        std::vector<char> b;
+        np::ValueSerializer srl(&b);
+        np::format(std::numeric_limits<double>::min(), srl);
+        REQUIRE(Approx(std::numeric_limits<double>::min()) == std::stod(std::string(b.begin(), b.end())));
     }
     SECTION("long double") {
-        checkType<long double, long double>();
+        std::vector<char> b;
+        np::ValueSerializer srl(&b);
+        np::format(std::numeric_limits<long double>::min(), srl);
+        CAPTURE(std::string(b.begin(), b.end()));
+        long double ld = std::strtold(std::string(b.begin(), b.end()).c_str(), nullptr);
+        REQUIRE(Approx(std::numeric_limits<long double>::min()) == ld);
     }
 }
 
 TEST_CASE("Formatter works for strings") {
-  MockBuffer b;
-  MockSerializer srl(&b);
+  std::vector<char> b;
+  np::ValueSerializer srl(&b);
   ops.clear();
 
   np::format(std::string_view("hello world"), srl);
-  REQUIRE(ops.size() == 1);
-  REQUIRE(std::get<0>(ops[0]) == "writeVal");
-  REQUIRE(std::any_cast<std::string_view>(std::get<1>(ops[0])) == "hello world");
+  REQUIRE(std::string(b.begin(), b.end()) == "\"hello world\"");
 }
 
 TEST_CASE("Formatter works for bools") {
-  MockBuffer b;
-  MockSerializer srl(&b);
+  std::vector<char> b;
+  np::ValueSerializer srl(&b);
   ops.clear();
 
   np::format(true, srl);
+  REQUIRE(std::string(b.begin(), b.end()) == "true");
+  b.clear();
   np::format(false, srl);
-  REQUIRE(ops.size() == 2);
-  REQUIRE(std::get<0>(ops[0]) == "writeVal");
-  REQUIRE(std::any_cast<bool>(std::get<1>(ops[0])));
-  REQUIRE(std::get<0>(ops[0]) == "writeVal");
-  REQUIRE(!std::any_cast<bool>(std::get<1>(ops[1])));
+  REQUIRE(std::string(b.begin(), b.end()) == "false");
 }
 
 struct TestType {
@@ -92,12 +100,12 @@ struct TestType {
 };
 template <>
 struct np::Formatter<TestType> {
-  void operator()(const TestType& val, np::Serializer& srl) { ++TestType::count; }
+  void operator()(const TestType&, np::ValueSerializer&) { ++TestType::count; }
 };
 
 TEST_CASE("Formatter can be extended for custom types") {
-  MockBuffer b;
-  MockSerializer srl(&b);
+  std::vector<char> b;
+  np::ValueSerializer srl(&b);
   ops.clear();
 
   np::format(TestType(), srl);

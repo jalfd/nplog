@@ -19,30 +19,22 @@ namespace {
     const int id;
   };
 
-  struct MockSerializer : np::Serializer {
+  struct MockSerializer {
     using buffer_type = MockBuffer;
-    explicit MockSerializer(buffer_type* buffer) : np::Serializer(nullptr) {
+    explicit MockSerializer(buffer_type* buffer) {
       ops.emplace_back("ctor", buffer->id);
     }
-    ~MockSerializer() override { ops.emplace_back("dtor", nullptr); }
+    ~MockSerializer() { ops.emplace_back("dtor", nullptr); }
 
-    void prologue(std::string_view file, int line, int level, std::string_view msg) override {
+    void prologue(std::string_view file, int line, int level, std::string_view msg) {
       ops.emplace_back("prologue", std::make_tuple(file, line, level, msg));
     }
 
-    void epilogue() override { ops.emplace_back("epilogue", nullptr); }
+    void epilogue() { ops.emplace_back("epilogue", nullptr); }
 
-    void writeKey(std::string_view name) override { ops.emplace_back("writeKey", name); }
+    void writeKey(std::string_view name) { ops.emplace_back("writeKey", name); }
 
-    void write(double val) override { ops.emplace_back("writeVal", val); }
-    void write(long double val) override { ops.emplace_back("writeVal", val); }
-    void write(int val) override { ops.emplace_back("writeVal", val); }
-    void write(unsigned int val) override { ops.emplace_back("writeVal", val); }
-    void write(int64_t val) override { ops.emplace_back("writeVal", val); }
-    void write(uint64_t val) override { ops.emplace_back("writeVal", val); }
-    void write(std::string_view val) override { ops.emplace_back("writeVal", val); }
-    void write(bool val) override { ops.emplace_back("writeVal", val); }
-    void writeRawJson(std::string_view val) override { ops.emplace_back("writeRawVal", val); }
+    np::ValueSerializer valueSerializer() { return np::ValueSerializer{nullptr}; }
 
   private:
   };

@@ -5,28 +5,28 @@
 #include <string_view>
 
 namespace np {
-  struct Serializer;
+  struct ValueSerializer;
   template <typename T>
   struct Formatter
   {};
 
   template <typename T>
-  inline void format(T&& val, Serializer& srl) {
+  inline void format(T&& val, ValueSerializer& srl) {
     Formatter<std::remove_reference_t<T>>()(std::forward<T>(val), srl);
   }
-  void format(bool val, Serializer& srl);
-  void format(short val, Serializer& srl);
-  void format(unsigned short val, Serializer& srl);
-  void format(int val, Serializer& srl);
-  void format(unsigned int val, Serializer& srl);
-  void format(long val, Serializer& srl);
-  void format(unsigned long val, Serializer& srl);
-  void format(long long val, Serializer& srl);
-  void format(unsigned long long val, Serializer& srl);
-  void format(float val, Serializer& srl);
-  void format(double val, Serializer& srl);
-  void format(long double val, Serializer& srl);
-  void format(std::string_view val, Serializer& srl);
+  void format(bool val, ValueSerializer& srl);
+  void format(short val, ValueSerializer& srl);
+  void format(unsigned short val, ValueSerializer& srl);
+  void format(int val, ValueSerializer& srl);
+  void format(unsigned int val, ValueSerializer& srl);
+  void format(long val, ValueSerializer& srl);
+  void format(unsigned long val, ValueSerializer& srl);
+  void format(long long val, ValueSerializer& srl);
+  void format(unsigned long long val, ValueSerializer& srl);
+  void format(float val, ValueSerializer& srl);
+  void format(double val, ValueSerializer& srl);
+  void format(long double val, ValueSerializer& srl);
+  void format(std::string_view val, ValueSerializer& srl);
 
 } // namespace np
 

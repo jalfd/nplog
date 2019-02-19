@@ -30,8 +30,8 @@ namespace np {
     template <typename T>
     bool addArg(const char* name, T&& expr) {
       serializer.writeKey(name);
-      //np::Formatter<T>()(std::forward<T>(expr), serializer);
-      np::format(std::forward<T>(expr), serializer);
+      auto vs = serializer.valueSerializer();
+      np::format(std::forward<T>(expr), vs);
       return true;
     }
 

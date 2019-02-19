@@ -11,9 +11,9 @@ namespace np {
   template <>
   struct Formatter<test1::Foo>
   {
-      void operator()(test1::Foo&& val, Serializer& srl)
+      void operator()(const test1::Foo& val, ValueSerializer& srl)
       {
-          srl.write(std::string_view("Foo"));
+          ops.emplace_back("format", &val);
       }
   };
 }
@@ -81,9 +81,10 @@ TEST_CASE("ScopedMessage") {
   }
 
   SECTION("ScopedMessage writes arguments to the buffer") {
+    test1::Foo foo;
     {
       np::ScopedMessage<MockLog> msg(log, "", 0, 0, "");
-      msg.addArg("name", test1::Foo());
+      msg.addArg("name", foo);
     }
     CHECK(log.buffersRequested == 1);
     CHECK(ops.size() == 8);
@@ -91,8 +92,8 @@ TEST_CASE("ScopedMessage") {
     CHECK(std::get<0>(ops.at(1)) == "prologue");
     CHECK(std::get<0>(ops.at(2)) == "writeKey");
     CHECK(std::any_cast<std::string_view>(std::get<1>(ops.at(2))) == "name");
-    CHECK(std::get<0>(ops.at(3)) == "writeVal");
-    CHECK(std::any_cast<std::string_view>(std::get<1>(ops.at(3))) == "Foo");
+    CHECK(std::get<0>(ops.at(3)) == "format");
+    CHECK(std::any_cast<const test1::Foo*>(std::get<1>(ops.at(3))) == &foo);
     CHECK(std::get<0>(ops.at(4)) == "epilogue");
     CHECK(std::get<0>(ops.at(5)) == "submitMessage");
     CHECK(std::get<0>(ops.at(6)) == "releaseBuffer");
