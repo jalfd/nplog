@@ -1,19 +1,18 @@
 #ifndef NP_FORMATTER_HPP
 #define NP_FORMATTER_HPP
 
+#include <type_traits>
 #include <string_view>
 
 namespace np {
   struct Serializer;
   template <typename T>
   struct Formatter
-  {
-      void operator()(T&& val, Serializer& srl);
-  };
+  {};
 
   template <typename T>
   inline void format(T&& val, Serializer& srl) {
-    Formatter<T>()(std::forward<T>(val), srl);
+    Formatter<std::remove_reference_t<T>>()(std::forward<T>(val), srl);
   }
   void format(bool val, Serializer& srl);
   void format(short val, Serializer& srl);
