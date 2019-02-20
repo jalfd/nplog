@@ -1,11 +1,15 @@
 #include <nplog/Serializer.hpp>
+#include <cstdlib>
+#include <algorithm>
 #if defined(_WIN32) || defined(__linux__)
-#define has_to_chars
+//#define has_to_chars
 #endif
 #ifdef has_to_chars
 #include <charconv>
 #else
+#include <locale.h>
 #include <xlocale.h>
+#include <cstdio>
 #endif
 
 namespace np {
@@ -128,7 +132,13 @@ namespace np {
     static constexpr int bufsize = 1024;
     char buf[bufsize];
 #ifndef has_to_chars
+#ifdef __linux
+    auto old_loc = uselocale(internal::c_locale.loc);
+    const auto len = snprintf(buf, 32, format, val);
+    uselocale(old_loc);
+#else
     const auto len = snprintf_l(buf, 32, internal::c_locale.loc, format, val);
+#endif
     if (len > bufsize) { std::abort(); }
 #else
     const auto result = std::to_chars(buf, buf + 32, val);
