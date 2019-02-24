@@ -1,22 +1,20 @@
-#include <vector>
 #include <nplog/ScopedMessage.hpp>
-#include <catch/catch.hpp>
+#include <vector>
 #include "mocks.hpp"
+#include <catch/catch.hpp>
 
 namespace test1 {
-    struct Foo {};
-}
+  struct Foo {};
+} // namespace test1
 
 namespace np {
   template <>
-  struct Formatter<test1::Foo>
-  {
-      void operator()(const test1::Foo& val, ValueSerializer& srl)
-      {
-          ops.emplace_back("format", &val);
-      }
+  struct Formatter<test1::Foo> {
+    void operator()(const test1::Foo& val, ValueSerializer& srl) {
+      ops.emplace_back("format", &val);
+    }
   };
-}
+} // namespace np
 
 namespace {
   struct MockLog {
@@ -33,7 +31,8 @@ namespace {
     }
 
     // caller must be able to go "ok, flush this message buffer (and take it back if you want it)
-    void submitMessage(buffer_type buffer) { ops.emplace_back("submitMessage", buffer.id); }
+    void submitMessage(int level, const buffer_type &buffer) { ops.emplace_back("submitMessage", std::pair<int, int>(level, buffer.id)); }
+
     // caller must be able to return ownership of the buffer
     void releaseBuffer(buffer_type buffer) { ops.emplace_back("releaseBuffer", buffer.id); }
 
@@ -65,16 +64,18 @@ TEST_CASE("ScopedMessage") {
     const auto buffer_id = std::any_cast<int>(std::get<1>(ops.at(0)));
     CHECK(std::get<0>(ops.at(1)) == "prologue");
     {
-        using arg_type = std::tuple<std::string_view, int, int, std::string_view>;
-        const auto [file, line, level, msg] = std::any_cast<arg_type>(std::get<1>(ops.at(1)));
-        CHECK(file == "file");
-        CHECK(line == 3);
-        CHECK(level == 1);
-        CHECK(msg == "hello");
+      using arg_type = std::tuple<std::string_view, int, int, std::string_view>;
+      const auto [file, line, level, msg] = std::any_cast<arg_type>(std::get<1>(ops.at(1)));
+      CHECK(file == "file");
+      CHECK(line == 3);
+      CHECK(level == 1);
+      CHECK(msg == "hello");
     }
     CHECK(std::get<0>(ops.at(2)) == "epilogue");
     CHECK(std::get<0>(ops.at(3)) == "submitMessage");
-    CHECK(std::any_cast<int>(std::get<1>(ops.at(3))) == buffer_id);
+    const auto level_and_buffer = std::any_cast<std::pair<int, int>>(std::get<1>(ops.at(3)));
+    CHECK(level_and_buffer.first == 1);
+    CHECK(level_and_buffer.second == buffer_id);
     CHECK(std::get<0>(ops.at(4)) == "releaseBuffer");
     CHECK(std::any_cast<int>(std::get<1>(ops.at(4))) == buffer_id);
     CHECK(std::get<0>(ops.at(5)) == "dtor");

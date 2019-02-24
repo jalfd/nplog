@@ -134,14 +134,14 @@ namespace np {
 #ifndef has_to_chars
 #ifdef __linux
     auto old_loc = uselocale(internal::c_locale.loc);
-    const auto len = snprintf(buf, 32, format, val);
+    const auto len = snprintf(buf, bufsize, format, val);
     uselocale(old_loc);
 #else
-    const auto len = snprintf_l(buf, 32, internal::c_locale.loc, format, val);
+    const auto len = snprintf_l(buf, bufsize, internal::c_locale.loc, format, val);
 #endif
     if (len > bufsize) { std::abort(); }
 #else
-    const auto result = std::to_chars(buf, buf + 32, val);
+    const auto result = std::to_chars(buf, buf + bufsize, val);
     if (result.ec) { std::abort(); }
     const auto len = result.ptr - buf;
 #endif

@@ -32,7 +32,9 @@ namespace np {
     buffer_type acquireBuffer();
 
     // caller must be able to go "ok, flush this message buffer
-    void submitMessage(buffer_type buffer);
+    void submitMessage(int level, const buffer_type& buffer);
+
+    static void setSink(std::function<void(int, std::string_view msg)> sink);
 
     // caller must be able to return ownership of the buffer
     void releaseBuffer(buffer_type buf);
@@ -42,5 +44,7 @@ namespace np {
     std::mutex buffer_mutex;
     std::vector<buffer_type> buffers;
   };
+
+  std::function<void(int, std::string_view)> getStdErrSink();
 } // namespace np
 #endif
