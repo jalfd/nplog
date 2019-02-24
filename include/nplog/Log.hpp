@@ -32,11 +32,15 @@ namespace np {
 
     void submitMessage(const buffer_type &buffer);
 
+    static void setSink(std::function<void(std::string_view msg)> sink);
+
     void releaseBuffer(buffer_type&& buf);
 
   private:
     std::mutex buffer_mutex;
     std::vector<buffer_type> buffers;
   };
+
+  NPLOG_EXPORT std::function<void(std::string_view)> getStdErrSink();
 } // namespace np
 #endif

@@ -1,11 +1,25 @@
 #include <nplog/Log.hpp>
 
 #include <algorithm>
-#include <iostream>
+#include <cstdio>
+#include <functional>
 #include <mutex>
 #include <string>
 
+namespace {
+  std::mutex sink_mtx;
+  std::function<void(std::string_view msg)> log_sink;
+  const std::function<void(std::string_view)> stderr_log_sink
+    = [](std::string_view buffer) { std::fprintf(stderr, "%s\n", &buffer[0]); };
+} // namespace
 namespace np {
+  std::function<void(std::string_view)> getStdErrSink() { return stderr_log_sink; }
+
+  void Log::setSink(std::function<void(std::string_view msg)> sink) {
+    std::lock_guard lock(sink_mtx);
+    log_sink = sink;
+  }
+
   bool Log::suppressMessage(int level) const {
     return level > 3;
   }
@@ -21,8 +35,7 @@ namespace np {
   }
 
   void Log::submitMessage(const buffer_type& buffer) {
-    std::string str(buffer.begin(), buffer.end());
-    std::cout << str << '\n';
+    if (log_sink) { log_sink(std::string_view{&buffer[0], buffer.size()}); }
   }
 
   void Log::releaseBuffer(buffer_type&& buf) {
