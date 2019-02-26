@@ -10,6 +10,7 @@
 #include <locale.h>
 #include <xlocale.h>
 #include <cstdio>
+#include <cmath>
 #endif
 
 namespace np {
@@ -129,6 +130,12 @@ namespace np {
 
   template <typename T>
   void ValueSerializer::writeNumber(T val, const char* format) noexcept {
+    if constexpr (std::is_floating_point_v<T>) {
+        if (!std::isfinite(val)) {
+            writeLiteral("null");
+            return;
+        }
+    }
     static constexpr int bufsize = 1024;
     char buf[bufsize];
 #ifndef has_to_chars

@@ -7,6 +7,7 @@ add_executable(tests
     macros-test.cc
     ScopedMessage-test.cc
     FormatterTest.cc
+    SerializerTest.cc
 )
 target_link_libraries(tests PRIVATE Catch nplog)
 
