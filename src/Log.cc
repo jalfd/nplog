@@ -23,7 +23,6 @@ namespace np {
 
     const std::function<void(int, std::string_view)> stderr_log_sink
       = [](int, std::string_view buffer) {
-          std::string str(buffer.begin(), buffer.end());
           std::fprintf(stderr, "%s\n", &buffer[0]);
         };
   } // namespace
@@ -61,9 +60,12 @@ namespace np {
     return buf;
   }
 
-  void Log::submitMessage(int level, const buffer_type& buffer) {
+  void Log::submitMessage(int level, buffer_type& buffer) {
     std::lock_guard lock(state.sink_mtx);
-    if (state.log_sink) { state.log_sink(level, std::string_view{&buffer[0], buffer.size()}); }
+    if (state.log_sink) {
+      buffer.push_back('\0');
+      state.log_sink(level, std::string_view{&buffer[0], buffer.size()});
+    }
   }
 
   void Log::releaseBuffer(buffer_type&& buf) {

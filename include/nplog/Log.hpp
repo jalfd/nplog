@@ -35,7 +35,7 @@ namespace np {
     buffer_type acquireBuffer();
 
     // caller must be able to go "ok, flush this message buffer
-    void submitMessage(int level, const buffer_type& buffer);
+    void submitMessage(int level, buffer_type& buffer);
 
     // caller must be able to return ownership of the buffer
     void releaseBuffer(buffer_type&& buf);
