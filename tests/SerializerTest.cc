@@ -191,4 +191,58 @@ TEST_CASE("ValueSerializer") {
   }
 }
 
-TEST_CASE("Serializer") {}
+TEST_CASE("Serializer") {
+    SECTION("Log with no parameters") {
+        std::vector<char> buf;
+        np::Serializer s(&buf);
+        s.prologue("file", 1, 2, "msg");
+        s.epilogue();
+
+      std::string result(buf.begin(), buf.end());
+      REQUIRE(result == R"({"file":"file","line":1,"level":2,"message":"msg"})");
+    }
+    SECTION("Log header is correctly encoded") {
+        std::vector<char> buf;
+        np::Serializer s(&buf);
+        s.prologue("\"", 1, 2, "\"");
+        s.epilogue();
+
+      std::string result(buf.begin(), buf.end());
+      REQUIRE(result == R"({"file":"\"","line":1,"level":2,"message":"\""})");
+    }
+    SECTION("Log with one parameter") {
+        std::vector<char> buf;
+        np::Serializer s(&buf);
+        s.prologue("file", 1, 2, "msg");
+        s.writeKey("a");
+        s.valueSerializer().write(3);
+        s.epilogue();
+
+      std::string result(buf.begin(), buf.end());
+      REQUIRE(result == R"({"file":"file","line":1,"level":2,"message":"msg","params":{"a":3}})");
+    }
+    SECTION("Log with multiple parameters") {
+        std::vector<char> buf;
+        np::Serializer s(&buf);
+        s.prologue("file", 1, 2, "msg");
+        s.writeKey("a");
+        s.valueSerializer().write(3);
+        s.writeKey("b");
+        s.valueSerializer().write(4);
+        s.epilogue();
+
+      std::string result(buf.begin(), buf.end());
+      REQUIRE(result == R"({"file":"file","line":1,"level":2,"message":"msg","params":{"a":3,"b":4}})");
+    }
+    SECTION("Parameter keys are correctly encoded") {
+        std::vector<char> buf;
+        np::Serializer s(&buf);
+        s.prologue("file", 1, 2, "msg");
+        s.writeKey("\"");
+        s.valueSerializer().write(3);
+        s.epilogue();
+
+      std::string result(buf.begin(), buf.end());
+      REQUIRE(result == R"({"file":"file","line":1,"level":2,"message":"msg","params":{"\"":3}})");
+    }
+}
