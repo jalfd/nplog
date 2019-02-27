@@ -42,4 +42,4 @@ PRIVATE
 add_subdirectory(tests)
 
 install(TARGETS nplog DESTINATION lib)
-install(FILES ${nplog_public_headers} DESTINATION include)
+install(FILES ${nplog_public_headers} DESTINATION include/nplog)
