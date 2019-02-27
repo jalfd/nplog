@@ -1,5 +1,4 @@
 Basics:
-- Serializer test
 - Log test (including that buffers are cleared either on acquire or release)
 - implement log levels (must be static. You set them once, globally, not per log object)
 - need to test reentrant logging too
