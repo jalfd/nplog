@@ -31,7 +31,7 @@ namespace np {
     bool addArg(const char* name, T&& expr) {
       serializer.writeKey(name);
       auto vs = serializer.valueSerializer();
-      np::format(std::forward<T>(expr), vs);
+      np::format(expr, vs);
       return true;
     }
 

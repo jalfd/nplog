@@ -1,5 +1,6 @@
 #include <nplog/Formatter.hpp>
 #include <nplog/Serializer.hpp>
+#include <string>
 namespace np {
   void format(bool val, ValueSerializer& srl) {
       srl.write(val);
@@ -59,5 +60,9 @@ namespace np {
 
   void format(std::string_view val, ValueSerializer& srl) {
       srl.write(val);
+  }
+
+  void format(const std::string &val, ValueSerializer& srl) {
+      srl.write(std::string_view(val));
   }
 } // namespace np

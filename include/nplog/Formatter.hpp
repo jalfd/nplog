@@ -11,8 +11,8 @@ namespace np {
   {};
 
   template <typename T>
-  inline void format(T&& val, ValueSerializer& srl) {
-    Formatter<std::remove_reference_t<T>>()(std::forward<T>(val), srl);
+  inline void format(const T& val, ValueSerializer& srl) {
+    Formatter<T>()(val, srl);
   }
   void format(bool val, ValueSerializer& srl);
   void format(short val, ValueSerializer& srl);
@@ -27,6 +27,7 @@ namespace np {
   void format(double val, ValueSerializer& srl);
   void format(long double val, ValueSerializer& srl);
   void format(std::string_view val, ValueSerializer& srl);
+  void format(const std::string &val, ValueSerializer& srl);
 
 } // namespace np
 
