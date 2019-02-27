@@ -38,7 +38,7 @@ namespace np {
     void submitMessage(int level, const buffer_type& buffer);
 
     // caller must be able to return ownership of the buffer
-    void releaseBuffer(buffer_type buf);
+    void releaseBuffer(buffer_type&& buf);
 
     static void setSink(std::function<void(int, std::string_view msg)> sink);
     static void setMessageLevel(int level);

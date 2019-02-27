@@ -55,7 +55,7 @@ namespace np {
   Log::buffer_type Log::acquireBuffer() {
     std::lock_guard lock(state.buffer_mutex);
     if (state.buffers.empty()) { state.buffers.emplace_back(); }
-    const auto buf = state.buffers.back();
+    const auto buf = std::move(state.buffers.back());
     state.buffers.pop_back();
     return buf;
   }
@@ -65,9 +65,10 @@ namespace np {
     if (state.log_sink) { state.log_sink(level, std::string_view{&buffer[0], buffer.size()}); }
   }
 
-  void Log::releaseBuffer(buffer_type buf) {
+  void Log::releaseBuffer(buffer_type&& buf) {
     buf.clear();
     std::lock_guard lock(state.buffer_mutex);
-    state.buffers.push_back(buf);
+    state.buffers.push_back(std::move(buf));
   }
+
 } // namespace np
