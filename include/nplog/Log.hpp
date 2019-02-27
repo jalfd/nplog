@@ -5,6 +5,7 @@
 #include "Formatter.hpp"
 
 #include <algorithm>
+#include <functional>
 #include <mutex>
 #include <string_view>
 #include <vector>
