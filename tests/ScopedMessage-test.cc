@@ -111,7 +111,6 @@ TEST_CASE("ScopedMessage") {
       np::ScopedMessage<MockLog> msg(log, "", 0, 0, "");
       msg.addArg("name", nested());
     }
-    printOps();
     CHECK(log.buffersRequested == 2);
     CHECK(ops.size() == 14);
     // Outer message is created using buffer1 (buf not yet written)
