@@ -14,7 +14,7 @@ namespace np {
   struct ScopedMessage {
     ScopedMessage(LogType& log, const char* file, int line, int level, const char* m)
       : log(log)
-      , argThreshold(log.argThreshold())
+      , param_level(log.paramLevel())
       , message_buffer(log.acquireBuffer())
       , serializer(&message_buffer)
       , message_level(level) {
@@ -35,12 +35,12 @@ namespace np {
       return true;
     }
 
-    bool testArg(int i) { return i < argThreshold; }
-    bool testArg(const char* = nullptr) { return testArg(message_level); }
+    bool suppressParam(int i) { return i > param_level; }
+    bool suppressParam(const char* = nullptr) { return suppressParam(message_level); }
 
   private:
     LogType& log;
-    uint32_t argThreshold;
+    uint32_t param_level;
     typename LogType::buffer_type message_buffer;
     typename LogType::serializer_type serializer;
 

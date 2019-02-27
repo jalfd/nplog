@@ -1,7 +1,6 @@
 Basics:
 - Log test (including that buffers are cleared either on acquire or release)
-- implement log levels (must be static. You set them once, globally, not per log object)
 
 Features:
 - support log children/proxies, similar to bunyan, for sectioning (should also set a top-level log name. Should that be hierarchical?)
-- consider depth-based log filtering (I want log messages from root loggers, but not children
+- consider depth-based log filtering (I want log messages from root loggers, but not children)

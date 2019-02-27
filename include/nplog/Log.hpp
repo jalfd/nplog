@@ -26,8 +26,10 @@ namespace np {
     using buffer_type = std::vector<char>;
     using serializer_type = Serializer;
 
-    bool testMessage(int level);
-    int argThreshold() const;
+    Log();
+
+    bool suppressMessage(int level) const;
+    int paramLevel() const;
 
     // caller must be able to go "give me a buffer"
     buffer_type acquireBuffer();
@@ -35,15 +37,16 @@ namespace np {
     // caller must be able to go "ok, flush this message buffer
     void submitMessage(int level, const buffer_type& buffer);
 
-    static void setSink(std::function<void(int, std::string_view msg)> sink);
-
     // caller must be able to return ownership of the buffer
     void releaseBuffer(buffer_type buf);
 
+    static void setSink(std::function<void(int, std::string_view msg)> sink);
+    static void setMessageLevel(int level);
+    static void setParamLevel(int level);
+
   private:
-    // TODO: this should be pimpl'ed
-    std::mutex buffer_mutex;
-    std::vector<buffer_type> buffers;
+    int message_level;
+    int param_level;
   };
 
   std::function<void(int, std::string_view)> getStdErrSink();

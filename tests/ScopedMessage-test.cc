@@ -21,8 +21,8 @@ namespace {
     using buffer_type = MockBuffer;
     using serializer_type = MockSerializer;
 
-    bool testMessage(int level) { return true; }
-    int argThreshold() const { return 3; }
+    bool suppressMessage(int) const { return true; }
+    int paramLevel() const { return 3; }
 
     // caller must be able to go "give me a buffer"
     buffer_type acquireBuffer() {

@@ -5,7 +5,7 @@
 namespace np {
   namespace {
     struct Log {
-      bool testMessage(int level) { return level < 5; }
+      bool suppressMessage(int level) { return level > 5; }
     };
 
     // Mock class for testing
@@ -16,8 +16,8 @@ namespace np {
         ++message_counter;
       }
 
-      inline bool testArg(int i) { return i < level_threshold; };
-      inline bool testArg(const char* = nullptr) { return testArg(default_level); }
+      inline bool suppressParam(int level) { return level > level_threshold; }
+      inline bool suppressParam(const char* = nullptr) { return suppressParam(default_level); }
 
       template <typename T>
       bool addArg(const char* name, const T& expr) {
@@ -132,25 +132,25 @@ TEST_CASE("macros") {
     CHECK(np::ScopedMessage::msg == "hello6");
   }
 
-  SECTION("Discard if explicit log level is too high") {
+  SECTION("Discard param if explicit log level is too high") {
     np::ScopedMessage::serialize_callback = [&](auto name, const void* expr) {
       ++calls;
       CHECK(name == "'x'");
       CHECK(*static_cast<const char*>(expr) == 'x');
     };
     np::Log log;
-    LOG(log, 0, "hello7", ARG(4, 'x'), ARG(5, bar()));
+    LOG(log, 0, "hello7", ARG(5, 'x'), ARG(6, bar()));
     CHECK(calls == 1);
     CHECK(np::ScopedMessage::msg == "hello7");
     CHECK(!bar_called);
   }
 
-  SECTION("Discard if implicit log level is too high") {
+  SECTION("Discard param if implicit log level is too high") {
     np::ScopedMessage::serialize_callback = [&](auto name, const void* expr) {
       ++calls;
     };
 
-    np::ScopedMessage::default_level = 5;
+    np::ScopedMessage::default_level = 6;
     np::Log log;
     LOG(log, 0, "hello8", ARG(bar()));
     CHECK(calls == 0);
@@ -183,7 +183,7 @@ TEST_CASE("macros") {
       ++calls;
     };
 
-    np::ScopedMessage::default_level = 5;
+    np::ScopedMessage::default_level = 6;
     np::Log log;
     LOG(log, 9, "hello11", ARG('x'));
     CHECK(calls == 0);
