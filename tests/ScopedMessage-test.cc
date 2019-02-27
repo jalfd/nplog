@@ -60,14 +60,16 @@ TEST_CASE("ScopedMessage") {
     const auto buffer_id = std::any_cast<int>(std::get<1>(ops.at(0)));
     CHECK(std::get<0>(ops.at(1)) == "prologue");
     {
-      using arg_type = std::tuple<std::string_view, int, int, std::string_view>;
-      const auto [file, line, level, msg] = std::any_cast<arg_type>(std::get<1>(ops.at(1)));
+      using arg_type = std::tuple<std::string_view, int, int, std::string_view, int>;
+      const auto [file, line, level, msg, bid] = std::any_cast<arg_type>(std::get<1>(ops.at(1)));
       CHECK(file == "file");
       CHECK(line == 3);
       CHECK(level == 1);
       CHECK(msg == "hello");
+      CHECK(bid == buffer_id);
     }
     CHECK(std::get<0>(ops.at(2)) == "epilogue");
+    CHECK(std::any_cast<int>(std::get<1>(ops.at(2))) == buffer_id);
     CHECK(std::get<0>(ops.at(3)) == "submitMessage");
     CHECK(std::any_cast<int>(std::get<1>(ops.at(3))) == buffer_id);
     CHECK(std::get<0>(ops.at(4)) == "releaseBuffer");
@@ -100,5 +102,49 @@ TEST_CASE("ScopedMessage") {
     CHECK(!msg.suppressParam(2));
     CHECK(!msg.suppressParam(3));
     CHECK(msg.suppressParam(4));
+  }
+
+  SECTION("ScopedMessage can handle reentrancy") {
+    const auto nested = [&]() {
+      np::ScopedMessage<MockLog>(log, "", 0, 0, "");
+      return test1::Foo();
+    };
+    {
+      np::ScopedMessage<MockLog> msg(log, "", 0, 0, "");
+      msg.addArg("name", nested());
+    }
+    CHECK(log.buffersRequested == 2);
+    CHECK(ops.size() == 14);
+    // Outer message is created using buffer1 (buf not yet written)
+    CHECK(std::get<0>(ops.at(0)) == "ctor");
+    const auto buffer1 = std::any_cast<int>(std::get<1>(ops.at(0)));
+    CHECK(std::get<0>(ops.at(1)) == "prologue");
+    // Inner message is created using buffer2
+    CHECK(std::get<0>(ops.at(2)) == "ctor");
+    const auto buffer2 = std::any_cast<int>(std::get<1>(ops.at(2)));
+    CHECK(std::get<0>(ops.at(3)) == "prologue");
+    {
+      using arg_type = std::tuple<std::string_view, int, int, std::string_view, int>;
+      const auto bid = std::get<4>(std::any_cast<arg_type>(std::get<1>(ops.at(3))));
+      CHECK(bid == buffer2);
+    }
+    CHECK(std::get<0>(ops.at(4)) == "epilogue");
+    CHECK(std::any_cast<int>(std::get<1>(ops.at(4))) == buffer2);
+    // Inner emessage is written
+    CHECK(std::get<0>(ops.at(5)) == "submitMessage");
+    CHECK(std::any_cast<int>(std::get<1>(ops.at(5))) == buffer2);
+    CHECK(std::get<0>(ops.at(6)) == "releaseBuffer");
+    CHECK(std::any_cast<int>(std::get<1>(ops.at(6))) == buffer2);
+    CHECK(std::get<0>(ops.at(7)) == "dtor");
+    CHECK(std::get<0>(ops.at(8)) == "writeKey");
+    CHECK(std::get<0>(ops.at(9)) == "format");
+    CHECK(std::get<0>(ops.at(10)) == "epilogue");
+    CHECK(std::any_cast<int>(std::get<1>(ops.at(10))) == buffer1);
+    // Outer message is written
+    CHECK(std::get<0>(ops.at(11)) == "submitMessage");
+    CHECK(std::any_cast<int>(std::get<1>(ops.at(11))) == buffer1);
+    CHECK(std::get<0>(ops.at(12)) == "releaseBuffer");
+    CHECK(std::any_cast<int>(std::get<1>(ops.at(12))) == buffer1);
+    CHECK(std::get<0>(ops.at(13)) == "dtor");
   }
 }
