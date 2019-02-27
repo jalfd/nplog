@@ -20,7 +20,7 @@ namespace np {
 
     buffer_type acquireBuffer();
 
-    void submitMessage(int level, const buffer_type& buffer);
+    void submitMessage(int level, buffer_type& buffer);
 
     void releaseBuffer(buffer_type&& buf);
 
