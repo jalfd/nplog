@@ -145,4 +145,11 @@ TEST_CASE("ScopedMessage") {
     CHECK(std::any_cast<int>(std::get<1>(ops.at(12))) == buffer1);
     CHECK(std::get<0>(ops.at(13)) == "dtor");
   }
+
+  SECTION("Params are suppressed correctly") {
+      np::ScopedMessage<MockLog> msg(log, "", 0, 0, "");
+      CHECK(!msg.suppressParam(2));
+      CHECK(!msg.suppressParam(3));
+      CHECK(msg.suppressParam(4));
+  }
 }
