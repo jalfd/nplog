@@ -244,6 +244,27 @@ TEST_CASE("Serializer") {
     s.epilogue();
 
     std::string result(buf.begin(), buf.end());
-    REQUIRE(result == "{\"file\":\"file\",\"line\":1,\"level\":2,\"message\":\"msg\",\"params\":{\"\\\"\":3}}");
+    REQUIRE(result
+      == "{\"file\":\"file\",\"line\":1,\"level\":2,\"message\":\"msg\",\"params\":{\"\\\"\":3}}");
+  }
+  SECTION("Serializer removes path from file") {
+    SECTION("forward slashes") {
+      std::vector<char> buf;
+      np::Serializer s(&buf);
+      s.prologue("foo/bar/file.cc", 1, 2, "msg");
+      s.epilogue();
+
+      std::string result(buf.begin(), buf.end());
+      REQUIRE(result == R"({"file":"file.cc","line":1,"level":2,"message":"msg"})");
+    }
+    SECTION("backslashes") {
+      std::vector<char> buf;
+      np::Serializer s(&buf);
+      s.prologue("foo\\bar\\file.cc", 1, 2, "msg");
+      s.epilogue();
+
+      std::string result(buf.begin(), buf.end());
+      REQUIRE(result == R"({"file":"file.cc","line":1,"level":2,"message":"msg"})");
+    }
   }
 }
