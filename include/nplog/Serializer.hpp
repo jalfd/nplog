@@ -14,18 +14,18 @@ namespace np {
     void write(long double val);
     void write(int val);
     void write(unsigned int val);
+    void write(long val);
+    void write(unsigned long val);
     void write(long long val);
     void write(unsigned long long val);
     void write(std::string_view val);
     void write(bool val);
-    void writeRawJson(std::string_view val);
     void writeLiteral(std::string_view val);
-    void writeString(std::string_view val);
 
   private:
+    void writeString(std::string_view val);
     template <typename T>
     void writeNumber(T val, const char* format) noexcept;
-
 
     buffer_type* buffer;
   };

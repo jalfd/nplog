@@ -52,7 +52,7 @@ namespace np {
     auto vs = valueSerializer();
     if (!has_params) { vs.writeLiteral(",\"params\":{"); }
     else { vs.writeLiteral(","); }
-    vs.writeString(name);
+    vs.write(name);
     buffer->push_back(':');
     has_params = true;
   }
@@ -68,9 +68,14 @@ namespace np {
   void ValueSerializer::write(int val) { writeNumber(val, "%d"); }
 
   void ValueSerializer::write(unsigned int val) { writeNumber(val, "%u"); }
+
   void ValueSerializer::write(long long val) { writeNumber(val, "%lld"); }
 
   void ValueSerializer::write(unsigned long long val) { writeNumber(val, "%llu"); }
+
+  void ValueSerializer::write(long val) { writeNumber(val, "%ld"); }
+
+  void ValueSerializer::write(unsigned long val) { writeNumber(val, "%lu"); }
 
   void ValueSerializer::write(std::string_view val) {
     writeString(val);
@@ -78,10 +83,6 @@ namespace np {
 
   void ValueSerializer::write(bool val) {
     writeLiteral(val ? "true" : "false");
-  }
-
-  void ValueSerializer::writeRawJson(std::string_view val) {
-    writeLiteral(val);
   }
 
   void ValueSerializer::writeString(std::string_view val) {
@@ -109,13 +110,15 @@ namespace np {
         buffer->push_back('t');
         return;
       default:
-        if (c < 0x20) {
+        if (static_cast<unsigned char>(c) < 0x20) {
           buffer->push_back('\\');
           buffer->push_back('u');
           buffer->push_back('0');
           buffer->push_back('0');
           buffer->push_back(c < 0x10 ? '0' : '1');
-          buffer->push_back(c & 0xf);
+          char b[2];
+          snprintf(b, 2, "%x", (c & 0xf));
+          buffer->push_back(b[0]);
         } else {
           buffer->push_back(c);
         }
