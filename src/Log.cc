@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <atomic>
 #include <functional>
-#include <iostream>
+#include <cstdio>
 #include <mutex>
 
 namespace np {
@@ -24,7 +24,7 @@ namespace np {
     const std::function<void(int, std::string_view)> stderr_log_sink
       = [](int, std::string_view buffer) {
           std::string str(buffer.begin(), buffer.end());
-          std::cerr << str << '\n';
+          std::fprintf(stderr, "%s\n", &buffer[0]);
         };
   } // namespace
 
