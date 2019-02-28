@@ -8,7 +8,9 @@
 #include <charconv>
 #else
 #include <locale.h>
+#ifndef _WIN32
 #include <xlocale.h>
+#endif
 #include <cstdio>
 #include <cmath>
 #endif
@@ -20,9 +22,15 @@ namespace np {
 #ifndef has_to_chars
     namespace internal {
       static struct ScopedLocale {
+#ifdef _WIN32
+          using locale_t = _locale_t;
+        ScopedLocale() : loc(_create_locale(LC_ALL, "C")) {}
+        ~ScopedLocale() { _free_locale(loc); }
+#else
         ScopedLocale() : loc(newlocale(LC_ALL_MASK, "C", 0)) {}
-
         ~ScopedLocale() { freelocale(loc); }
+#endif
+
         locale_t loc;
         ScopedLocale(const ScopedLocale&) = delete;
         ScopedLocale& operator=(const ScopedLocale&) = delete;
@@ -172,6 +180,11 @@ namespace np {
     auto old_loc = uselocale(internal::c_locale.loc);
     const auto len = snprintf(buf, bufsize, format, val);
     uselocale(old_loc);
+#elif defined(_WIN32)
+    const auto len = _snprintf_s_l(buf, bufsize, _TRUNCATE, format, internal::c_locale.loc, val);
+    if (len == -1) {
+        std::abort();
+    }
 #else
     const auto len = snprintf_l(buf, bufsize, internal::c_locale.loc, format, val);
 #endif

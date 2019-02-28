@@ -3,6 +3,7 @@
 #include <nplog/Serializer.hpp>
 #include <any>
 #include <iostream>
+#include <string>
 
 namespace {
   // convenience operator for catch to use

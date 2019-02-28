@@ -44,8 +44,8 @@ TEST_CASE("ValueSerializer") {
   SECTION("float") {
     checkFloatyValue<float>(0.0);
     checkFloatyValue<float>(-0.0);
-    checkFloatyValue<float>(1.2345678);
-    checkFloatyValue<float>(-1.2345678);
+    checkFloatyValue<float>(1.2345678f);
+    checkFloatyValue<float>(-1.2345678f);
     checkFloatyValue<float>(std::numeric_limits<float>::max());
   }
   SECTION("double") {
@@ -151,7 +151,7 @@ TEST_CASE("ValueSerializer") {
       np::ValueSerializer vs(&buf);
       vs.write(std::string_view("hello \"world\""));
       std::string result(buf.begin(), buf.end());
-      REQUIRE(result == R"("hello \"world\"")");
+      REQUIRE(result == "\"hello \\\"world\\\"\"");
     }
     SECTION("string with backslash") {
       std::vector<char> buf;
@@ -208,7 +208,8 @@ TEST_CASE("Serializer") {
         s.epilogue();
 
       std::string result(buf.begin(), buf.end());
-      REQUIRE(result == R"({"file":"\"","line":1,"level":2,"message":"\""})");
+      //REQUIRE(result == R"({"file":"\"","line":1,"level":2,"message":"\""})"); JALF
+      REQUIRE(result == "{\"file\":\"\\\"\",\"line\":1,\"level\":2,\"message\":\"\\\"\"}");
     }
     SECTION("Log with one parameter") {
         std::vector<char> buf;
@@ -243,7 +244,8 @@ TEST_CASE("Serializer") {
         s.epilogue();
 
       std::string result(buf.begin(), buf.end());
-      REQUIRE(result == R"({"file":"file","line":1,"level":2,"message":"msg","params":{"\"":3}})");
+      //REQUIRE(result == R"({"file":"file","line":1,"level":2,"message":"msg","params":{"\"":3}})"); JALF
+      REQUIRE(result == "{\"file\":\"file\",\"line\":1,\"level\":2,\"message\":\"msg\",\"params\":{\"\\\"\":3}}");
     }
     SECTION("Serializer removes path from file") {
       SECTION("forward slashes") {

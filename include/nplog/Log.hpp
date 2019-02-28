@@ -1,8 +1,9 @@
 #ifndef NP_LOG_LOG_HPP
 #define NP_LOG_LOG_HPP
 
-#include "Serializer.hpp"
-#include "Formatter.hpp"
+#include <nplog/Serializer.hpp>
+#include <nplog/Formatter.hpp>
+#include <nplog/export.hpp>
 
 #include <algorithm>
 #include <functional>
@@ -20,7 +21,7 @@
 #include <iostream>
 
 namespace np {
-  struct Log {
+  struct NPLOG_EXPORT Log {
     // FIXME: should this be wrapped in a unique ptr? It'd be an extra template instantiation, but
     // would let us ensure no copies are accidentally made
     using buffer_type = std::vector<char>;
@@ -49,6 +50,6 @@ namespace np {
     int param_level;
   };
 
-  std::function<void(int, std::string_view)> getStdErrSink();
+  NPLOG_EXPORT std::function<void(int, std::string_view)> getStdErrSink();
 } // namespace np
 #endif

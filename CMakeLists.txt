@@ -33,9 +33,16 @@ target_link_libraries(nplog Date)
 target_include_directories(nplog
 PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:include>
 PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+include(GenerateExportHeader)
+GENERATE_EXPORT_HEADER(nplog
+EXPORT_FILE_NAME
+include/nplog/export.hpp
 )
 
 # For exporting target "the nice way",
@@ -45,4 +52,4 @@ PRIVATE
 add_subdirectory(tests)
 
 install(TARGETS nplog DESTINATION lib)
-install(FILES ${nplog_public_headers} DESTINATION include/nplog)
+install(FILES ${nplog_public_headers} ${CMAKE_BINARY_DIR}/include/nplog/export.hpp DESTINATION include/nplog)

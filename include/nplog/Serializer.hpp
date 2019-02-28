@@ -1,11 +1,12 @@
 #ifndef NP_SERIALIZER_HPP
 #define NP_SERIALIZER_HPP
 
+#include <nplog/export.hpp>
 #include <string_view>
 #include <vector> //TODO: need real buffer type
 
 namespace np {
-  struct ValueSerializer {
+  struct NPLOG_EXPORT ValueSerializer {
     using buffer_type = std::vector<char>;
     explicit ValueSerializer(buffer_type* buffer);
     ~ValueSerializer() = default;
@@ -30,7 +31,7 @@ namespace np {
     buffer_type* buffer;
   };
 
-  struct Serializer {
+  struct NPLOG_EXPORT Serializer {
     using buffer_type = std::vector<char>;
     explicit Serializer(buffer_type* buffer);
     ~Serializer() = default;

@@ -2,7 +2,7 @@
 #define NP_LOG_SCOPEDMESSAGE_HPP
 
 #include <string_view>
-#include "Log.hpp"
+#include <nplog/Log.hpp>
 
 // TODO: what happens in case of reentrancy?
 // I guess it could just be a protocol where message ctor goes "can I have a buffer please?", and we
@@ -40,7 +40,7 @@ namespace np {
 
   private:
     LogType& log;
-    uint32_t param_level;
+    int param_level;
     typename LogType::buffer_type message_buffer;
     typename LogType::serializer_type serializer;
 

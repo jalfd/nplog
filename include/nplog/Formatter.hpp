@@ -1,6 +1,7 @@
 #ifndef NP_FORMATTER_HPP
 #define NP_FORMATTER_HPP
 
+#include <nplog/export.hpp>
 #include <type_traits>
 #include <string_view>
 
@@ -14,20 +15,20 @@ namespace np {
   inline void format(const T& val, ValueSerializer& srl) {
     Formatter<T>()(val, srl);
   }
-  void format(bool val, ValueSerializer& srl);
-  void format(short val, ValueSerializer& srl);
-  void format(unsigned short val, ValueSerializer& srl);
-  void format(int val, ValueSerializer& srl);
-  void format(unsigned int val, ValueSerializer& srl);
-  void format(long val, ValueSerializer& srl);
-  void format(unsigned long val, ValueSerializer& srl);
-  void format(long long val, ValueSerializer& srl);
-  void format(unsigned long long val, ValueSerializer& srl);
-  void format(float val, ValueSerializer& srl);
-  void format(double val, ValueSerializer& srl);
-  void format(long double val, ValueSerializer& srl);
-  void format(std::string_view val, ValueSerializer& srl);
-  void format(const std::string &val, ValueSerializer& srl);
+  NPLOG_EXPORT void format(bool val, ValueSerializer& srl);
+  NPLOG_EXPORT void format(short val, ValueSerializer& srl);
+  NPLOG_EXPORT void format(unsigned short val, ValueSerializer& srl);
+  NPLOG_EXPORT void format(int val, ValueSerializer& srl);
+  NPLOG_EXPORT void format(unsigned int val, ValueSerializer& srl);
+  NPLOG_EXPORT void format(long val, ValueSerializer& srl);
+  NPLOG_EXPORT void format(unsigned long val, ValueSerializer& srl);
+  NPLOG_EXPORT void format(long long val, ValueSerializer& srl);
+  NPLOG_EXPORT void format(unsigned long long val, ValueSerializer& srl);
+  NPLOG_EXPORT void format(float val, ValueSerializer& srl);
+  NPLOG_EXPORT void format(double val, ValueSerializer& srl);
+  NPLOG_EXPORT void format(long double val, ValueSerializer& srl);
+  NPLOG_EXPORT void format(std::string_view val, ValueSerializer& srl);
+  NPLOG_EXPORT void format(const std::string &val, ValueSerializer& srl);
 
 } // namespace np
 
