@@ -64,7 +64,7 @@ namespace np {
     std::lock_guard lock(state.sink_mtx);
     if (state.log_sink) {
       buffer.push_back('\0');
-      state.log_sink(level, std::string_view{&buffer[0], buffer.size()});
+      state.log_sink(level, std::string_view{&buffer[0], buffer.size() - 1});
     }
   }
 
