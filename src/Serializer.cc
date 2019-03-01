@@ -58,10 +58,10 @@ namespace np {
     auto time = date::make_time(std::chrono::duration_cast<std::chrono::milliseconds>(now - date));
     auto ymd = date::year_month_day{date};
     const auto sz = buffer->size();
-    buffer->resize(sz + 25);
+    buffer->resize(sz + 27);
     const auto written = snprintf(&(*buffer)[sz],
-      25,
-      "%04d-%02u-%02uT%02d:%02d:%02d.%03dZ",
+      27,
+      "\"%04d-%02u-%02uT%02d:%02d:%02d.%03dZ\"",
       static_cast<int>(ymd.year()),
       static_cast<unsigned int>(ymd.month()),
       static_cast<unsigned int>(ymd.day()),
