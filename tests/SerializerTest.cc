@@ -1,7 +1,19 @@
 #include <nplog/Serializer.hpp>
+#include <picojson/picojson.h>
 #include <regex>
 #include <sstream>
 #include <catch/catch.hpp>
+
+namespace pj = picojson;
+
+pj::object parseLogMessage(std::vector<char> buf) {
+  pj::value val;
+  std::string err;
+  picojson::parse(val, buf.begin(), buf.end(), &err);
+  REQUIRE(err == "");
+  REQUIRE(val.is<pj::object>());
+  return val.get<pj::object>();
+}
 
 template <typename T>
 void checkFloatyValue(T val) {
@@ -195,31 +207,42 @@ TEST_CASE("Serializer") {
   SECTION("Log with no parameters") {
     std::vector<char> buf;
     np::Serializer s(&buf);
-    s.prologue("file", 1, 2, "msg");
+    s.prologue("file.cc", 1, 2, "msg");
     s.epilogue();
 
-    std::string result(buf.begin(), buf.end());
-    REQUIRE(result == R"({"file":"file","line":1,"level":2,"message":"msg"})");
+    auto result = parseLogMessage(buf);
+    CHECK(result["file"].get<std::string>() == "file.cc");
+    CHECK(result["line"].get<double>() == 1.0);
+    CHECK(result["level"].get<double>() == 2.0);
+    CHECK(result["message"].get<std::string>() == "msg");
+    CHECK(result.find("params") == result.end());
   }
-  SECTION("Log header is correctly encoded") {
+  SECTION("Log prologue is correctly encoded") {
     std::vector<char> buf;
     np::Serializer s(&buf);
-    s.prologue("\"", 1, 2, "\"");
+    s.prologue("file\".cc", 1, 2, "msg\\");
     s.epilogue();
 
-    std::string result(buf.begin(), buf.end());
-    REQUIRE(result == "{\"file\":\"\\\"\",\"line\":1,\"level\":2,\"message\":\"\\\"\"}");
+    auto result = parseLogMessage(buf);
+    CHECK(result["file"].get<std::string>() == "file\".cc");
+    CHECK(result["message"].get<std::string>() == "msg\\");
   }
   SECTION("Log with one parameter") {
     std::vector<char> buf;
     np::Serializer s(&buf);
-    s.prologue("file", 1, 2, "msg");
+    s.prologue("file.cc", 1, 2, "msg");
     s.writeKey("a");
     s.valueSerializer().write(3);
     s.epilogue();
 
-    std::string result(buf.begin(), buf.end());
-    REQUIRE(result == R"({"file":"file","line":1,"level":2,"message":"msg","params":{"a":3}})");
+    auto result = parseLogMessage(buf);
+    CHECK(result["file"].get<std::string>() == "file.cc");
+    CHECK(result["line"].get<double>() == 1.0);
+    CHECK(result["level"].get<double>() == 2.0);
+    CHECK(result["message"].get<std::string>() == "msg");
+    auto params = result["params"].get<pj::object>();
+    CHECK(params.size() == 1);
+    CHECK(params["a"].get<double>() == 3.0);
   }
   SECTION("Log with multiple parameters") {
     std::vector<char> buf;
@@ -231,9 +254,11 @@ TEST_CASE("Serializer") {
     s.valueSerializer().write(4);
     s.epilogue();
 
-    std::string result(buf.begin(), buf.end());
-    REQUIRE(
-      result == R"({"file":"file","line":1,"level":2,"message":"msg","params":{"a":3,"b":4}})");
+    auto result = parseLogMessage(buf);
+    auto params = result["params"].get<pj::object>();
+    CHECK(params.size() == 2);
+    CHECK(params["a"].get<double>() == 3.0);
+    CHECK(params["b"].get<double>() == 4.0);
   }
   SECTION("Parameter keys are correctly encoded") {
     std::vector<char> buf;
@@ -243,9 +268,10 @@ TEST_CASE("Serializer") {
     s.valueSerializer().write(3);
     s.epilogue();
 
-    std::string result(buf.begin(), buf.end());
-    REQUIRE(result
-      == "{\"file\":\"file\",\"line\":1,\"level\":2,\"message\":\"msg\",\"params\":{\"\\\"\":3}}");
+    auto result = parseLogMessage(buf);
+    auto params = result["params"].get<pj::object>();
+    CHECK(params.size() == 1);
+    CHECK(params["\""].get<double>() == 3.0);
   }
   SECTION("Serializer removes path from file") {
     SECTION("forward slashes") {
@@ -254,8 +280,8 @@ TEST_CASE("Serializer") {
       s.prologue("foo/bar/file.cc", 1, 2, "msg");
       s.epilogue();
 
-      std::string result(buf.begin(), buf.end());
-      REQUIRE(result == R"({"file":"file.cc","line":1,"level":2,"message":"msg"})");
+      auto result = parseLogMessage(buf);
+      CHECK(result["file"].get<std::string>() == "file.cc");
     }
     SECTION("backslashes") {
       std::vector<char> buf;
@@ -263,8 +289,8 @@ TEST_CASE("Serializer") {
       s.prologue("foo\\bar\\file.cc", 1, 2, "msg");
       s.epilogue();
 
-      std::string result(buf.begin(), buf.end());
-      REQUIRE(result == R"({"file":"file.cc","line":1,"level":2,"message":"msg"})");
+      auto result = parseLogMessage(buf);
+      CHECK(result["file"].get<std::string>() == "file.cc");
     }
   }
 }

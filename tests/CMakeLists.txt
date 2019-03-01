@@ -10,6 +10,6 @@ add_executable(tests
     SerializerTest.cc
     LogTest.cc
 )
-target_link_libraries(tests PRIVATE Catch nplog)
+target_link_libraries(tests PRIVATE Catch picojson nplog)
 
 add_test(NAME tests COMMAND tests)
