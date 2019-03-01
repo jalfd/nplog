@@ -11,6 +11,8 @@ pj::object parseLogMessage(std::vector<char> buf)
   pj::value val;
   std::string err;
   picojson::parse(val, buf.begin(), buf.end(), &err);
+  std::string input(buf.begin(), buf.end());
+  CAPTURE(input);
   REQUIRE(err == "");
   REQUIRE(val.is<pj::object>());
   return val.get<pj::object>();
