@@ -20,3 +20,8 @@ target_compile_definitions(compile_benchmark PRIVATE "CYCLE_TYPES")
 set_target_properties(compile_benchmark PROPERTIES EXCLUDE_FROM_ALL TRUE)
 # To get build command: jq -r 'map(select(.file | endswith("time_nplog_build.cc"))) | .[] | .command' compile_commands.json
 # to build: time the above
+
+find_package(Boost)
+add_executable(bm bm-main.cc bm-nplog.cc)
+target_link_libraries(bm nonius nplog)
+target_include_directories(bm PRIVATE "${Boost_INCLUDE_DIR}")
