@@ -1,6 +1,7 @@
 #ifndef NP_LOG_LOG_HPP
 #define NP_LOG_LOG_HPP
 
+#include <nplog/Config.hpp>
 #include <nplog/Formatter.hpp>
 #include <nplog/Serializer.hpp>
 #include <nplog/export.hpp>
@@ -25,10 +26,9 @@ namespace np {
     using buffer_type = std::vector<char>;
     using serializer_type = Serializer;
 
-    Log();
-
-    bool suppressMessage(int level) const;
-    int paramLevel() const;
+    explicit Log(Log* parent = nullptr, const char* name = nullptr);
+    explicit Log(const char* name);
+    Log(const Log&) = delete;
 
     buffer_type acquireBuffer();
 
@@ -36,13 +36,18 @@ namespace np {
 
     void releaseBuffer(buffer_type&& buf);
 
-    static void setSink(std::function<void(int, std::string_view msg)> sink);
-    static void setMessageLevel(int level);
-    static void setParamLevel(int level);
+    Levels refreshLevels(unsigned version, bool exclude_depth = false);
+
+    unsigned knownVersion() const { return version; }
 
   private:
-    int message_level;
-    int param_level;
+    Levels effective_levels;
+    Levels levels_by_name_only;
+    Log* parent = nullptr;
+    const char* name = nullptr;
+    size_t name_len = 0;
+    const unsigned depth = 0;
+    unsigned version = 0;
   };
 
   NPLOG_EXPORT std::function<void(int, std::string_view)> getStdErrSink();

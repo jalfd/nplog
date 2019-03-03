@@ -1,8 +1,10 @@
 #include <nplog/Log.hpp>
+#include "ConfigImpl.hpp"
 
 #include <algorithm>
 #include <atomic>
 #include <cstdio>
+#include <cstring>
 #include <functional>
 #include <mutex>
 #include <string>
@@ -12,12 +14,6 @@ namespace np {
     struct LogState {
       std::mutex buffer_mutex;
       std::vector<Log::buffer_type> buffers;
-
-      std::mutex sink_mtx;
-      std::function<void(int, std::string_view msg)> log_sink;
-
-      std::atomic<int> message_level = 0;
-      std::atomic<int> param_level = 0;
     };
 
     static LogState state;
@@ -28,24 +24,31 @@ namespace np {
 
   std::function<void(int, std::string_view)> getStdErrSink() { return stderr_log_sink; }
 
-  Log::Log()
-    : message_level(state.message_level.load(std::memory_order_relaxed))
-    , param_level(state.param_level.load(std::memory_order_relaxed)) {}
-
-  void Log::setSink(std::function<void(int, std::string_view msg)> sink) {
-    std::lock_guard lock(state.sink_mtx);
-    state.log_sink = sink;
-  }
-  void Log::setMessageLevel(int level) {
-    state.message_level.store(level, std::memory_order_relaxed);
-  }
-  void Log::setParamLevel(int level) { state.param_level.store(level, std::memory_order_relaxed); }
-
-  bool Log::suppressMessage(int level) const {
-    return level > state.message_level.load(std::memory_order_relaxed);
+  Log::Log(Log* parent, const char* name)
+    : parent(parent)
+    , name(name)
+    , name_len(name ? strlen(name) : 0)
+    , depth(parent ? parent->depth + 1 : 0) {
+    refreshLevels(0);
   }
 
-  int Log::paramLevel() const { return state.param_level.load(std::memory_order_relaxed); }
+  Log::Log(const char* name) : Log(nullptr, name) {}
+
+  Levels Log::refreshLevels(unsigned version, bool exclude_depth) {
+    if (!isCurrent(version)) {
+      auto result = getLevels(std::string_view(name, name_len), depth);
+      levels_by_name_only = result.levels_by_name_only;
+      effective_levels = result.effective_levels;
+
+      if (parent) {
+        auto parent_levels = parent->refreshLevels(result.version, true);
+        effective_levels = merge(effective_levels, parent_levels);
+        levels_by_name_only = merge(levels_by_name_only, parent_levels);
+      }
+      this->version = result.version;
+    }
+    return exclude_depth ? levels_by_name_only : effective_levels;
+  }
 
   Log::buffer_type Log::acquireBuffer() {
     std::lock_guard lock(state.buffer_mutex);
@@ -56,11 +59,8 @@ namespace np {
   }
 
   void Log::submitMessage(int level, buffer_type& buffer) {
-    std::lock_guard lock(state.sink_mtx);
-    if (state.log_sink) {
-      buffer.push_back('\0');
-      state.log_sink(level, std::string_view{&buffer[0], buffer.size() - 1});
-    }
+    buffer.push_back('\0');
+    ::np::sendToSink(level, std::string_view{&buffer[0], buffer.size() - 1});
   }
 
   void Log::releaseBuffer(buffer_type&& buf) {
@@ -68,5 +68,4 @@ namespace np {
     std::lock_guard lock(state.buffer_mutex);
     state.buffers.push_back(std::move(buf));
   }
-
 } // namespace np

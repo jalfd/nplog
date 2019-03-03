@@ -19,8 +19,8 @@ namespace np::log::internal {
   (__VA_ARGS__)
 
 #define LOG_IMPL(log, level, msg, ...) \
-  if (!log.suppressMessage(level)) { \
-    ::np::ScopedMessage sm(log, __FILE__, __LINE__, level, msg); \
+  if (auto lvl = log.refreshLevels(log.knownVersion()); !suppressMessage(lvl, level)) { \
+    ::np::ScopedMessage sm(log, __FILE__, __LINE__, level, msg, lvl.param); \
     (void) __VA_ARGS__; \
   }
 
