@@ -9,6 +9,7 @@ add_executable(tests
     FormatterTest.cc
     SerializerTest.cc
     LogTest.cc
+    ConfigTest.cc
 )
 target_link_libraries(tests PRIVATE Catch picojson nplog)
 

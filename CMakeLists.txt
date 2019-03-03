@@ -15,18 +15,23 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 add_library(Date INTERFACE)
 target_include_directories(Date INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/external/include)
 
+find_package(Threads REQUIRED)
+
 add_library(nplog SHARED
     src/Log.cc
     src/Serializer.cc
     src/Formatter.cc
+    src/Config.cc
+    src/ConfigImpl.hpp
     include/nplog/Formatter.hpp
     include/nplog/Log.hpp
     include/nplog/Serializer.hpp
     include/nplog/ScopedMessage.hpp
     include/nplog/macros.hpp
-)
+    include/nplog/Config.hpp
+    )
 
-target_link_libraries(nplog Date)
+target_link_libraries(nplog PRIVATE Date PUBLIC Threads::Threads)
 target_include_directories(nplog
 PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

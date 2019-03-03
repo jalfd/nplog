@@ -1,3 +1,4 @@
+#include <nplog/Config.hpp>
 #include <nplog/macros.hpp>
 #include "test-utils.hpp"
 #include <catch/catch.hpp>
@@ -5,12 +6,13 @@
 namespace np {
   namespace {
     struct Log {
-      bool suppressMessage(int level) { return level > 5; }
+      Levels refreshLevels(unsigned) { return {5, 5}; }
+      unsigned knownVersion() { return 0; }
     };
 
     // Mock class for testing
     struct ScopedMessage {
-      ScopedMessage(Log&, const char*, int, int, const char* m) {
+      ScopedMessage(Log&, const char*, int, int, const char* m, int) {
         msg = m;
         ++message_counter;
       }
@@ -28,7 +30,7 @@ namespace np {
       static inline std::string msg;
       static inline int level_threshold = 5;
       static inline int default_level = 3;
-      static inline std::function<void(const char*, const void*)> serialize_callback;
+      static inline std::function<void(std::string, const void*)> serialize_callback;
       static inline int message_counter = 0;
     };
   } // namespace

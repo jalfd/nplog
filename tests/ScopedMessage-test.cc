@@ -21,9 +21,6 @@ namespace {
     using buffer_type = MockBuffer;
     using serializer_type = MockSerializer;
 
-    bool suppressMessage(int) const { return true; }
-    int paramLevel() const { return 3; }
-
     buffer_type acquireBuffer() {
       ++buffersRequested;
       return buffer_type();
@@ -50,12 +47,12 @@ TEST_CASE("ScopedMessage") {
   MockLog log;
 
   SECTION("ScopedMessage requests a buffer") {
-    np::ScopedMessage<MockLog> msg(log, "", 0, 0, "hello");
+    np::ScopedMessage<MockLog> msg(log, "", 0, 0, "hello", 0);
     CHECK(log.buffersRequested == 1);
   }
 
   SECTION("ScopedMessage writes its header to the buffer") {
-    { np::ScopedMessage<MockLog> msg(log, "file", 3, 1, "hello"); }
+    { np::ScopedMessage<MockLog> msg(log, "file", 3, 1, "hello", 0); }
     // this should ask for a buffer, and fill it appropriately
     CHECK(log.buffersRequested == 1);
     CHECK(ops.size() == 6);
@@ -85,7 +82,7 @@ TEST_CASE("ScopedMessage") {
   SECTION("ScopedMessage writes arguments to the buffer") {
     test1::Foo foo;
     {
-      np::ScopedMessage<MockLog> msg(log, "", 0, 0, "");
+      np::ScopedMessage<MockLog> msg(log, "", 0, 0, "", 0);
       msg.addArg("name", foo);
     }
     CHECK(log.buffersRequested == 1);
@@ -103,7 +100,7 @@ TEST_CASE("ScopedMessage") {
   }
 
   SECTION("Params are suppressed correctly") {
-    np::ScopedMessage<MockLog> msg(log, "", 0, 0, "");
+    np::ScopedMessage<MockLog> msg(log, "", 0, 0, "", 3);
     CHECK(!msg.suppressParam(2));
     CHECK(!msg.suppressParam(3));
     CHECK(msg.suppressParam(4));
@@ -111,11 +108,11 @@ TEST_CASE("ScopedMessage") {
 
   SECTION("ScopedMessage can handle reentrancy") {
     const auto nested = [&]() {
-      np::ScopedMessage<MockLog>(log, "", 0, 0, "");
+      np::ScopedMessage<MockLog>(log, "", 0, 0, "", 0);
       return test1::Foo();
     };
     {
-      np::ScopedMessage<MockLog> msg(log, "", 0, 0, "");
+      np::ScopedMessage<MockLog> msg(log, "", 0, 0, "", 0);
       msg.addArg("name", nested());
     }
     CHECK(log.buffersRequested == 2);
