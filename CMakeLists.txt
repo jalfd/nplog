@@ -22,11 +22,14 @@ set (nplog_public_headers
     include/nplog/Serializer.hpp
     include/nplog/ScopedMessage.hpp
     include/nplog/macros.hpp
+    include/nplog/Config.hpp
     )
 add_library(nplog SHARED
     src/Log.cc
     src/Serializer.cc
     src/Formatter.cc
+    src/Config.cc
+    src/ConfigImpl.hpp
     ${nplog_public_headers}
 )
 

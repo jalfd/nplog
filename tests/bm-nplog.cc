@@ -19,8 +19,10 @@ namespace {
 
   int _ = []() {
     np::Log::setSink([](int, std::string_view msg) { fprintf(f, "%s\n", msg.data()); });
-    np::Log::setMessageLevel(3);
-    np::Log::setParamLevel(3);
+    np::Config cfg;
+    cfg.default_levels.message = 3;
+    cfg.default_levels.param = 3;
+    cfg.apply();
     return 0;
   }();
 }

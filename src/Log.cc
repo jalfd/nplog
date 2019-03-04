@@ -1,4 +1,5 @@
 #include <nplog/Log.hpp>
+#include "ConfigImpl.hpp"
 
 #include <algorithm>
 #include <atomic>
@@ -14,9 +15,6 @@ namespace np {
 
       std::mutex sink_mtx;
       std::function<void(int, std::string_view msg)> log_sink;
-
-      std::atomic<int> message_level = 0;
-      std::atomic<int> param_level = 0;
     };
 
     static LogState state;
@@ -29,27 +27,30 @@ namespace np {
 
   std::function<void(int, std::string_view)> getStdErrSink() { return stderr_log_sink; }
 
-  Log::Log()
-    : message_level(state.message_level.load(std::memory_order_relaxed))
-    , param_level(state.param_level.load(std::memory_order_relaxed)) {}
+  Log::Log(Log* parent, const char* name)
+    : name(name), name_len(name ? strlen(name) : 0)
+    , depth(parent ? parent->depth + 1 : 0)
+  {
+      auto lv = getLevels(std::string_view(name, name_len), depth);
+      levels = lv.first;
+      version = lv.second;
+  }
+
+  Log::Log(const char* name) : Log(nullptr, name) {}
 
   void Log::setSink(std::function<void(int, std::string_view msg)> sink) {
     std::lock_guard lock(state.sink_mtx);
     state.log_sink = sink;
   }
-  void Log::setMessageLevel(int level) {
-    state.message_level.store(level, std::memory_order_relaxed);
-  }
-  void Log::setParamLevel(int level){
-    state.param_level.store(level, std::memory_order_relaxed);
-  }
 
-  bool Log::suppressMessage(int level) const {
-    return level > state.message_level.load(std::memory_order_relaxed);
-  }
-
-  int Log::paramLevel() const { 
-    return state.param_level.load(std::memory_order_relaxed);
+  Levels Log::refreshLevels()
+  {
+    if (!isCurrent(version)) {
+      auto lv = getLevels(std::string_view(name, name_len), depth);
+      levels = lv.first;
+      version = lv.second;
+    }
+    return levels;
   }
 
   Log::buffer_type Log::acquireBuffer() {
@@ -73,5 +74,4 @@ namespace np {
     std::lock_guard lock(state.buffer_mutex);
     state.buffers.push_back(std::move(buf));
   }
-
 } // namespace np

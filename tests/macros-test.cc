@@ -1,17 +1,18 @@
 #include <nplog/macros.hpp>
 #include "test-utils.hpp"
+#include <nplog/Config.hpp>
 #include <catch/catch.hpp>
 
 namespace np {
   namespace {
     struct Log {
-      bool suppressMessage(int level) { return level > 5; }
+      Levels refreshLevels() { return {5, 5}; }
     };
 
     // Mock class for testing
     struct ScopedMessage {
       // mocked class interface
-      ScopedMessage(Log&, const char*, int, int, const char* m) {
+      ScopedMessage(Log&, const char*, int, int, const char* m, int) {
         msg = m;
         ++message_counter;
       }

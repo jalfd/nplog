@@ -19,8 +19,8 @@ namespace np::log::internal {
 // most freedom of use. Users can define a macro which hides this parameter by just fetching a
 // (TLS-)global object.
 #define LOG_IMPL(log, level, msg, ...) \
-  if (!log.suppressMessage(level)) { \
-    ::np::ScopedMessage sm(log, __FILE__, __LINE__, level, msg); \
+  if (auto lvl = log.refreshLevels(); !suppressMessage(lvl, level)) { \
+    ::np::ScopedMessage sm(log, __FILE__, __LINE__, level, msg, lvl.param); \
     (void) __VA_ARGS__; \
   }
 

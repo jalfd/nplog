@@ -4,6 +4,7 @@
 #include <nplog/Serializer.hpp>
 #include <nplog/Formatter.hpp>
 #include <nplog/export.hpp>
+#include <nplog/Config.hpp>
 
 #include <algorithm>
 #include <functional>
@@ -27,10 +28,8 @@ namespace np {
     using buffer_type = std::vector<char>;
     using serializer_type = Serializer;
 
-    Log();
-
-    bool suppressMessage(int level) const;
-    int paramLevel() const;
+    explicit Log(Log* parent = nullptr, const char* name = nullptr);
+    explicit Log(const char* name);
 
     // caller must be able to go "give me a buffer"
     buffer_type acquireBuffer();
@@ -41,13 +40,16 @@ namespace np {
     // caller must be able to return ownership of the buffer
     void releaseBuffer(buffer_type&& buf);
 
+    Levels refreshLevels();
+
     static void setSink(std::function<void(int, std::string_view msg)> sink);
-    static void setMessageLevel(int level);
-    static void setParamLevel(int level);
 
   private:
-    int message_level;
-    int param_level;
+    const char* name;
+    size_t name_len;
+    const unsigned depth;
+    Levels levels;
+    unsigned version;
   };
 
   NPLOG_EXPORT std::function<void(int, std::string_view)> getStdErrSink();

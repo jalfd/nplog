@@ -12,9 +12,9 @@
 namespace np {
   template <typename LogType>
   struct ScopedMessage {
-    ScopedMessage(LogType& log, const char* file, int line, int level, const char* m)
+    ScopedMessage(LogType& log, const char* file, int line, int level, const char* m, int param_level)
       : log(log)
-      , param_level(log.paramLevel())
+      , param_level(param_level)
       , message_buffer(log.acquireBuffer())
       , serializer(&message_buffer)
       , message_level(level) {

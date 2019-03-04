@@ -1,24 +1,30 @@
 #ifndef NP_CONFIG_HPP
 #define NP_CONFIG_HPP
 
+#include <nplog/export.hpp>
 #include <string_view>
+#include <memory>
+#include <map>
+
+#pragma warning( push )
+#pragma warning( disable : 4251 ) //FIXME: hide the STL types behind pimpl
 
 namespace np {
-  struct Config {
-    Config();
-
-    setLevels(unsigned char messages, unsigned char parameters);
-    setLevelForName(std::string_view name, unsigned char messages, unsigned char parameters);
-    setLevelForDepth(unsigned int depth, unsigned char messages, unsigned char parameters);
+  struct Levels {
+    int message = 0;
+    int param = 0;
+  };
+  struct NPLOG_EXPORT Config {
+    std::map<std::string, Levels> levels_by_name;
+    std::map<unsigned, Levels> levels_by_depth;
+    Levels default_levels;
 
     void apply() const;
-
-  private:
-    std::unique_ptr<LogConfig> cfg;
   };
 
-  // I am logger N, I am nested at depth D, and my most recent configuration is from version V
-  bool isCurrent(unsigned V);
-  std::pair<Levels, unsigned> getLevels(std::string_view N, unsigned D);
+  inline bool suppressMessage(Levels lvl, int message) {
+      return message > lvl.message;
+  }
 } // namespace np
+#pragma warning( pop )
 #endif
