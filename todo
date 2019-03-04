@@ -4,3 +4,8 @@ Features:
 - add hostname, pid, tid (all optional)
 - add textual log levels as well as numeric
 - logger name?
+
+
+Separate logsink lib?
+- Expected log messages (if this occurs it is not an error. If it does not occur, that is an error (useful for testing)
+- buffering: copy messages to memory buffer. If a message of severity X occurs, flush buffer
