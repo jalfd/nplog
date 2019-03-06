@@ -28,24 +28,43 @@ namespace np {
   std::atomic<unsigned> config_timestamp;
   std::shared_ptr<const LogConfig> config_ptr = std::make_shared<const LogConfig>();
 
+  struct Config::Impl {
+    std::map<std::string, Levels> levels_by_name;
+    std::map<unsigned, Levels> levels_by_depth;
+    Levels default_levels;
+  };
+
+  Config::Config(int message_level, int param_level) : impl(std::make_unique<Config::Impl>()) {
+    impl->default_levels = Levels{message_level, param_level};
+  }
+  Config::~Config() = default;
+
+  void Config::setLevelForLogName(std::string_view logname, int messages, int params) {
+    impl->levels_by_name[std::string(logname)] = Levels{messages, params};
+  }
+
+  void Config::setLevelForLogDepth(unsigned depth, int messages, int params) {
+    impl->levels_by_depth[depth] = Levels{messages, params};
+  }
+
   void Config::apply() const {
     auto new_ptr = std::make_shared<LogConfig>();
     LogConfig& cfg = *new_ptr;
 
-    cfg.default_levels = default_levels;
+    cfg.default_levels = impl->default_levels;
 
-    for (const auto [d, l] : levels_by_depth) {
+    for (const auto [d, l] : impl->levels_by_depth) {
       while (cfg.levels_by_depth.size() <= d) {
         cfg.levels_by_depth.push_back(l);
       }
     }
 
-    const auto& lbn = levels_by_name;
+    const auto& lbn = impl->levels_by_name;
     size_t name_len = std::accumulate(
       lbn.begin(), lbn.end(), size_t(), [](auto acc, auto p) { return acc + p.first.size(); });
     cfg.namedata.reserve(name_len);
 
-    for (const auto [n, l] : levels_by_name) {
+    for (const auto [n, l] : lbn) {
       const auto offset = cfg.namedata.size();
       std::copy(n.begin(), n.end(), std::back_inserter(cfg.namedata));
       const auto length = cfg.namedata.size() - offset;
