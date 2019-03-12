@@ -1,11 +1,26 @@
-Features:
-- support log children/proxies, similar to bunyan, for sectioning (should also set a top-level log name. Should that be hierarchical?)
-- consider depth-based log filtering (I want log messages from root loggers, but not children)
+== Features ==
 - add hostname, pid, tid (all optional)
-- add textual log levels as well as numeric
-- logger name?
+- per-logger params - are these inherited transitively? Yes, probably by traversing log ancestors, but could also keep a local cache
+- time to go through and review/cleanup/rebase: approach public repo state
+  - might make sense to convert tests to more TEST_CASE-based
+
+static fields: toggle with flags:
+enum class Fields {
+  File = 1,
+  Line = 2,
+  Time = 4,
+  Level = 8,
+  LevelName = 16,
+  LogName = 32,
+  ProcessName = 64, // assume static
+  ProcessId = 128, // assume static
+  ThreadId = 256, // maaaaybe static?
+  Hostname = 512, // assume static
+};
+
+Logger params: implicit level 0 (always included in messages)
 
 
-Separate logsink lib?
+== Separate logsink lib == 
 - Expected log messages (if this occurs it is not an error. If it does not occur, that is an error (useful for testing)
 - buffering: copy messages to memory buffer. If a message of severity X occurs, flush buffer

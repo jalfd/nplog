@@ -30,6 +30,7 @@ namespace np {
 
     explicit Log(Log* parent = nullptr, const char* name = nullptr);
     explicit Log(const char* name);
+    Log(const Log&) = delete;
 
     // caller must be able to go "give me a buffer"
     buffer_type acquireBuffer();
@@ -40,16 +41,21 @@ namespace np {
     // caller must be able to return ownership of the buffer
     void releaseBuffer(buffer_type&& buf);
 
-    Levels refreshLevels();
+    Levels refreshLevels(unsigned version, bool exclude_depth = false);
 
+    // FIXME: this is a bit out of place now
     static void setSink(std::function<void(int, std::string_view msg)> sink);
 
+    unsigned knownVersion() const { return version; }
+
   private:
-    const char* name;
-    size_t name_len;
-    const unsigned depth;
-    Levels levels;
-    unsigned version;
+    Levels effective_levels;
+    Levels levels_by_name_only;
+    Log* parent = nullptr;
+    const char* name = nullptr;
+    size_t name_len = 0;
+    const unsigned depth = 0;
+    unsigned version = 0;
   };
 
   NPLOG_EXPORT std::function<void(int, std::string_view)> getStdErrSink();

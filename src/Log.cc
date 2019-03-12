@@ -28,12 +28,10 @@ namespace np {
   std::function<void(int, std::string_view)> getStdErrSink() { return stderr_log_sink; }
 
   Log::Log(Log* parent, const char* name)
-    : name(name), name_len(name ? strlen(name) : 0)
+    : parent(parent), name(name), name_len(name ? strlen(name) : 0)
     , depth(parent ? parent->depth + 1 : 0)
   {
-      auto lv = getLevels(std::string_view(name, name_len), depth);
-      levels = lv.first;
-      version = lv.second;
+      refreshLevels(0);
   }
 
   Log::Log(const char* name) : Log(nullptr, name) {}
@@ -43,14 +41,20 @@ namespace np {
     state.log_sink = sink;
   }
 
-  Levels Log::refreshLevels()
-  {
+  Levels Log::refreshLevels(unsigned version, bool exclude_depth) {
     if (!isCurrent(version)) {
-      auto lv = getLevels(std::string_view(name, name_len), depth);
-      levels = lv.first;
-      version = lv.second;
+      auto result = getLevels(std::string_view(name, name_len), depth);
+      levels_by_name_only = result.levels_by_name_only;
+      effective_levels = result.effective_levels;
+
+      if (parent) {
+        auto parent_levels = parent->refreshLevels(result.version, true);
+        effective_levels = merge(effective_levels, parent_levels);
+        levels_by_name_only = merge(levels_by_name_only, parent_levels);
+      }
+      this->version = result.version;
     }
-    return levels;
+    return exclude_depth ? levels_by_name_only : effective_levels;
   }
 
   Log::buffer_type Log::acquireBuffer() {

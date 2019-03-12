@@ -9,11 +9,6 @@
 #include "ConfigImpl.hpp"
 
 namespace np {
-  namespace {
-    Levels merge(Levels lhs, Levels rhs) {
-      return {std::min(lhs.message, rhs.message), std::min(lhs.param, rhs.param)};
-    }
-  } // namespace
   struct LogConfig {
     LogConfig() = default;
     LogConfig(const LogConfig& other) = delete;
@@ -25,7 +20,7 @@ namespace np {
     Levels default_levels;
   };
 
-  std::atomic<unsigned> config_timestamp;
+  std::atomic<unsigned> config_timestamp = 1;
   std::shared_ptr<const LogConfig> config_ptr = std::make_shared<const LogConfig>();
 
   struct Config::Impl {
@@ -79,15 +74,13 @@ namespace np {
     return v == std::atomic_load_explicit(&config_timestamp, std::memory_order_acquire);
   }
 
-  std::pair<Levels, unsigned> getLevels(std::string_view n, unsigned d) {
+  LevelsResult getLevels(std::string_view n, unsigned d) {
     auto version = std::atomic_load_explicit(&config_timestamp, std::memory_order_relaxed);
 
     auto ptr = config_ptr;
     auto& cfg = *ptr;
 
     auto lvls = cfg.default_levels;
-
-    if (d < cfg.levels_by_depth.size()) { lvls = merge(lvls, cfg.levels_by_depth[d]); }
 
     const auto fun = [](const auto lhs, const auto rhs) { return lhs.first < rhs.first; };
 
@@ -97,7 +90,11 @@ namespace np {
 
       if (it != lbn.end() && it->first == n) { lvls = merge(lvls, it->second); }
     }
+    
+    auto levels_by_name = lvls;
 
-    return {lvls, version};
+    if (d < cfg.levels_by_depth.size()) { lvls = merge(lvls, cfg.levels_by_depth[d]); }
+
+    return {version, lvls, levels_by_name };
   }
 } // namespace np

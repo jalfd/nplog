@@ -6,7 +6,8 @@
 namespace np {
   namespace {
     struct Log {
-      Levels refreshLevels() { return {5, 5}; }
+      Levels refreshLevels(unsigned) { return {5, 5}; }
+      unsigned knownVersion() { return 0; }
     };
 
     // Mock class for testing

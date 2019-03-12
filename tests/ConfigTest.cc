@@ -1,0 +1,121 @@
+#include "../src/ConfigImpl.hpp"
+#include <nplog/Log.hpp>
+#include <nplog/macros.hpp>
+#include <nplog/ScopedMessage.hpp>
+#include <catch/catch.hpp>
+
+int msg_count = 0;
+
+bool isLogged(np::Log& log, int level) {
+  msg_count = 0;
+  LOG(log, level, "message text");
+  return msg_count != 0;
+}
+
+TEST_CASE("Configuring Log Default Levels") {
+    np::Log::setSink([&](auto, auto) mutable { ++msg_count; });
+    auto lvls = np::getLevels("", 0);
+    CHECK(lvls.effective_levels.message == 0);
+    CHECK(lvls.effective_levels.param == 0);
+    auto prev_level = lvls.version;
+
+    np::Config cfg(1, 1);
+    cfg.apply();
+
+    SECTION("Setting new log levels"){
+        auto lvls = np::getLevels("", 0);
+        CHECK(lvls.version > prev_level);
+        CHECK(lvls.effective_levels.message == 1);
+        CHECK(lvls.effective_levels.param == 1);
+
+        prev_level = lvls.version;
+
+        np::Config cfg(2, 3);
+        cfg.apply();
+
+        SECTION("Resetting log levels"){
+            auto lvls = np::getLevels("", 0);
+            CHECK(lvls.version > prev_level);
+            CHECK(lvls.effective_levels.message == 2);
+            CHECK(lvls.effective_levels.param == 3);
+        }
+    }
+}
+
+TEST_CASE("Configuring Log Levels by depth") {
+    np::Log::setSink([&](auto, auto) mutable { ++msg_count; });
+    np::Config cfg(1, 1);
+    cfg.setLevelForLogDepth(0, 9, 9);
+    cfg.setLevelForLogDepth(1, 5, 5);
+    cfg.setLevelForLogDepth(3, 3, 3);
+    cfg.apply();
+
+    // For depths 0 and 1, use the specified rules
+    CHECK(np::getLevels("", 0).effective_levels.message == 9);
+    CHECK(np::getLevels("", 0).effective_levels.param == 9);
+    CHECK(np::getLevels("", 1).effective_levels.message == 5);
+    CHECK(np::getLevels("", 1).effective_levels.param == 5);
+    // We didn't specify a rules for depth 2.
+    // Fallback to the rule for the next higher level (3)
+    CHECK(np::getLevels("", 2).effective_levels.message == 3);
+    CHECK(np::getLevels("", 2).effective_levels.param == 3);
+    // We only specified special rules for depths up to 3.
+    // Fall back to default once depth exceeds the
+    CHECK(np::getLevels("", 4).effective_levels.message == 1);
+    CHECK(np::getLevels("", 4).effective_levels.param == 1);
+
+    SECTION("Level based on depth is not inherited") {
+        np::Log log0; // depth 0 -> log level 9
+        np::Log log1(&log0); // depth 1 -> log level 5
+
+        CHECK(!isLogged(log1, 6));
+    }
+}
+
+TEST_CASE("Configuring Log Levels by log name") {
+    np::Log::setSink([&](auto, auto) mutable { ++msg_count; });
+    np::Config cfg(1, 1);
+    cfg.setLevelForLogName("foo", 9, 9);
+    cfg.setLevelForLogName("bar", 5, 5);
+    cfg.apply();
+
+    // Name not found. Fall back to defaults
+    CHECK(np::getLevels("xyz", 0).effective_levels.message == 1);
+    CHECK(np::getLevels("xyz", 0).effective_levels.param == 1);
+    // Use level specified for the given name
+    CHECK(np::getLevels("foo", 0).effective_levels.message == 9);
+    CHECK(np::getLevels("foo", 0).effective_levels.param == 9);
+
+    SECTION("Level based on name is inherited") {
+        np::Log log0("foo"); // name 'foo' -> log level 9
+        np::Log log1(&log0, "x"); // inherits level 9 from ancestor
+        np::Log log2(&log1, "y"); // inherits level 9 transitively as well
+        np::Log log3(&log0, "bar"); // inherits level 9 from ancestor, gets level 5 from own name
+        CHECK(isLogged(log1, 9));
+        CHECK(isLogged(log2, 9));
+        CHECK(isLogged(log3, 9));
+    }
+}
+
+TEST_CASE("Prioritizing log levels when both level and name rules apply") {
+    np::Log::setSink([&](auto, auto) mutable { ++msg_count; });
+    np::Config cfg(1, 1);
+    cfg.setLevelForLogName("foo", 9, 9);
+    cfg.setLevelForLogName("bar", 5, 5);
+
+    cfg.setLevelForLogDepth(0, 7, 7);
+    cfg.setLevelForLogDepth(1, 3, 3);
+    cfg.apply();
+
+    // matches both lvl0 -> 7 and name -> 9
+    np::Log log0("foo");
+    CHECK(isLogged(log0, 9));
+
+    // matches both lvl0 -> 7 and name -> 5
+    np::Log log1("bar");
+    CHECK(isLogged(log1, 7));
+
+    // matches both lvl0 -> 7 and name -> 5 and inherited name -> 9
+    np::Log log2(&log0, "bar");
+    CHECK(isLogged(log0, 9));
+}
