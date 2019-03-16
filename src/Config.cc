@@ -1,6 +1,7 @@
 #include <nplog/Config.hpp>
 #include <algorithm>
 #include <atomic>
+#include <shared_mutex>
 #include <functional>
 #include <map>
 #include <numeric>
@@ -21,6 +22,8 @@ namespace np {
   };
 
   std::atomic<unsigned> config_timestamp = 1;
+  // FIXME: I want this to be atomic :(
+  std::shared_mutex config_mutex;
   std::shared_ptr<const LogConfig> config_ptr = std::make_shared<const LogConfig>();
 
   struct Config::Impl {
@@ -66,6 +69,7 @@ namespace np {
       cfg.levels_by_name.emplace_back(std::string_view(&cfg.namedata[offset], length), l);
     }
 
+    std::lock_guard<std::shared_mutex> lock(config_mutex);
     config_ptr = new_ptr;
     std::atomic_fetch_add_explicit(&config_timestamp, 1u, std::memory_order_release);
   }
@@ -77,7 +81,9 @@ namespace np {
   LevelsResult getLevels(std::string_view n, unsigned d) {
     auto version = std::atomic_load_explicit(&config_timestamp, std::memory_order_relaxed);
 
+    std::shared_lock<std::shared_mutex> lock(config_mutex);
     auto ptr = config_ptr;
+    lock.unlock();
     auto& cfg = *ptr;
 
     auto lvls = cfg.default_levels;

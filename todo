@@ -3,6 +3,8 @@
 - per-logger params - are these inherited transitively? Yes, probably by traversing log ancestors, but could also keep a local cache
 - time to go through and review/cleanup/rebase: approach public repo state
   - might make sense to convert tests to more TEST_CASE-based
+- protect config-ptr behind a mutex
+- consider turning log levels into flags. That way you can toggle individual levels on and off, for PHI for example
 
 static fields: toggle with flags:
 enum class Fields {
