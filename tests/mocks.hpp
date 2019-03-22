@@ -40,11 +40,5 @@ namespace {
   private:
     int bid;
   };
-
-  inline void printOps() { // TODO: shouldn't need this
-    for (const auto& op : ops) {
-      std::cout << std::get<0>(op) << ": " << std::get<1>(op).type().name() << '\n';
-    }
-  }
 } // namespace
 #endif

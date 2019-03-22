@@ -4,11 +4,6 @@
 #include <string_view>
 #include <nplog/Log.hpp>
 
-// TODO: what happens in case of reentrancy?
-// I guess it could just be a protocol where message ctor goes "can I have a buffer please?", and we
-// either provide the one we have, or create a new one
-// Also, need a reentrancy test then
-
 namespace np {
   template <typename LogType>
   struct ScopedMessage {

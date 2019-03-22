@@ -3,7 +3,7 @@
 
 #include <nplog/export.hpp>
 #include <string_view>
-#include <vector> //TODO: need real buffer type
+#include <vector>
 
 namespace np {
   struct NPLOG_EXPORT ValueSerializer {
