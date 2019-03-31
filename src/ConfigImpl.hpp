@@ -17,5 +17,7 @@ namespace np {
   inline Levels merge(Levels lhs, Levels rhs) {
     return {std::max(lhs.message, rhs.message), std::max(lhs.param, rhs.param)};
   }
+
+  void sendToSink(int level, std::string_view buffer);
 } // namespace np
 #endif

@@ -6,7 +6,7 @@
 np::Log mylog;
 
 int main() {
-    np::Log::setSink(np::getStdErrSink());
+    np::setSink(np::getStdErrSink());
     int fortytwo = 42;
     LOG(mylog, 0, "logging a message", ARG(fortytwo));
     LOG(mylog, 0, "logging a message");

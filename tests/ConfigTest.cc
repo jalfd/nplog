@@ -1,3 +1,4 @@
+#include <nplog/Config.hpp>
 #include "../src/ConfigImpl.hpp"
 #include <nplog/Log.hpp>
 #include <nplog/macros.hpp>
@@ -13,7 +14,7 @@ bool isLogged(np::Log& log, int level) {
 }
 
 TEST_CASE("Configuring Log Default Levels") {
-    np::Log::setSink([&](auto, auto) mutable { ++msg_count; });
+    np::setSink([&](auto, auto) mutable { ++msg_count; });
     auto lvls = np::getLevels("", 0);
     CHECK(lvls.effective_levels.message == 0);
     CHECK(lvls.effective_levels.param == 0);
@@ -43,7 +44,7 @@ TEST_CASE("Configuring Log Default Levels") {
 }
 
 TEST_CASE("Configuring Log Levels by depth") {
-    np::Log::setSink([&](auto, auto) mutable { ++msg_count; });
+    np::setSink([&](auto, auto) mutable { ++msg_count; });
     np::Config cfg(1, 1);
     cfg.setLevelForLogDepth(0, 9, 9);
     cfg.setLevelForLogDepth(1, 5, 5);
@@ -73,7 +74,7 @@ TEST_CASE("Configuring Log Levels by depth") {
 }
 
 TEST_CASE("Configuring Log Levels by log name") {
-    np::Log::setSink([&](auto, auto) mutable { ++msg_count; });
+    np::setSink([&](auto, auto) mutable { ++msg_count; });
     np::Config cfg(1, 1);
     cfg.setLevelForLogName("foo", 9, 9);
     cfg.setLevelForLogName("bar", 5, 5);
@@ -98,7 +99,7 @@ TEST_CASE("Configuring Log Levels by log name") {
 }
 
 TEST_CASE("Prioritizing log levels when both level and name rules apply") {
-    np::Log::setSink([&](auto, auto) mutable { ++msg_count; });
+    np::setSink([&](auto, auto) mutable { ++msg_count; });
     np::Config cfg(1, 1);
     cfg.setLevelForLogName("foo", 9, 9);
     cfg.setLevelForLogName("bar", 5, 5);

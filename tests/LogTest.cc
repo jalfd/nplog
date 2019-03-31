@@ -25,7 +25,7 @@ TEST_CASE("Log") {
     int level = 0;
     const char* msg_start = nullptr;
     size_t msg_len = 0;
-    np::Log::setSink([&](int l, std::string_view msg) {
+    np::setSink([&](int l, std::string_view msg) {
       level = l;
       msg_start = &msg[0];
       msg_len = msg.size();

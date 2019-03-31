@@ -18,7 +18,7 @@ namespace {
   std::string z = "this is a string parameter";
 
   int _ = []() {
-    np::Log::setSink([](int, std::string_view msg) { fprintf(f, "%s\n", msg.data()); });
+    np::setSink([](int, std::string_view msg) { fprintf(f, "%s\n", msg.data()); });
     np::Config cfg(3, 3);
     cfg.apply();
     return 0;

@@ -26,6 +26,8 @@ namespace np {
     std::unique_ptr<Impl> impl;
   };
 
+  NPLOG_EXPORT void setSink(std::function<void(int, std::string_view msg)> sink);
+
   inline bool suppressMessage(Levels lvl, int message) {
       return message > lvl.message;
   }

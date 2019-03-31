@@ -1,6 +1,7 @@
 == Must-Have Features ==
 - time to go through and review/cleanup/rebase: approach public repo state
   - might make sense to convert tests to more TEST_CASE-based
+- go through FIXMES and TODOs
 
 == Nice-To-Have Features ==
 - add hostname, pid, tid (all optional)

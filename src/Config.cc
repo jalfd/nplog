@@ -22,7 +22,6 @@ namespace np {
   };
 
   std::atomic<unsigned> config_timestamp = 1;
-  // FIXME: I want this to be atomic :(
   std::shared_mutex config_mutex;
   std::shared_ptr<const LogConfig> config_ptr = std::make_shared<const LogConfig>();
 
@@ -31,6 +30,9 @@ namespace np {
     std::map<unsigned, Levels> levels_by_depth;
     Levels default_levels;
   };
+
+  std::mutex sink_mtx;
+  std::function<void(int, std::string_view msg)> log_sink;
 
   Config::Config(int message_level, int param_level) : impl(std::make_unique<Config::Impl>()) {
     impl->default_levels = Levels{message_level, param_level};
@@ -103,4 +105,17 @@ namespace np {
 
     return {version, lvls, levels_by_name };
   }
+
+  void setSink(std::function<void(int, std::string_view msg)> sink) {
+    std::lock_guard lock(sink_mtx);
+    log_sink = sink;
+  }
+
+  void sendToSink(int level, std::string_view buffer) {
+    std::lock_guard lock(sink_mtx);
+    if (log_sink) {
+      log_sink(level, buffer);
+    }
+  }
+
 } // namespace np

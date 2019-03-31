@@ -23,8 +23,6 @@
 
 namespace np {
   struct NPLOG_EXPORT Log {
-    // FIXME: should this be wrapped in a unique ptr? It'd be an extra template instantiation, but
-    // would let us ensure no copies are accidentally made
     using buffer_type = std::vector<char>;
     using serializer_type = Serializer;
 
@@ -42,9 +40,6 @@ namespace np {
     void releaseBuffer(buffer_type&& buf);
 
     Levels refreshLevels(unsigned version, bool exclude_depth = false);
-
-    // FIXME: this is a bit out of place now
-    static void setSink(std::function<void(int, std::string_view msg)> sink);
 
     unsigned knownVersion() const { return version; }
 

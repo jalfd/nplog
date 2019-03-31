@@ -12,9 +12,6 @@ namespace np {
     struct LogState {
       std::mutex buffer_mutex;
       std::vector<Log::buffer_type> buffers;
-
-      std::mutex sink_mtx;
-      std::function<void(int, std::string_view msg)> log_sink;
     };
 
     static LogState state;
@@ -35,11 +32,6 @@ namespace np {
   }
 
   Log::Log(const char* name) : Log(nullptr, name) {}
-
-  void Log::setSink(std::function<void(int, std::string_view msg)> sink) {
-    std::lock_guard lock(state.sink_mtx);
-    state.log_sink = sink;
-  }
 
   Levels Log::refreshLevels(unsigned version, bool exclude_depth) {
     if (!isCurrent(version)) {
@@ -66,11 +58,8 @@ namespace np {
   }
 
   void Log::submitMessage(int level, buffer_type& buffer) {
-    std::lock_guard lock(state.sink_mtx);
-    if (state.log_sink) {
-      buffer.push_back('\0');
-      state.log_sink(level, std::string_view{&buffer[0], buffer.size() - 1});
-    }
+    buffer.push_back('\0');
+    ::np::sendToSink(level, std::string_view{&buffer[0], buffer.size() - 1});
   }
 
   void Log::releaseBuffer(buffer_type&& buf) {
