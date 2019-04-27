@@ -28,7 +28,7 @@ namespace {
     }
     ~MockSerializer() { ops.emplace_back("dtor", nullptr); }
 
-    void prologue(std::string_view file, int line, int level, std::string_view msg) {
+    void prologue(std::string_view file, int line, np::level_type level, std::string_view msg) {
       ops.emplace_back("prologue", std::make_tuple(file, line, level, msg, bid));
     }
 

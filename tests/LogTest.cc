@@ -22,10 +22,10 @@ TEST_CASE("Log") {
 
   SECTION("Submitting a buffer sends it to the sink function") {
     np::Log log;
-    int level = 0;
+    np::level_type level = 0;
     const char* msg_start = nullptr;
     size_t msg_len = 0;
-    np::setSink([&](int l, std::string_view msg) {
+    np::setSink([&](np::level_type l, std::string_view msg) {
       level = l;
       msg_start = &msg[0];
       msg_len = msg.size();

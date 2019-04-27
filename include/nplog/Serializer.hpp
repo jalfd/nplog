@@ -1,6 +1,7 @@
 #ifndef NP_SERIALIZER_HPP
 #define NP_SERIALIZER_HPP
 
+#include <nplog/common.hpp>
 #include <nplog/export.hpp>
 #include <string_view>
 #include <vector>
@@ -36,7 +37,7 @@ namespace np {
     explicit Serializer(buffer_type* buffer);
     ~Serializer() = default;
 
-    void prologue(std::string_view file, int line, int level, std::string_view msg);
+    void prologue(std::string_view file, int line, level_type level, std::string_view msg);
     void epilogue();
     void writeKey(std::string_view name);
 

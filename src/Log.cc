@@ -18,11 +18,11 @@ namespace np {
 
     static LogState state;
 
-    const std::function<void(int, std::string_view)> stderr_log_sink
-      = [](int, std::string_view buffer) { std::fprintf(stderr, "%s\n", &buffer[0]); };
+    const std::function<void(level_type, std::string_view)> stderr_log_sink
+      = [](level_type, std::string_view buffer) { std::fprintf(stderr, "%s\n", &buffer[0]); };
   } // namespace
 
-  std::function<void(int, std::string_view)> getStdErrSink() { return stderr_log_sink; }
+  std::function<void(level_type, std::string_view)> getStdErrSink() { return stderr_log_sink; }
 
   Log::Log(Log* parent, const char* name)
     : parent(parent)
@@ -58,7 +58,7 @@ namespace np {
     return buf;
   }
 
-  void Log::submitMessage(int level, buffer_type& buffer) {
+  void Log::submitMessage(level_type level, buffer_type& buffer) {
     buffer.push_back('\0');
     ::np::sendToSink(level, std::string_view{&buffer[0], buffer.size() - 1});
   }

@@ -18,6 +18,7 @@ namespace np {
     return {std::max(lhs.message, rhs.message), std::max(lhs.param, rhs.param)};
   }
 
-  void sendToSink(int level, std::string_view buffer);
+  void sendToSink(level_type level, std::string_view buffer);
+
 } // namespace np
 #endif

@@ -32,18 +32,20 @@ namespace np {
   };
 
   std::mutex sink_mtx;
-  std::function<void(int, std::string_view msg)> log_sink;
+  std::function<void(level_type, std::string_view msg)> log_sink;
 
-  Config::Config(int message_level, int param_level) : impl(std::make_unique<Config::Impl>()) {
+  Config::Config(level_type message_level, level_type param_level)
+    : impl(std::make_unique<Config::Impl>()) {
     impl->default_levels = Levels{message_level, param_level};
   }
   Config::~Config() = default;
 
-  void Config::setLevelForLogName(std::string_view logname, int messages, int params) {
+  void
+  Config::setLevelForLogName(std::string_view logname, level_type messages, level_type params) {
     impl->levels_by_name[std::string(logname)] = Levels{messages, params};
   }
 
-  void Config::setLevelForLogDepth(unsigned depth, int messages, int params) {
+  void Config::setLevelForLogDepth(unsigned depth, level_type messages, level_type params) {
     impl->levels_by_depth[depth] = Levels{messages, params};
   }
 
@@ -106,12 +108,12 @@ namespace np {
     return {version, lvls, levels_by_name};
   }
 
-  void setSink(std::function<void(int, std::string_view msg)> sink) {
+  void setSink(std::function<void(level_type, std::string_view msg)> sink) {
     std::lock_guard lock(sink_mtx);
     log_sink = sink;
   }
 
-  void sendToSink(int level, std::string_view buffer) {
+  void sendToSink(level_type level, std::string_view buffer) {
     std::lock_guard lock(sink_mtx);
     if (log_sink) { log_sink(level, buffer); }
   }
