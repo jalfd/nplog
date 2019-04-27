@@ -34,7 +34,8 @@ namespace np {
 
   Serializer::Serializer(buffer_type* buffer) : buffer(buffer) {}
 
-  void Serializer::prologue(std::string_view file, int line, int level, std::string_view msg) {
+  void
+  Serializer::prologue(std::string_view file, int line, level_type level, std::string_view msg) {
     const auto it
       = std::find_if(file.rbegin(), file.rend(), [](char c) { return c == '/' || c == '\\'; });
     if (it != file.rend()) { file.remove_prefix(file.rend() - it); }
@@ -62,7 +63,7 @@ namespace np {
       static_cast<int>(time.subseconds().count()));
     buffer->resize(sz + written);
     vs.writeLiteral(",\"level\":");
-    vs.write(level);
+    vs.write(level & 0xff);
     vs.writeLiteral(",\"message\":");
     vs.write(msg);
   }

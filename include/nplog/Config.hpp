@@ -1,6 +1,7 @@
 #ifndef NP_CONFIG_HPP
 #define NP_CONFIG_HPP
 
+#include <nplog/common.hpp>
 #include <nplog/export.hpp>
 #include <functional>
 #include <map>
@@ -9,16 +10,16 @@
 
 namespace np {
   struct Levels {
-    int message = 0;
-    int param = 0;
+    level_type message = {};
+    level_type param = {};
   };
 
   struct NPLOG_EXPORT Config {
-    Config(int message_level, int param_level);
+    Config(level_type message_level, level_type param_level);
     ~Config();
 
-    void setLevelForLogName(std::string_view logname, int messages, int params);
-    void setLevelForLogDepth(unsigned depth, int messages, int params);
+    void setLevelForLogName(std::string_view logname, level_type messages, level_type params);
+    void setLevelForLogDepth(unsigned depth, level_type messages, level_type params);
 
     void apply() const;
 
@@ -27,8 +28,6 @@ namespace np {
     std::unique_ptr<Impl> impl;
   };
 
-  NPLOG_EXPORT void setSink(std::function<void(int, std::string_view msg)> sink);
-
-  inline bool suppressMessage(Levels lvl, int message) { return message > lvl.message; }
+  NPLOG_EXPORT void setSink(std::function<void(level_type, std::string_view msg)> sink);
 } // namespace np
 #endif

@@ -10,9 +10,9 @@ namespace np {
     ScopedMessage(LogType& log,
       const char* file,
       int line,
-      int level,
+      level_type level,
       const char* m,
-      int param_level)
+      level_type param_level)
       : log(log)
       , param_level(param_level)
       , message_buffer(log.acquireBuffer())
@@ -35,16 +35,16 @@ namespace np {
       return true;
     }
 
-    bool suppressParam(int i) { return i > param_level; }
+    bool suppressParam(level_type i) { return !testLevel(i, param_level); }
     bool suppressParam(const char* = nullptr) { return suppressParam(message_level); }
 
   private:
     LogType& log;
-    int param_level;
+    level_type param_level;
     typename LogType::buffer_type message_buffer;
     typename LogType::serializer_type serializer;
 
-    int message_level;
+    level_type message_level;
   };
 
 } // namespace np

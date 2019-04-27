@@ -32,7 +32,7 @@ namespace np {
 
     buffer_type acquireBuffer();
 
-    void submitMessage(int level, buffer_type& buffer);
+    void submitMessage(level_type level, buffer_type& buffer);
 
     void releaseBuffer(buffer_type&& buf);
 
@@ -50,6 +50,6 @@ namespace np {
     unsigned version = 0;
   };
 
-  NPLOG_EXPORT std::function<void(int, std::string_view)> getStdErrSink();
+  NPLOG_EXPORT std::function<void(level_type, std::string_view)> getStdErrSink();
 } // namespace np
 #endif

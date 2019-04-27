@@ -295,4 +295,13 @@ TEST_CASE("Serializer") {
       CHECK(result["file"].get<std::string>() == "file.cc");
     }
   }
+  SECTION("Hide user level from output") {
+    std::vector<char> buf;
+    np::Serializer s(&buf);
+    s.prologue("file.cc", 1, 0x0101, "msg");
+    s.epilogue();
+
+    auto result = parseLogMessage(buf);
+    CHECK(result["level"].get<double>() == 1.0);
+  }
 }

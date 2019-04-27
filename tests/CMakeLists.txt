@@ -5,6 +5,7 @@ add_executable(tests
     mocks.hpp
     test-utils.hpp
     macros-test.cc
+    CommonTest.cc
     ScopedMessage-test.cc
     FormatterTest.cc
     SerializerTest.cc

@@ -1,9 +1,11 @@
 #ifndef NP_LOG_MACROS_HPP
 #define NP_LOG_MACROS_HPP
 
+#include <nplog/common.hpp>
+
 namespace np::log::internal {
   inline const char* getArgName(const char* name, const char*) { return name; }
-  inline const char* getArgName(int, const char* name) { return name; }
+  inline const char* getArgName(level_type, const char* name) { return name; }
 } // namespace np::log::internal
 
 #define NP_MSVC_EXPAND_INDIRECT(m, args) m args
@@ -18,9 +20,10 @@ namespace np::log::internal {
   NP_MSVC_EXPAND_INDIRECT(INTERNAL_NP_VAR_MACRO_SELECTOR, (__VA_ARGS__, ARG3, ARG2, ARG1)) \
   (__VA_ARGS__)
 
-#define LOG_IMPL(log, level, msg, ...) \
-  if (auto lvl = log.refreshLevels(log.knownVersion()); !suppressMessage(lvl, level)) { \
-    ::np::ScopedMessage sm(log, __FILE__, __LINE__, level, msg, lvl.param); \
+#define LOG_IMPL(log, msg_lvl, msg, ...) \
+  if (auto lvl_mask = log.refreshLevels(log.knownVersion()); \
+      np::testLevel(msg_lvl, lvl_mask.message)) { \
+    ::np::ScopedMessage sm(log, __FILE__, __LINE__, msg_lvl, msg, lvl_mask.param); \
     (void) __VA_ARGS__; \
   }
 
