@@ -26,8 +26,8 @@ namespace np {
 
   Log::Log(Log* parent, const char* name)
     : parent(parent)
-    , name(name)
-    , name_len(name ? strlen(name) : 0)
+    , name_ptr(name)
+    , name_len(name_ptr ? strlen(name_ptr) : 0)
     , depth(parent ? parent->depth + 1 : 0) {
     refreshLevels(0);
   }
@@ -36,7 +36,7 @@ namespace np {
 
   Levels Log::refreshLevels(unsigned version, bool exclude_depth) {
     if (!isCurrent(version)) {
-      auto result = getLevels(std::string_view(name, name_len), depth);
+      auto result = getLevels(std::string_view(name_ptr, name_len), depth);
       levels_by_name_only = result.levels_by_name_only;
       effective_levels = result.effective_levels;
 

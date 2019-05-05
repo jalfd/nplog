@@ -34,11 +34,10 @@ namespace np {
   std::mutex sink_mtx;
   std::function<void(level_type, std::string_view msg)> log_sink;
 
-  Config::Config(level_type message_level, level_type param_level)
-    : impl(std::make_unique<Config::Impl>()) {
+  Config::Config(level_type message_level, level_type param_level) : impl(new Config::Impl()) {
     impl->default_levels = Levels{message_level, param_level};
   }
-  Config::~Config() = default;
+  Config::~Config() { delete impl; }
 
   void
   Config::setLevelForLogName(std::string_view logname, level_type messages, level_type params) {
@@ -106,6 +105,15 @@ namespace np {
     if (d < cfg.levels_by_depth.size()) { lvls = merge(lvls, cfg.levels_by_depth[d]); }
 
     return {version, lvls, levels_by_name};
+  }
+
+  std::atomic<Fields> enabled_fields = static_cast<Fields>(File | Line | Time | Level);
+  Fields enabledFields() {
+    return std::atomic_load_explicit(&enabled_fields, std::memory_order_acquire);
+  }
+
+  void setHeaderFields(Fields fields_mask) {
+    return std::atomic_store_explicit(&enabled_fields, fields_mask, std::memory_order_release);
   }
 
   void setSink(std::function<void(level_type, std::string_view msg)> sink) {

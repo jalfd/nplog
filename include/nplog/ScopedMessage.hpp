@@ -18,7 +18,7 @@ namespace np {
       , message_buffer(log.acquireBuffer())
       , serializer(&message_buffer)
       , message_level(level) {
-      serializer.prologue(file, line, level, m);
+      serializer.prologue(file, line, level, log.name(), m);
     }
 
     ~ScopedMessage() {

@@ -23,6 +23,9 @@ add_library(nplog SHARED
     src/Formatter.cc
     src/Config.cc
     src/ConfigImpl.hpp
+    src/utility.hpp
+    src/platform.hpp
+    src/platform.cc
     include/nplog/Formatter.hpp
     include/nplog/Log.hpp
     include/nplog/Serializer.hpp
@@ -32,6 +35,9 @@ add_library(nplog SHARED
     )
 
 target_link_libraries(nplog PRIVATE Date PUBLIC Threads::Threads)
+if (WIN32)
+    target_link_libraries(nplog PRIVATE ws2_32)
+endif()
 target_include_directories(nplog
 PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
