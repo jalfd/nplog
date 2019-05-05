@@ -26,6 +26,8 @@ namespace {
       return buffer_type();
     }
 
+    std::string_view name() const { return "logname"; }
+
     void submitMessage(np::level_type level, const buffer_type& buffer) {
       ops.emplace_back("submitMessage", std::pair<np::level_type, int>(level, buffer.id));
     }
@@ -60,11 +62,14 @@ TEST_CASE("ScopedMessage") {
     const auto buffer_id = std::any_cast<int>(std::get<1>(ops.at(0)));
     CHECK(std::get<0>(ops.at(1)) == "prologue");
     {
-      using arg_type = std::tuple<std::string_view, int, np::level_type, std::string_view, int>;
-      const auto [file, line, level, msg, bid] = std::any_cast<arg_type>(std::get<1>(ops.at(1)));
+      using arg_type = std::
+        tuple<std::string_view, int, np::level_type, std::string_view, std::string_view, int>;
+      const auto [file, line, level, name, msg, bid]
+        = std::any_cast<arg_type>(std::get<1>(ops.at(1)));
       CHECK(file == "file");
       CHECK(line == 3);
       CHECK(level == 1);
+      CHECK(name == "logname");
       CHECK(msg == "hello");
       CHECK(bid == buffer_id);
     }
@@ -127,8 +132,9 @@ TEST_CASE("ScopedMessage") {
     const auto buffer2 = std::any_cast<int>(std::get<1>(ops.at(2)));
     CHECK(std::get<0>(ops.at(3)) == "prologue");
     {
-      using arg_type = std::tuple<std::string_view, int, np::level_type, std::string_view, int>;
-      const auto bid = std::get<4>(std::any_cast<arg_type>(std::get<1>(ops.at(3))));
+      using arg_type = std::
+        tuple<std::string_view, int, np::level_type, std::string_view, std::string_view, int>;
+      const auto bid = std::get<5>(std::any_cast<arg_type>(std::get<1>(ops.at(3))));
       CHECK(bid == buffer2);
     }
     CHECK(std::get<0>(ops.at(4)) == "epilogue");

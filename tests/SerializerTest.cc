@@ -209,7 +209,7 @@ TEST_CASE("Serializer") {
   SECTION("Log with no parameters") {
     std::vector<char> buf;
     np::Serializer s(&buf);
-    s.prologue("file.cc", 1, 2, "msg");
+    s.prologue("file.cc", 1, 2, {}, "msg");
     s.epilogue();
 
     auto result = parseLogMessage(buf);
@@ -222,7 +222,7 @@ TEST_CASE("Serializer") {
   SECTION("Log prologue is correctly encoded") {
     std::vector<char> buf;
     np::Serializer s(&buf);
-    s.prologue("file\".cc", 1, 2, "msg\\");
+    s.prologue("file\".cc", 1, 2, {}, "msg\\");
     s.epilogue();
 
     auto result = parseLogMessage(buf);
@@ -232,7 +232,7 @@ TEST_CASE("Serializer") {
   SECTION("Log with one parameter") {
     std::vector<char> buf;
     np::Serializer s(&buf);
-    s.prologue("file.cc", 1, 2, "msg");
+    s.prologue("file.cc", 1, 2, {}, "msg");
     s.writeKey("a");
     s.valueSerializer().write(3);
     s.epilogue();
@@ -249,7 +249,7 @@ TEST_CASE("Serializer") {
   SECTION("Log with multiple parameters") {
     std::vector<char> buf;
     np::Serializer s(&buf);
-    s.prologue("file", 1, 2, "msg");
+    s.prologue("file", 1, 2, {}, "msg");
     s.writeKey("a");
     s.valueSerializer().write(3);
     s.writeKey("b");
@@ -265,7 +265,7 @@ TEST_CASE("Serializer") {
   SECTION("Parameter keys are correctly encoded") {
     std::vector<char> buf;
     np::Serializer s(&buf);
-    s.prologue("file", 1, 2, "msg");
+    s.prologue("file", 1, 2, {}, "msg");
     s.writeKey("\"");
     s.valueSerializer().write(3);
     s.epilogue();
@@ -279,7 +279,7 @@ TEST_CASE("Serializer") {
     SECTION("forward slashes") {
       std::vector<char> buf;
       np::Serializer s(&buf);
-      s.prologue("foo/bar/file.cc", 1, 2, "msg");
+      s.prologue("foo/bar/file.cc", 1, 2, {}, "msg");
       s.epilogue();
 
       auto result = parseLogMessage(buf);
@@ -288,7 +288,7 @@ TEST_CASE("Serializer") {
     SECTION("backslashes") {
       std::vector<char> buf;
       np::Serializer s(&buf);
-      s.prologue("foo\\bar\\file.cc", 1, 2, "msg");
+      s.prologue("foo\\bar\\file.cc", 1, 2, {}, "msg");
       s.epilogue();
 
       auto result = parseLogMessage(buf);
@@ -298,7 +298,7 @@ TEST_CASE("Serializer") {
   SECTION("Hide user level from output") {
     std::vector<char> buf;
     np::Serializer s(&buf);
-    s.prologue("file.cc", 1, 0x0101, "msg");
+    s.prologue("file.cc", 1, 0x0101, {}, "msg");
     s.epilogue();
 
     auto result = parseLogMessage(buf);

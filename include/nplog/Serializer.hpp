@@ -37,7 +37,11 @@ namespace np {
     explicit Serializer(buffer_type* buffer);
     ~Serializer() = default;
 
-    void prologue(std::string_view file, int line, level_type level, std::string_view msg);
+    void prologue(std::string_view file,
+      int line,
+      level_type level,
+      std::string_view log_name,
+      std::string_view msg);
     void epilogue();
     void writeKey(std::string_view name);
 
@@ -46,6 +50,8 @@ namespace np {
   private:
     buffer_type* buffer;
     bool has_params = false;
+
+    friend struct HeaderFields;
   };
 } // namespace np
 #endif

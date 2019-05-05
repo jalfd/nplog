@@ -1,6 +1,10 @@
+#include <nplog/Config.hpp>
 #include <nplog/Serializer.hpp>
 #include <algorithm>
 #include <cstdlib>
+#include "ConfigImpl.hpp"
+#include "platform.hpp"
+#include "utility.hpp"
 #include <locale.h>
 #ifndef _WIN32
 #include <xlocale.h>
@@ -32,40 +36,91 @@ namespace np {
 #endif
   } // namespace
 
+  struct HeaderFields {
+    HeaderFields(Serializer& srl) : buffer(srl.buffer), vs(srl.valueSerializer()) {}
+
+    using sv = std::string_view;
+    void file(sv filename, int line, level_type level, sv log_name) {
+      vs.writeLiteral(",\"file\":");
+      vs.write(filenameFromPath(filename));
+    }
+
+    void line(sv file, int line, level_type level, sv log_name) {
+      vs.writeLiteral(",\"line\":");
+      vs.write(line);
+    }
+
+    void time(sv file, int line, level_type level, sv log_name) {
+      vs.writeLiteral(",\"time\":");
+      auto now = std::chrono::system_clock::now();
+      auto date = date::floor<date::days>(now);
+      auto time
+        = date::make_time(std::chrono::duration_cast<std::chrono::milliseconds>(now - date));
+      auto ymd = date::year_month_day{date};
+      const auto sz = buffer->size();
+      buffer->resize(sz + 27);
+      const auto written = snprintf(&(*buffer)[sz],
+        27,
+        "\"%04d-%02u-%02uT%02d:%02d:%02d.%03dZ\"",
+        static_cast<int>(ymd.year()),
+        static_cast<unsigned int>(ymd.month()),
+        static_cast<unsigned int>(ymd.day()),
+        static_cast<int>(time.hours().count()),
+        static_cast<int>(time.minutes().count()),
+        static_cast<int>(time.seconds().count()),
+        static_cast<int>(time.subseconds().count()));
+      buffer->resize(sz + written);
+    }
+
+    void level(sv file, int line, level_type level, sv log_name) {
+      vs.writeLiteral(",\"level\":");
+      vs.write(level & 0xff);
+    }
+    void levelName(sv file, int line, level_type level, sv log_name) {
+      vs.writeLiteral(",\"levelString\":");
+      vs.write(level & 0xff); // TODO: implement level string names
+    }
+    void logName(sv file, int line, level_type level, sv log_name) {
+      vs.writeLiteral(",\"log\":");
+      vs.write(log_name);
+    }
+    void processName(sv file, int line, level_type level, sv log_name) {
+      np::platform::executableName();
+    }
+    void processId(sv file, int line, level_type level, sv log_name) { np::platform::processId(); }
+    void threadId(sv file, int line, level_type level, sv log_name) { np::platform::threadId(); }
+    void hostname(sv file, int line, level_type level, sv log_name) { np::platform::hostname(); }
+
+  private:
+    Serializer::buffer_type* buffer = nullptr;
+    ValueSerializer vs;
+  };
+
   Serializer::Serializer(buffer_type* buffer) : buffer(buffer) {}
 
-  void
-  Serializer::prologue(std::string_view file, int line, level_type level, std::string_view msg) {
-    const auto it
-      = std::find_if(file.rbegin(), file.rend(), [](char c) { return c == '/' || c == '\\'; });
-    if (it != file.rend()) { file.remove_prefix(file.rend() - it); }
+  void Serializer::prologue(std::string_view file,
+    int line,
+    level_type level,
+    std::string_view log_name,
+    std::string_view msg) {
     auto vs = valueSerializer();
-    vs.writeLiteral("{\"file\":");
-    vs.write(file);
-    vs.writeLiteral(",\"line\":");
-    vs.write(line);
-    vs.writeLiteral(",\"time\":");
-    auto now = std::chrono::system_clock::now();
-    auto date = date::floor<date::days>(now);
-    auto time = date::make_time(std::chrono::duration_cast<std::chrono::milliseconds>(now - date));
-    auto ymd = date::year_month_day{date};
-    const auto sz = buffer->size();
-    buffer->resize(sz + 27);
-    const auto written = snprintf(&(*buffer)[sz],
-      27,
-      "\"%04d-%02u-%02uT%02d:%02d:%02d.%03dZ\"",
-      static_cast<int>(ymd.year()),
-      static_cast<unsigned int>(ymd.month()),
-      static_cast<unsigned int>(ymd.day()),
-      static_cast<int>(time.hours().count()),
-      static_cast<int>(time.minutes().count()),
-      static_cast<int>(time.seconds().count()),
-      static_cast<int>(time.subseconds().count()));
-    buffer->resize(sz + written);
-    vs.writeLiteral(",\"level\":");
-    vs.write(level & 0xff);
-    vs.writeLiteral(",\"message\":");
+
+    vs.writeLiteral("{\"message\":");
     vs.write(msg);
+
+    HeaderFields hf(*this);
+
+    Fields enabled_fields = enabledFields();
+    if (enabled_fields & File) { hf.file(file, line, level, log_name); }
+    if (enabled_fields & Line) { hf.line(file, line, level, log_name); }
+    if (enabled_fields & Time) { hf.time(file, line, level, log_name); }
+    if (enabled_fields & Level) { hf.level(file, line, level, log_name); }
+    if (enabled_fields & LevelName) { hf.levelName(file, line, level, log_name); }
+    if (enabled_fields & LogName) { hf.logName(file, line, level, log_name); }
+    if (enabled_fields & ProcessName) { hf.processName(file, line, level, log_name); }
+    if (enabled_fields & ProcessId) { hf.processId(file, line, level, log_name); }
+    if (enabled_fields & ThreadId) { hf.threadId(file, line, level, log_name); }
+    if (enabled_fields & Hostname) { hf.hostname(file, line, level, log_name); }
   }
 
   void Serializer::epilogue() {
@@ -185,4 +240,9 @@ namespace np {
 
     writeLiteral(std::string_view(buf, len));
   }
+
+  /*
+    vs.writeLiteral(",\"message\":");
+    vs.write(msg);
+    */
 } // namespace np

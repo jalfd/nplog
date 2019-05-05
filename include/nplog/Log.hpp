@@ -40,11 +40,13 @@ namespace np {
 
     unsigned knownVersion() const { return version; }
 
+    std::string_view name() const { return std::string_view(name_ptr, name_len); }
+
   private:
     Levels effective_levels;
     Levels levels_by_name_only;
     Log* parent = nullptr;
-    const char* name = nullptr;
+    const char* name_ptr = nullptr;
     size_t name_len = 0;
     const unsigned depth = 0;
     unsigned version = 0;
