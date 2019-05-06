@@ -113,12 +113,28 @@ namespace np {
 #endif
     }
 
+    struct CachedFields {
+      CachedFields() : hostname(hostnameFromFqdn(internal::hostname())) {}
+
+      std::string hostname;
+    };
+
+    std::shared_mutex mtx;
+    std::unique_ptr<CachedFields> cached;
   } // namespace internal
 
   namespace platform {
     uint64_t processId() { return internal::processId(); }
     uint64_t threadId() { return internal::processId(); }
-    std::string hostname() { return std::string(hostnameFromFqdn(internal::hostname())); }
+    std::string hostname() {
+      {
+        std::shared_lock<std::shared_mutex> lock(internal::mtx);
+        if (internal::cached) { return internal::cached->hostname; }
+      }
+      std::lock_guard<std::shared_mutex> lock(internal::mtx);
+      internal::cached = std::make_unique<internal::CachedFields>();
+      return internal::cached->hostname;
+    }
     std::string executableName() {
       return std::string(filenameFromPath(internal::executableName()));
     }
