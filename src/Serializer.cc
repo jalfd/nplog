@@ -10,9 +10,17 @@
 #include <cstdio>
 #include <date/date.h>
 #include <chrono>
+#include <limits>
+
+#include "ToStringHelper.hpp"
 
 namespace np {
   namespace {
+    template <typename BufType>
+    char* offset(BufType* ptr, size_t idx) {
+      auto& buf = *ptr;
+      return &buf[0] + idx;
+    }
 #ifndef has_to_chars
     namespace internal {
       static struct ScopedLocale {
@@ -56,17 +64,32 @@ namespace np {
       auto ymd = date::year_month_day{date};
       const auto sz = buffer->size();
       buffer->resize(sz + 27);
-      const auto written = snprintf(&(*buffer)[sz],
-        27,
-        "\"%04d-%02u-%02uT%02d:%02d:%02d.%03dZ\"",
-        static_cast<int>(ymd.year()),
-        static_cast<unsigned int>(ymd.month()),
-        static_cast<unsigned int>(ymd.day()),
-        static_cast<int>(time.hours().count()),
-        static_cast<int>(time.minutes().count()),
-        static_cast<int>(time.seconds().count()),
-        static_cast<int>(time.subseconds().count()));
-      buffer->resize(sz + written);
+
+      auto* ptr = offset(buffer, sz);
+      *ptr++ = '"';
+      padded_decimal_from(static_cast<int>(ymd.year()), ptr, ptr + 4, '0');
+      ptr += 4;
+      *ptr++ = '-';
+      padded_decimal_from(static_cast<unsigned int>(ymd.month()), ptr, ptr + 2, '0');
+      ptr += 2;
+      *ptr++ = '-';
+      padded_decimal_from(static_cast<unsigned int>(ymd.day()), ptr, ptr + 2, '0');
+      ptr += 2;
+      *ptr++ = 'T';
+      padded_decimal_from(time.hours().count(), ptr, ptr + 2, '0');
+      ptr += 2;
+      *ptr++ = ':';
+      padded_decimal_from(time.minutes().count(), ptr, ptr + 2, '0');
+      ptr += 2;
+      *ptr++ = ':';
+      padded_decimal_from(static_cast<unsigned long>(time.seconds().count()), ptr, ptr + 2, '0');
+      ptr += 2;
+      *ptr++ = '.';
+      padded_decimal_from(static_cast<unsigned long>(time.subseconds().count()), ptr, ptr + 3, '0');
+      ptr += 3;
+      *ptr++ = 'Z';
+      *ptr++ = '"';
+      buffer->resize(ptr - offset(buffer, 0));
     }
 
     void level(sv file, int line, level_type level, sv log_name) {
@@ -209,6 +232,15 @@ namespace np {
 
   template <typename T>
   void ValueSerializer::writeNumber(T val, const char* format) noexcept {
+    if constexpr (!std::is_floating_point_v<T>) {
+      // ensure we have room for this type
+      const auto sz = buffer->size();
+      buffer->resize(sz + std::numeric_limits<T>::digits10 + 2);
+      const auto num_view = decimal_from(val, offset(buffer, sz), offset(buffer, buffer->size()));
+      buffer->resize(sz + num_view.size());
+      return;
+    }
+
     if constexpr (std::is_floating_point_v<T>) {
       if (!std::isfinite(val)) {
         writeLiteral("null");
