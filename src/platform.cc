@@ -114,9 +114,12 @@ namespace np {
     }
 
     struct CachedFields {
-      CachedFields() : hostname(hostnameFromFqdn(internal::hostname())) {}
+      CachedFields()
+        : hostname(hostnameFromFqdn(internal::hostname()))
+        , executable(filenameFromPath(internal::executableName())) {}
 
       std::string hostname;
+      std::string executable;
     };
 
     std::shared_mutex mtx;
@@ -136,7 +139,13 @@ namespace np {
       return internal::cached->hostname;
     }
     std::string executableName() {
-      return std::string(filenameFromPath(internal::executableName()));
+      {
+        std::shared_lock<std::shared_mutex> lock(internal::mtx);
+        if (internal::cached) { return internal::cached->executable; }
+      }
+      std::lock_guard<std::shared_mutex> lock(internal::mtx);
+      internal::cached = std::make_unique<internal::CachedFields>();
+      return internal::cached->executable;
     }
   } // namespace platform
 } // namespace np
