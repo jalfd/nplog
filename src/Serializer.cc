@@ -230,7 +230,9 @@ namespace np {
   }
 
   void ValueSerializer::writeLiteral(std::string_view val) {
-    std::copy(val.begin(), val.end(), std::back_inserter(*buffer));
+    const auto sz = buffer->size();
+    buffer->resize(sz + val.size());
+    std::copy(val.begin(), val.end(), offset(buffer, sz));
   }
 
   template <typename T>
