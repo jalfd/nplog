@@ -36,6 +36,8 @@ add_library(nplog
     include/nplog/Config.hpp
     )
 
+add_library(np::log ALIAS nplog)
+
 target_link_libraries(nplog PRIVATE Date PUBLIC Threads::Threads)
 if (WIN32)
     target_link_libraries(nplog PRIVATE ws2_32)
@@ -61,5 +63,41 @@ GENERATE_EXPORT_HEADER(nplog
 
 add_subdirectory(tests)
 
-install(TARGETS nplog DESTINATION lib)
-install(FILES ${nplog_public_headers} ${CMAKE_BINARY_DIR}/include/nplog/export.hpp DESTINATION include/nplog)
+install(TARGETS nplog
+    EXPORT nplog-targets
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    INCLUDES DESTINATION include
+    )
+install(FILES ${CMAKE_BINARY_DIR}/include/nplog/export.hpp DESTINATION include/nplog)
+
+install(DIRECTORY include/ DESTINATION include)
+
+install(EXPORT nplog-targets
+    FILE nplog-targets.cmake
+    NAMESPACE np::
+    DESTINATION lib/cmake/nplog
+    )
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/nplog-config-version.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+    )
+
+configure_package_config_file(${CMAKE_CURRENT_LIST_DIR}/cmake/nplog-config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/nplog-config.cmake
+    INSTALL_DESTINATION lib/cmake/nplog
+    )
+
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/nplog-config.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/nplog-config-version.cmake
+    DESTINATION lib/cmake/nplog
+    )
+
+
+export(EXPORT nplog-targets FILE ${CMAKE_CURRENT_BINARY_DIR}/nplog-targets.cmake NAMESPACE np::)
+export(PACKAGE nplog)

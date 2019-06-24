@@ -1,0 +1,10 @@
+get_filename_component(nplog_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+include(CMakeFindDependencyMacro)
+
+find_dependency(Threads REQUIRED)
+
+if(NOT TARGET np::log)
+    include("${nplog_CMAKE_DIR}/nplog-targets.cmake")
+endif()
+
+set(nplog_LIBRARIES np::log)
