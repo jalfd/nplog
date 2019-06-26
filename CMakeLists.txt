@@ -12,6 +12,9 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
+add_library(Date INTERFACE)
+target_include_directories(Date INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/external/include)
+
 add_library(nplog SHARED
     src/Log.cc
     src/Serializer.cc
@@ -23,6 +26,7 @@ add_library(nplog SHARED
     include/nplog/macros.hpp
 )
 
+target_link_libraries(nplog Date)
 target_include_directories(nplog
 PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
