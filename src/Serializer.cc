@@ -4,6 +4,8 @@
 #include <locale.h>
 #include <cmath>
 #include <cstdio>
+#include <date/date.h>
+#include <chrono>
 
 namespace np {
   namespace {
@@ -38,6 +40,24 @@ namespace np {
     vs.write(file);
     vs.writeLiteral(",\"line\":");
     vs.write(line);
+    vs.writeLiteral(",\"time\":");
+    auto now = std::chrono::system_clock::now();
+    auto date = date::floor<date::days>(now);
+    auto time = date::make_time(std::chrono::duration_cast<std::chrono::milliseconds>(now - date));
+    auto ymd = date::year_month_day{date};
+    const auto sz = buffer->size();
+    buffer->resize(sz + 27);
+    const auto written = snprintf(&(*buffer)[sz],
+      27,
+      "\"%04d-%02u-%02uT%02d:%02d:%02d.%03dZ\"",
+      static_cast<int>(ymd.year()),
+      static_cast<unsigned int>(ymd.month()),
+      static_cast<unsigned int>(ymd.day()),
+      static_cast<int>(time.hours().count()),
+      static_cast<int>(time.minutes().count()),
+      static_cast<int>(time.seconds().count()),
+      static_cast<int>(time.subseconds().count()));
+    buffer->resize(sz + written);
     vs.writeLiteral(",\"level\":");
     vs.write(level);
     vs.writeLiteral(",\"message\":");
