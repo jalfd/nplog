@@ -18,9 +18,9 @@ namespace np {
 
     buffer_type acquireBuffer();
 
-    void submitMessage(const buffer_type &buffer);
+    void submitMessage(int level, const buffer_type& buffer);
 
-    static void setSink(std::function<void(std::string_view msg)> sink);
+    static void setSink(std::function<void(int, std::string_view msg)> sink);
 
     void releaseBuffer(buffer_type&& buf);
 
@@ -29,6 +29,6 @@ namespace np {
     std::vector<buffer_type> buffers;
   };
 
-  NPLOG_EXPORT std::function<void(std::string_view)> getStdErrSink();
+  NPLOG_EXPORT std::function<void(int, std::string_view)> getStdErrSink();
 } // namespace np
 #endif
