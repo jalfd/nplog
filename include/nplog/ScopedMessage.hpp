@@ -18,7 +18,7 @@ namespace np {
 
     ~ScopedMessage() {
       serializer.epilogue();
-      log.submitMessage(std::move(message_buffer));
+      log.submitMessage(message_level, message_buffer);
       log.releaseBuffer(std::move(message_buffer));
     }
 

@@ -29,7 +29,10 @@ namespace {
       return buffer_type();
     }
 
-    void submitMessage(buffer_type buffer) { ops.emplace_back("submitMessage", buffer.id); }
+    void submitMessage(int level, const buffer_type& buffer) {
+      ops.emplace_back("submitMessage", std::pair<int, int>(level, buffer.id));
+    }
+
     void releaseBuffer(buffer_type buffer) { ops.emplace_back("releaseBuffer", buffer.id); }
 
     int buffersRequested = 0;
@@ -71,7 +74,9 @@ TEST_CASE("ScopedMessage") {
     CHECK(std::get<0>(ops.at(2)) == "epilogue");
     CHECK(std::any_cast<int>(std::get<1>(ops.at(2))) == buffer_id);
     CHECK(std::get<0>(ops.at(3)) == "submitMessage");
-    CHECK(std::any_cast<int>(std::get<1>(ops.at(3))) == buffer_id);
+    const auto level_and_buffer = std::any_cast<std::pair<int, int>>(std::get<1>(ops.at(3)));
+    CHECK(level_and_buffer.first == 1);
+    CHECK(level_and_buffer.second == buffer_id);
     CHECK(std::get<0>(ops.at(4)) == "releaseBuffer");
     CHECK(std::any_cast<int>(std::get<1>(ops.at(4))) == buffer_id);
     CHECK(std::get<0>(ops.at(5)) == "dtor");
@@ -132,7 +137,7 @@ TEST_CASE("ScopedMessage") {
     CHECK(std::any_cast<int>(std::get<1>(ops.at(4))) == buffer2);
     // Inner emessage is written
     CHECK(std::get<0>(ops.at(5)) == "submitMessage");
-    CHECK(std::any_cast<int>(std::get<1>(ops.at(5))) == buffer2);
+    CHECK(std::any_cast<std::pair<int, int>>(std::get<1>(ops.at(5))).second == buffer2);
     CHECK(std::get<0>(ops.at(6)) == "releaseBuffer");
     CHECK(std::any_cast<int>(std::get<1>(ops.at(6))) == buffer2);
     CHECK(std::get<0>(ops.at(7)) == "dtor");
@@ -142,7 +147,7 @@ TEST_CASE("ScopedMessage") {
     CHECK(std::any_cast<int>(std::get<1>(ops.at(10))) == buffer1);
     // Outer message is written
     CHECK(std::get<0>(ops.at(11)) == "submitMessage");
-    CHECK(std::any_cast<int>(std::get<1>(ops.at(11))) == buffer1);
+    CHECK(std::any_cast<std::pair<int, int>>(std::get<1>(ops.at(11))).second == buffer1);
     CHECK(std::get<0>(ops.at(12)) == "releaseBuffer");
     CHECK(std::any_cast<int>(std::get<1>(ops.at(12))) == buffer1);
     CHECK(std::get<0>(ops.at(13)) == "dtor");
