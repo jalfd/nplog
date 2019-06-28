@@ -13,6 +13,8 @@ namespace np {
     using buffer_type = std::vector<char>;
     using serializer_type = Serializer;
 
+    Log();
+
     bool suppressMessage(int level) const;
     int paramLevel() const;
 
@@ -20,11 +22,15 @@ namespace np {
 
     void submitMessage(int level, const buffer_type& buffer);
 
-    static void setSink(std::function<void(int, std::string_view msg)> sink);
-
     void releaseBuffer(buffer_type&& buf);
 
+    static void setSink(std::function<void(int, std::string_view msg)> sink);
+    static void setMessageLevel(int level);
+    static void setParamLevel(int level);
+
   private:
+    int message_level;
+    int param_level;
   };
 
   NPLOG_EXPORT std::function<void(int, std::string_view)> getStdErrSink();
