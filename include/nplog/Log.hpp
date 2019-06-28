@@ -25,8 +25,6 @@ namespace np {
     void releaseBuffer(buffer_type&& buf);
 
   private:
-    std::mutex buffer_mutex;
-    std::vector<buffer_type> buffers;
   };
 
   NPLOG_EXPORT std::function<void(int, std::string_view)> getStdErrSink();
