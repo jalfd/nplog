@@ -15,6 +15,9 @@ namespace np {
 
       std::mutex sink_mtx;
       std::function<void(int, std::string_view msg)> log_sink;
+
+      std::atomic<int> message_level = 0;
+      std::atomic<int> param_level = 0;
     };
 
     static LogState state;
@@ -25,16 +28,24 @@ namespace np {
 
   std::function<void(int, std::string_view)> getStdErrSink() { return stderr_log_sink; }
 
+  Log::Log()
+    : message_level(state.message_level.load(std::memory_order_relaxed))
+    , param_level(state.param_level.load(std::memory_order_relaxed)) {}
+
   void Log::setSink(std::function<void(int, std::string_view msg)> sink) {
     std::lock_guard lock(state.sink_mtx);
     state.log_sink = sink;
   }
+  void Log::setMessageLevel(int level) {
+    state.message_level.store(level, std::memory_order_relaxed);
+  }
+  void Log::setParamLevel(int level) { state.param_level.store(level, std::memory_order_relaxed); }
 
   bool Log::suppressMessage(int level) const {
-    return level > 3;
+    return level > state.message_level.load(std::memory_order_relaxed);
   }
 
-  int Log::paramLevel() const { return 3; }
+  int Log::paramLevel() const { return state.param_level.load(std::memory_order_relaxed); }
 
   Log::buffer_type Log::acquireBuffer() {
     std::lock_guard lock(state.buffer_mutex);
