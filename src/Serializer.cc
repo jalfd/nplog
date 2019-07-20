@@ -39,6 +39,9 @@ namespace np {
       } c_locale;
     } // namespace internal
 #endif
+
+    const std::map<level_type, std::string> level_names
+      = {{0, "Fatal"}, {1, "Error"}, {2, "Warning"}, {3, "Info"}, {4, "Debug"}, {5, "Trace"}};
   } // namespace
 
   struct HeaderFields {
@@ -96,9 +99,16 @@ namespace np {
       vs.writeLiteral(",\"level\":");
       vs.write(level & 0xff);
     }
+
     void levelName(sv file, int line, level_type level, sv log_name) {
       vs.writeLiteral(",\"levelString\":");
-      vs.write(level & 0xff); // TODO: implement level string names
+      const auto lvl = level & 0xff;
+      const auto it = level_names.find(lvl);
+      if (it == level_names.end()) {
+          vs.write(lvl);
+      } else {
+          vs.write(it->second);
+      }
     }
     void logName(sv file, int line, level_type level, sv log_name) {
       vs.writeLiteral(",\"log\":");
