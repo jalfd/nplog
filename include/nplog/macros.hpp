@@ -21,9 +21,9 @@ namespace np::log::internal {
   (__VA_ARGS__)
 
 #define LOG_IMPL(log, msg_lvl, msg, ...) \
-  if (auto lvl_mask = log.refreshLevels(log.knownVersion()); \
-      np::testLevel(msg_lvl, lvl_mask.message)) { \
-    ::np::ScopedMessage sm(log, __FILE__, __LINE__, msg_lvl, msg, lvl_mask.param); \
+  if (auto lvl_threshold = log.refreshLevels(log.knownVersion()); \
+      np::testLevel(msg_lvl, lvl_threshold.message)) { \
+    ::np::ScopedMessage sm(log, __FILE__, __LINE__, msg_lvl, msg, lvl_threshold.param); \
     (void) __VA_ARGS__; \
   }
 

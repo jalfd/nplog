@@ -18,11 +18,7 @@ namespace np {
 
     static LogState state;
 
-    const std::function<void(level_type, std::string_view)> stderr_log_sink
-      = [](level_type, std::string_view buffer) { std::fprintf(stderr, "%s\n", &buffer[0]); };
   } // namespace
-
-  std::function<void(level_type, std::string_view)> getStdErrSink() { return stderr_log_sink; }
 
   Log::Log(Log* parent, const char* name)
     : parent(parent)
@@ -34,11 +30,12 @@ namespace np {
 
   Log::Log(const char* name) : Log(nullptr, name) {}
 
-  Levels Log::refreshLevels(unsigned version, bool exclude_depth) {
+  LevelSpec Log::refreshLevels(unsigned version, bool exclude_depth) {
     if (!isCurrent(version)) {
       auto result = getLevels(std::string_view(name_ptr, name_len), depth);
       levels_by_name_only = result.levels_by_name_only;
       effective_levels = result.effective_levels;
+      sensitive = result.sensitive;
 
       if (parent) {
         auto parent_levels = parent->refreshLevels(result.version, true);

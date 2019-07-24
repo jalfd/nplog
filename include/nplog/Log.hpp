@@ -24,22 +24,23 @@ namespace np {
 
     void releaseBuffer(buffer_type&& buf);
 
-    Levels refreshLevels(unsigned version, bool exclude_depth = false);
+    LevelSpec refreshLevels(unsigned version, bool exclude_depth = false);
 
     unsigned knownVersion() const { return version; }
 
     std::string_view name() const { return std::string_view(name_ptr, name_len); }
 
+    bool permitSensitive() const { return sensitive; }
+
   private:
-    Levels effective_levels;
-    Levels levels_by_name_only;
+    LevelSpec effective_levels;
+    LevelSpec levels_by_name_only;
     Log* parent = nullptr;
     const char* name_ptr = nullptr;
     size_t name_len = 0;
     const unsigned depth = 0;
     unsigned version = 0;
+    bool sensitive = false;
   };
-
-  NPLOG_EXPORT std::function<void(level_type, std::string_view)> getStdErrSink();
 } // namespace np
 #endif

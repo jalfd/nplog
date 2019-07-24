@@ -1,0 +1,62 @@
+#include "ConfigImpl.hpp"
+#include <atomic>
+
+namespace np {
+  std::shared_mutex config_mutex;
+  std::atomic<unsigned> config_timestamp = 1;
+
+  namespace {
+    LogConfig config;
+  } // namespace
+  void applyConfig(LogConfig cfg) {
+    std::lock_guard lock(config_mutex);
+    config = std::move(cfg);
+    std::atomic_fetch_add_explicit(&config_timestamp, 1u, std::memory_order_relaxed);
+  }
+
+  bool isCurrent(unsigned v) {
+    return v == std::atomic_load_explicit(&config_timestamp, std::memory_order_acquire);
+  }
+
+  LevelsResult getLevels(std::string_view n, unsigned d) {
+    auto version = std::atomic_load_explicit(&config_timestamp, std::memory_order_relaxed);
+
+    std::shared_lock<std::shared_mutex> lock(config_mutex);
+
+    LevelSpec lvls = config.levels.default_level;
+
+    const auto fun = [](const auto lhs, const auto rhs) { return lhs.first < rhs.first; };
+
+    if (!n.empty()) {
+      const auto& lbn = config.levels.levels_by_name;
+      const auto it = std::lower_bound(lbn.begin(), lbn.end(), std::pair{n, LevelSpec{}}, fun);
+
+      if (it != lbn.end() && it->first == n) { lvls = merge(lvls, it->second); }
+    }
+
+    auto levels_by_name = lvls;
+
+    if (d < config.levels.levels_by_depth.size()) {
+      lvls = merge(lvls, config.levels.levels_by_depth[d]);
+    }
+
+    return {version, lvls, levels_by_name, config.levels.sensitive};
+  }
+
+  std::atomic<Config::Fields> enabled_fields
+    = static_cast<Config::Fields>(Config::File | Config::Line | Config::Time | Config::Level);
+  Config::Fields enabledFields() {
+    return std::atomic_load_explicit(&enabled_fields, std::memory_order_acquire);
+  }
+
+  void sendToSink(level_type level, std::string_view buffer) {
+    std::shared_lock<std::shared_mutex> lock(config_mutex); // TODO: is this where we serialize log messages from multiple threads?
+    config.sink(level, buffer);
+  }
+
+  namespace { // TODO: use this if sink is blank
+    const std::function<void(level_type, std::string_view)> stderr_log_sink
+      = [](level_type, std::string_view buffer) { std::fprintf(stderr, "%s\n", &buffer[0]); };
+  } // namespace
+
+} // namespace np

@@ -27,6 +27,7 @@ namespace {
     }
 
     std::string_view name() const { return "logname"; }
+    bool permitSensitive() const { return false; }
 
     void submitMessage(np::level_type level, const buffer_type& buffer) {
       ops.emplace_back("submitMessage", std::pair<np::level_type, int>(level, buffer.id));

@@ -25,11 +25,14 @@ TEST_CASE("Log") {
     np::level_type level = 0;
     const char* msg_start = nullptr;
     size_t msg_len = 0;
-    np::setSink([&](np::level_type l, std::string_view msg) {
+    np::Config cfg;
+    cfg.levels.default_level = {9, 9};
+    cfg.sink = [&](np::level_type l, std::string_view msg) {
       level = l;
       msg_start = &msg[0];
       msg_len = msg.size();
-    });
+    };
+    np::applyConfig(cfg);
 
     auto buf = log.acquireBuffer();
     buf.push_back('x');

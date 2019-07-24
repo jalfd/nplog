@@ -4,47 +4,80 @@
 #include <nplog/common.hpp>
 #include <nplog/export.hpp>
 #include <functional>
+#include <iterator>
 #include <map>
-#include <memory>
+#include <string>
+#include <vector>
 #include <string_view>
+#include <algorithm>
+
+template class NPLOG_EXPORT std::function<void(np::level_type, std::string_view)>; // TODO: use an UDT
 
 namespace np {
-  struct Levels {
+  struct LevelSpec {
     level_type message = {};
     level_type param = {};
   };
 
   struct NPLOG_EXPORT Config {
-    Config(level_type message_level, level_type param_level);
-    ~Config();
-    Config(const Config&) = delete;
-    Config(Config&&) = delete;
+    using Sink = std::function<void(level_type, std::string_view)>;
 
-    void setLevelForLogName(std::string_view logname, level_type messages, level_type params);
-    void setLevelForLogDepth(unsigned depth, level_type messages, level_type params);
+    enum Fields : uint32_t {
+      File = 1,
+      Line = 2,
+      Time = 4,
+      Level = 8,
+      LevelName = 16,
+      LogName = 32,
+      ProcessName = 64,
+      ProcessId = 128,
+      ThreadId = 256,
+      Hostname = 512,
+    };
 
-    void apply() const;
+    struct Levels {
+        LevelSpec default_level;
+        std::map<int, LevelSpec> levels_by_depth;
+        std::map<std::string, LevelSpec> levels_by_name;
+    };
 
-  private:
-    struct Impl;
-    Impl* impl;
+    Sink sink;
+    Fields fields;
+    Levels levels;
+    // Some messages or parameters may be marked sensitive, and will only be logged when this flag is set
+    bool sensitive_enabled = false;
   };
+  namespace internal {
+    struct LevelRule {
+      std::string_view name;
+      int depth;
+      LevelSpec level;
+    };
 
-  enum Fields : uint32_t {
-    File = 1,
-    Line = 2,
-    Time = 4,
-    Level = 8,
-    LevelName = 16,
-    LogName = 32,
-    ProcessName = 64,
-    ProcessId = 128,
-    ThreadId = 256,
-    Hostname = 512,
-  };
+    NPLOG_EXPORT void
+    applyConfig(Config::Sink sink, Config::Fields fields, bool sensitive, LevelSpec default_level, LevelRule* first, LevelRule* last);
+  } // namespace internal
 
-  NPLOG_EXPORT void setHeaderFields(Fields fields_mask);
 
-  NPLOG_EXPORT void setSink(std::function<void(level_type, std::string_view msg)> sink);
+  inline void applyConfig(Config config)
+  {
+      std::vector<internal::LevelRule> level_rules;
+
+      std::transform(config.levels.levels_by_depth.begin(),
+        config.levels.levels_by_depth.end(),
+        std::back_inserter(level_rules),
+        [](const auto& rule) {
+          return internal::LevelRule{{}, rule.first, rule.second};
+        });
+
+      std::transform(config.levels.levels_by_name.begin(),
+        config.levels.levels_by_name.end(),
+        std::back_inserter(level_rules),
+        [](const auto& rule) {
+          return internal::LevelRule{rule.first, 0, rule.second};
+        });
+
+      internal::applyConfig(config.sink, config.fields, config.sensitive_enabled, config.levels.default_level, &level_rules[0], &level_rules[level_rules.size()]);
+  }
 } // namespace np
 #endif
