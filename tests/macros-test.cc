@@ -6,7 +6,7 @@
 namespace np {
   namespace {
     struct Log {
-      Levels refreshLevels(unsigned) { return {5, 5}; }
+      LevelSpec refreshLevels(unsigned) { return {5, 5}; }
       unsigned knownVersion() { return 0; }
     };
 

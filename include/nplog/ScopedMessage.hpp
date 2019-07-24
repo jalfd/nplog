@@ -17,7 +17,8 @@ namespace np {
       , param_level(param_level)
       , message_buffer(log.acquireBuffer())
       , serializer(&message_buffer)
-      , message_level(level) {
+      , message_level(level)
+      , permit_sensitive(log.permitSensitive()) {
       serializer.prologue(file, line, level, log.name(), m);
     }
 
@@ -35,7 +36,9 @@ namespace np {
       return true;
     }
 
-    bool suppressParam(level_type i) { return !testLevel(i, param_level); }
+    bool suppressParam(uint16_t i) {
+      return !testLevel(static_cast<level_type>(i), static_cast<level_type>(param_level)) || (i >> 8) > static_cast<uint16_t>(permit_sensitive);
+    }
     bool suppressParam(const char* = nullptr) { return suppressParam(message_level); }
 
   private:
@@ -45,6 +48,7 @@ namespace np {
     typename LogType::serializer_type serializer;
 
     level_type message_level;
+    bool permit_sensitive;
   };
 
 } // namespace np

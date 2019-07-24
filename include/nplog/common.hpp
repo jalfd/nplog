@@ -4,15 +4,10 @@
 #include <cstdint>
 
 namespace np {
-  using level_type = uint16_t;
+  using level_type = unsigned char;
 
-  inline bool testLevel(level_type level, level_type mask) {
-    const auto userlevel = level & 0xff00;
-    const auto standardlevel = level & 0x00ff;
-    const auto usermask = mask & 0xff00;
-    const auto standardmask = mask & 0x00ff;
-
-    return (userlevel & usermask) == userlevel && standardlevel <= standardmask;
+  inline bool testLevel(level_type level, level_type threshold) {
+      return level <= threshold;
   }
 } // namespace np
 

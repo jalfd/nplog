@@ -22,22 +22,20 @@ namespace np {
       return &buf[0] + idx;
     }
 #ifndef has_to_chars
-    namespace internal {
-      static struct ScopedLocale {
+    static struct ScopedLocale {
 #ifdef _WIN32
-        using locale_t = _locale_t;
-        ScopedLocale() : loc(_create_locale(LC_ALL, "C")) {}
-        ~ScopedLocale() { _free_locale(loc); }
+      using locale_t = _locale_t;
+      ScopedLocale() : loc(_create_locale(LC_ALL, "C")) {}
+      ~ScopedLocale() { _free_locale(loc); }
 #else
-        ScopedLocale() : loc(newlocale(LC_ALL_MASK, "C", 0)) {}
-        ~ScopedLocale() { freelocale(loc); }
+      ScopedLocale() : loc(newlocale(LC_ALL_MASK, "C", 0)) {}
+      ~ScopedLocale() { freelocale(loc); }
 #endif
 
-        locale_t loc;
-        ScopedLocale(const ScopedLocale&) = delete;
-        ScopedLocale& operator=(const ScopedLocale&) = delete;
-      } c_locale;
-    } // namespace internal
+      locale_t loc;
+      ScopedLocale(const ScopedLocale&) = delete;
+      ScopedLocale& operator=(const ScopedLocale&) = delete;
+    } c_locale;
 #endif
 
     const std::map<level_type, std::string> level_names
@@ -140,17 +138,17 @@ namespace np {
 
     HeaderFields hf(*this);
 
-    Fields enabled_fields = enabledFields();
-    if (enabled_fields & File) { hf.file(file, line, level, log_name); }
-    if (enabled_fields & Line) { hf.line(file, line, level, log_name); }
-    if (enabled_fields & Time) { hf.time(file, line, level, log_name); }
-    if (enabled_fields & Level) { hf.level(file, line, level, log_name); }
-    if (enabled_fields & LevelName) { hf.levelName(file, line, level, log_name); }
-    if (enabled_fields & LogName) { hf.logName(file, line, level, log_name); }
-    if (enabled_fields & ProcessName) { hf.processName(file, line, level, log_name); }
-    if (enabled_fields & ProcessId) { hf.processId(file, line, level, log_name); }
-    if (enabled_fields & ThreadId) { hf.threadId(file, line, level, log_name); }
-    if (enabled_fields & Hostname) { hf.hostname(file, line, level, log_name); }
+    Config::Fields enabled_fields = enabledFields();
+    if (enabled_fields &  Config::File) { hf.file(file, line, level, log_name); }
+    if (enabled_fields &  Config::Line) { hf.line(file, line, level, log_name); }
+    if (enabled_fields &  Config::Time) { hf.time(file, line, level, log_name); }
+    if (enabled_fields &  Config::Level) { hf.level(file, line, level, log_name); }
+    if (enabled_fields &  Config::LevelName) { hf.levelName(file, line, level, log_name); }
+    if (enabled_fields &  Config::LogName) { hf.logName(file, line, level, log_name); }
+    if (enabled_fields &  Config::ProcessName) { hf.processName(file, line, level, log_name); }
+    if (enabled_fields &  Config::ProcessId) { hf.processId(file, line, level, log_name); }
+    if (enabled_fields &  Config::ThreadId) { hf.threadId(file, line, level, log_name); }
+    if (enabled_fields &  Config::Hostname) { hf.hostname(file, line, level, log_name); }
   }
 
   void Serializer::epilogue() {
@@ -263,14 +261,14 @@ namespace np {
     char buf[bufsize];
 #ifndef has_to_chars
 #ifdef __linux
-    auto old_loc = uselocale(internal::c_locale.loc);
+    auto old_loc = uselocale(c_locale.loc);
     const auto len = snprintf(buf, bufsize, format, val);
     uselocale(old_loc);
 #elif defined(_WIN32)
-    const auto len = _snprintf_s_l(buf, bufsize, _TRUNCATE, format, internal::c_locale.loc, val);
+    const auto len = _snprintf_s_l(buf, bufsize, _TRUNCATE, format, c_locale.loc, val);
     if (len == -1) { std::abort(); }
 #else
-    const auto len = snprintf_l(buf, bufsize, internal::c_locale.loc, format, val);
+    const auto len = snprintf_l(buf, bufsize, c_locale.loc, format, val);
 #endif
     if (len > bufsize) { std::abort(); }
 #else

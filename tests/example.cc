@@ -4,11 +4,9 @@ np::Log mylog;
 
 int main() {
   // Configure logger to include messages of level 3 and down, and parameters of level 3 and down
-  np::Config cfg(5, 3);
-  cfg.apply();
-  np::setHeaderFields(static_cast<np::Fields>(-1));
-
-  np::setSink(np::getStdErrSink());
+  np::Config cfg;
+  cfg.levels.default_level = {5, 3};
+  np::applyConfig(cfg);
 
   int fortytwo = 42;
   LOG(mylog, 0, "logging a message", ARG(fortytwo));

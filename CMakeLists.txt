@@ -25,6 +25,7 @@ add_library(nplog
     src/Formatter.cc
     src/Config.cc
     src/ConfigImpl.hpp
+    src/ConfigImpl.cc
     src/utility.hpp
     src/platform.hpp
     src/platform.cc
