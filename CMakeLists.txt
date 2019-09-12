@@ -14,6 +14,10 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 option(BUILD_SHARED_LIBS "Build as shared library" ON)
 
+if (NOT WIN32)
+    add_definitions(-Wfatal-errors)
+endif()
+
 add_library(Date INTERFACE IMPORTED)
 target_include_directories(Date INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/external/include)
 
