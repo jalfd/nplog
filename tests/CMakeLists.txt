@@ -17,4 +17,8 @@ add_executable(tests
 )
 target_link_libraries(tests PRIVATE Catch picojson nplog)
 
-add_test(NAME tests COMMAND tests)
+if (NPLOG_JUNIT_REPORTER)
+    add_test(NAME tests COMMAND tests -r junit -o ${NPLOG_JUNIT_REPORTER})
+else()
+    add_test(NAME tests COMMAND tests)
+endif()

@@ -19,7 +19,10 @@ if (NOT WIN32)
 endif()
 
 add_library(Date INTERFACE IMPORTED)
-target_include_directories(Date INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/external/include)
+
+# Requires CMake 3.11, so use the more verbose option instead
+#target_include_directories(Date INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/external/include)
+set_property(TARGET Date APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/src/external/include)
 
 find_package(Threads REQUIRED)
 

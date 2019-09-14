@@ -1,0 +1,70 @@
+trigger:
+  - '*'
+
+pr:
+  - '*'
+
+jobs:
+  - job: buildAndTest
+    strategy:
+      matrix:
+          #        linux:
+          #          imageName: "ubuntu-18.04"
+        mac:
+          imageName: "macos-10.14"
+        windows:
+          imageName: "windows-2019"
+      maxParallel: 3
+    timeoutInMinutes: 10
+    pool:
+      vmImage: $(imageName)
+    steps:
+      - bash: |
+          set -e
+          mkdir build
+          cd build
+          cmake -DCMAKE_BUILD_TYPE=Release -DNPLOG_JUNIT_REPORTER=nplog-test.xml ..
+          cmake --build . --clean-first --config Release
+          ctest -C Release
+      - task: PublishTestResults@2
+        inputs:
+            testResultsFormat: 'JUnit'
+            testResultsFiles: '**/nplog-test.xml'
+            testRunTitle: 'Test results'
+            mergeTestResults: true
+  - job: buildAndTestLinux
+    strategy:
+      matrix:
+        linux:
+          imageName: "ubuntu-16.04"
+      maxParallel: 3
+    timeoutInMinutes: 10
+    pool:
+      vmImage: $(imageName)
+    container:
+        image: ubuntu:19.04
+        options: "--name ci-container -v /usr/bin/docker:/tmp/docker:ro"
+    steps:
+      - bash: |
+          /tmp/docker exec -t -u 0 ci-container \
+          sh -c "apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -o Dpkg::Options::="--force-confold" -y install sudo"
+        displayName: Set up sudo
+      - bash: |
+          sudo apt-get install -y g++
+        displayName: Install g++
+      - bash: |
+          sudo apt-get install -y cmake
+        displayName: Install CMake
+      - bash: |
+          set -e
+          mkdir build
+          cd build
+          cmake -DCMAKE_BUILD_TYPE=Release -DNPLOG_JUNIT_REPORTER=nplog-test.xml ..
+          cmake --build . --clean-first --config Release
+          ctest -C Release
+      - task: PublishTestResults@2
+        inputs:
+            testResultsFormat: 'JUnit'
+            testResultsFiles: '**/nplog-test.xml'
+            testRunTitle: 'Test results'
+            mergeTestResults: true
