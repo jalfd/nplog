@@ -8,16 +8,16 @@ TEST_CASE("Log") {
     buf.reserve(20);
     log.releaseBuffer(std::move(buf));
     auto b2 = log.acquireBuffer();
-    CHECK(b2.capacity() == 20);
+    CHECK(b2.bufferSize() == 20);
   }
 
   SECTION("Buffers are cleared on reuse") {
     np::Log log;
     auto buf = log.acquireBuffer();
-    buf.push_back('x');
+    buf.append('x');
     log.releaseBuffer(std::move(buf));
     auto b2 = log.acquireBuffer();
-    CHECK(b2.empty());
+    CHECK(b2.messageSize() == 0);
   }
 
   SECTION("Submitting a buffer sends it to the sink function") {
@@ -35,9 +35,9 @@ TEST_CASE("Log") {
     np::applyConfig(cfg);
 
     auto buf = log.acquireBuffer();
-    buf.push_back('x');
+    buf.append('x');
     log.submitMessage(3, buf);
-    CHECK(msg_start == &buf[0]);
+    CHECK(msg_start == buf.contents().data());
     CHECK(msg_len == 1);
     CHECK(level == 3);
   }

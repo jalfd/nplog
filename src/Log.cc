@@ -50,14 +50,13 @@ namespace np {
   Log::buffer_type Log::acquireBuffer() {
     std::lock_guard lock(state.buffer_mutex);
     if (state.buffers.empty()) { state.buffers.emplace_back(); }
-    const auto buf = std::move(state.buffers.back());
-    state.buffers.pop_back();
-    return buf;
+      auto buf = std::move(state.buffers.back());
+      state.buffers.pop_back();
+      return buf;
   }
 
   void Log::submitMessage(level_type level, buffer_type& buffer) {
-    buffer.push_back('\0');
-    ::np::sendToSink(level, std::string_view{&buffer[0], buffer.size() - 1});
+    ::np::sendToSink(level, buffer.contents());
   }
 
   void Log::releaseBuffer(buffer_type&& buf) {

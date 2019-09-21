@@ -63,10 +63,8 @@ namespace np {
       auto time
         = date::make_time(std::chrono::duration_cast<std::chrono::milliseconds>(now - date));
       auto ymd = date::year_month_day{date};
-      const auto sz = buffer->size();
-      buffer->resize(sz + 27);
-
-      auto* ptr = offset(buffer, sz);
+      // make sure the buffer has enough capacity
+      auto* ptr = buffer->insertAt(26);
       *ptr++ = '"';
       padded_decimal_from(static_cast<int>(ymd.year()), ptr, ptr + 4, '0');
       ptr += 4;
@@ -90,7 +88,6 @@ namespace np {
       ptr += 3;
       *ptr++ = 'Z';
       *ptr++ = '"';
-      buffer->resize(ptr - offset(buffer, 0));
     }
 
     void level(sv file, int line, level_type level, sv log_name) {
@@ -152,8 +149,8 @@ namespace np {
   }
 
   void Serializer::epilogue() {
-    if (has_params) { buffer->push_back('}'); }
-    buffer->push_back('}');
+    if (has_params) { buffer->append('}'); }
+    buffer->append('}');
   }
 
   void Serializer::writeKey(std::string_view name) {
@@ -164,7 +161,7 @@ namespace np {
       vs.writeLiteral(",");
     }
     vs.write(name);
-    buffer->push_back(':');
+    buffer->append(':');
     has_params = true;
   }
 
@@ -193,61 +190,62 @@ namespace np {
   void ValueSerializer::write(bool val) { writeLiteral(val ? "true" : "false"); }
 
   void ValueSerializer::writeString(std::string_view val) {
-    buffer->push_back('"');
+    buffer->append('"');
     std::for_each(val.begin(), val.end(), [this](char c) {
       switch (c) {
       case '"':
-        buffer->push_back('\\');
-        buffer->push_back('"');
+        buffer->append('\\');
+        buffer->append('"');
         return;
       case '\\':
-        buffer->push_back('\\');
-        buffer->push_back('\\');
+        buffer->append('\\');
+        buffer->append('\\');
         return;
       case '\n':
-        buffer->push_back('\\');
-        buffer->push_back('n');
+        buffer->append('\\');
+        buffer->append('n');
         return;
       case '\r':
-        buffer->push_back('\\');
-        buffer->push_back('r');
+        buffer->append('\\');
+        buffer->append('r');
         return;
       case '\t':
-        buffer->push_back('\\');
-        buffer->push_back('t');
+        buffer->append('\\');
+        buffer->append('t');
         return;
       default:
         if (static_cast<unsigned char>(c) < 0x20) {
-          buffer->push_back('\\');
-          buffer->push_back('u');
-          buffer->push_back('0');
-          buffer->push_back('0');
-          buffer->push_back(c < 0x10 ? '0' : '1');
+          buffer->append('\\');
+          buffer->append('u');
+          buffer->append('0');
+          buffer->append('0');
+          buffer->append(c < 0x10 ? '0' : '1');
           char b[2];
           snprintf(b, 2, "%x", (c & 0xf));
-          buffer->push_back(b[0]);
+          buffer->append(b[0]);
         } else {
-          buffer->push_back(c);
+          buffer->append(c);
         }
       }
     });
-    buffer->push_back('"');
+    buffer->append('"');
   }
 
   void ValueSerializer::writeLiteral(std::string_view val) {
-    const auto sz = buffer->size();
-    buffer->resize(sz + val.size());
-    std::copy(val.begin(), val.end(), offset(buffer, sz));
+    char* at = buffer->insertAt(val.size());
+    std::copy(val.begin(), val.end(), at);
   }
 
   template <typename T>
   void ValueSerializer::writeNumber(T val, const char* format) noexcept {
     if constexpr (!std::is_floating_point_v<T>) {
       // ensure we have room for this type
-      const auto sz = buffer->size();
-      buffer->resize(sz + std::numeric_limits<T>::digits10 + 2);
-      const auto num_view = decimal_from(val, offset(buffer, sz), offset(buffer, buffer->size()));
-      buffer->resize(sz + num_view.size());
+
+      const auto cur_size = buffer->messageSize();
+      const auto max_size = std::numeric_limits<T>::digits10 + 2;
+      char* at = buffer->insertAt(max_size);
+      const auto num_view = decimal_from(val, at, at + max_size);
+      buffer->shrinkTo(cur_size + num_view.size());
       return;
     }
 

@@ -5,13 +5,13 @@
 #include <nplog/Formatter.hpp>
 #include <nplog/Serializer.hpp>
 #include <nplog/export.hpp>
+#include <nplog/MessageBuffer.hpp>
 
 #include <string_view>
-#include <vector>
 
 namespace np {
   struct NPLOG_EXPORT Log {
-    using buffer_type = std::vector<char>;
+    using buffer_type = MessageBuffer;
     using serializer_type = Serializer;
 
     explicit Log(Log* parent = nullptr, const char* name = nullptr);
