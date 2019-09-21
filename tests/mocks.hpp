@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <tuple>
+#include <vector>
 
 namespace {
   // convenience operator for catch to use

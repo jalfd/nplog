@@ -4,11 +4,11 @@
 #include <nplog/common.hpp>
 #include <nplog/export.hpp>
 #include <string_view>
-#include <vector>
+#include <nplog/MessageBuffer.hpp>
 
 namespace np {
   struct NPLOG_EXPORT ValueSerializer {
-    using buffer_type = std::vector<char>;
+    using buffer_type = MessageBuffer;
     explicit ValueSerializer(buffer_type* buffer);
     ~ValueSerializer() = default;
 
@@ -33,7 +33,7 @@ namespace np {
   };
 
   struct NPLOG_EXPORT Serializer {
-    using buffer_type = std::vector<char>;
+    using buffer_type = MessageBuffer;
     explicit Serializer(buffer_type* buffer);
     ~Serializer() = default;
 

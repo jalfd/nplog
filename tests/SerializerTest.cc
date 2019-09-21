@@ -6,12 +6,12 @@
 
 namespace pj = picojson;
 
-pj::object parseLogMessage(std::vector<char> buf) {
+pj::object parseLogMessage(np::MessageBuffer buf) {
   pj::value val;
   std::string err;
-  picojson::parse(val, buf.begin(), buf.end(), &err);
-  std::string input(buf.begin(), buf.end());
-  CAPTURE(input);
+  const auto contents = buf.contents();
+  picojson::parse(val, contents.begin(), contents.end(), &err);
+  CAPTURE(contents);
   REQUIRE(err == "");
   REQUIRE(val.is<pj::object>());
   return val.get<pj::object>();
@@ -19,19 +19,20 @@ pj::object parseLogMessage(std::vector<char> buf) {
 
 template <typename T>
 void checkFloatyValue(T val) {
-  std::vector<char> buf;
+  np::MessageBuffer buf;
   np::ValueSerializer vs(&buf);
 
   vs.write(val);
 
   std::regex fixed_float(R"(^-?\d+(\.\d+)?$)", std::regex_constants::ECMAScript);
   std::regex sci_float(R"(^-?\d+(\.\d+)?e[+-]?\d+$)", std::regex_constants::ECMAScript);
-  CAPTURE(std::string(buf.begin(), buf.end()));
-  bool is_fixed = std::regex_search(buf.begin(), buf.end(), fixed_float);
-  bool is_sci = std::regex_search(buf.begin(), buf.end(), sci_float);
+  const auto contents = buf.contents();
+  CAPTURE(contents);
+  bool is_fixed = std::regex_search(contents.begin(), contents.end(), fixed_float);
+  bool is_sci = std::regex_search(contents.begin(), contents.end(), sci_float);
   REQUIRE((is_fixed || is_sci));
 
-  std::istringstream istr(std::string(buf.begin(), buf.end()));
+  std::istringstream istr((std::string(contents)));
   T result;
   istr >> result;
   REQUIRE(Approx(val) == result);
@@ -39,16 +40,17 @@ void checkFloatyValue(T val) {
 
 template <typename T>
 void checkIntegralValue(T val) {
-  std::vector<char> buf;
+  np::MessageBuffer buf;
   np::ValueSerializer vs(&buf);
 
   vs.write(val);
 
   std::regex integral(R"(^-?\d+$)", std::regex_constants::ECMAScript);
-  CAPTURE(std::string(buf.begin(), buf.end()));
-  REQUIRE(std::regex_search(buf.begin(), buf.end(), integral));
+  const auto contents = buf.contents();
+  CAPTURE(contents);
+  REQUIRE(std::regex_search(contents.begin(), contents.end(), integral));
 
-  std::istringstream istr(std::string(buf.begin(), buf.end()));
+  std::istringstream istr((std::string(contents)));
   T result;
   istr >> result;
   REQUIRE(val == result);
@@ -81,25 +83,25 @@ TEST_CASE("ValueSerializer") {
     auto inf = std::numeric_limits<float>::infinity();
 
     SECTION("NaN") {
-      std::vector<char> buf;
+      np::MessageBuffer buf;
       np::ValueSerializer vs(&buf);
       vs.write(nan);
-      REQUIRE(buf.size() == 4);
-      REQUIRE(std::string_view(&buf[0], 4) == "null");
+      REQUIRE(buf.messageSize() == 4);
+      REQUIRE(buf.contents() == "null");
     }
     SECTION("Inf") {
-      std::vector<char> buf;
+      np::MessageBuffer buf;
       np::ValueSerializer vs(&buf);
       vs.write(inf);
-      REQUIRE(buf.size() == 4);
-      REQUIRE(std::string_view(&buf[0], 4) == "null");
+      REQUIRE(buf.messageSize() == 4);
+      REQUIRE(buf.contents() == "null");
     }
     SECTION("-Inf") {
-      std::vector<char> buf;
+      np::MessageBuffer buf;
       np::ValueSerializer vs(&buf);
       vs.write(-inf);
-      REQUIRE(buf.size() == 4);
-      REQUIRE(std::string_view(&buf[0], 4) == "null");
+      REQUIRE(buf.messageSize() == 4);
+      REQUIRE(buf.contents() == "null");
     }
   }
   SECTION("int") {
@@ -131,88 +133,80 @@ TEST_CASE("ValueSerializer") {
   }
   SECTION("bool") {
     SECTION("true") {
-      std::vector<char> buf;
+      np::MessageBuffer buf;
       np::ValueSerializer vs(&buf);
       vs.write(true);
-      REQUIRE(buf.size() == 4);
-      REQUIRE(std::string_view(&buf[0], 4) == "true");
+      REQUIRE(buf.messageSize() == 4);
+      REQUIRE(buf.contents() == "true");
     }
     SECTION("false") {
-      std::vector<char> buf;
+      np::MessageBuffer buf;
       np::ValueSerializer vs(&buf);
       vs.write(false);
-      REQUIRE(buf.size() == 5);
-      REQUIRE(std::string_view(&buf[0], 5) == "false");
+      REQUIRE(buf.messageSize() == 5);
+      REQUIRE(buf.contents() == "false");
     }
   }
   SECTION("string") {
     SECTION("empty string") {
-      std::vector<char> buf;
+      np::MessageBuffer buf;
       np::ValueSerializer vs(&buf);
       vs.write(std::string_view(""));
-      std::string result(buf.begin(), buf.end());
-      REQUIRE(result == R"("")");
+      REQUIRE(buf.contents() == R"("")");
     }
     SECTION("simple string") {
-      std::vector<char> buf;
+      np::MessageBuffer buf;
       np::ValueSerializer vs(&buf);
       vs.write(std::string_view("hello"));
-      std::string result(buf.begin(), buf.end());
-      REQUIRE(result == R"("hello")");
+      REQUIRE(buf.contents() == R"("hello")");
     }
     SECTION("string with quotes") {
-      std::vector<char> buf;
+      np::MessageBuffer buf;
       np::ValueSerializer vs(&buf);
       vs.write(std::string_view("hello \"world\""));
-      std::string result(buf.begin(), buf.end());
-      REQUIRE(result == "\"hello \\\"world\\\"\"");
+      REQUIRE(buf.contents() == "\"hello \\\"world\\\"\"");
     }
     SECTION("string with backslash") {
-      std::vector<char> buf;
+      np::MessageBuffer buf;
       np::ValueSerializer vs(&buf);
       vs.write(std::string_view("\\"));
-      std::string result(buf.begin(), buf.end());
-      REQUIRE(result == R"("\\")");
+      REQUIRE(buf.contents() == R"("\\")");
     }
     SECTION("string with non-ASCII characters") {
-      std::vector<char> buf;
+      np::MessageBuffer buf;
       np::ValueSerializer vs(&buf);
       vs.write(std::string_view("\u00d8"));
-      std::string result(buf.begin(), buf.end());
-      REQUIRE(result == "\"\u00d8\"");
+      REQUIRE(buf.contents() == "\"\u00d8\"");
     }
     SECTION("string with control characters") {
-      std::vector<char> buf;
+      np::MessageBuffer buf;
       np::ValueSerializer vs(&buf);
       vs.write(std::string_view("\a"));
-      std::string result(buf.begin(), buf.end());
-      REQUIRE(result == "\"\\u0007\"");
+      REQUIRE(buf.contents() == "\"\\u0007\"");
     }
     SECTION("string with whitespace") {
-      std::vector<char> buf;
+      np::MessageBuffer buf;
       np::ValueSerializer vs(&buf);
       vs.write(std::string_view("\t\r\n"));
-      std::string result(buf.begin(), buf.end());
-      REQUIRE(result == "\"\\t\\r\\n\"");
+      REQUIRE(buf.contents() == "\"\\t\\r\\n\"");
     }
     SECTION("string with null") {
-      std::vector<char> buf;
+      np::MessageBuffer buf;
       np::ValueSerializer vs(&buf);
       vs.write(std::string_view("\0", 1));
-      std::string result(buf.begin(), buf.end());
-      REQUIRE(result == "\"\\u0000\"");
+      REQUIRE(buf.contents() == "\"\\u0000\"");
     }
   }
 }
 
 TEST_CASE("Serializer") {
   SECTION("Log with no parameters") {
-    std::vector<char> buf;
+    np::MessageBuffer buf;
     np::Serializer s(&buf);
     s.prologue("file.cc", 1, 2, {}, "msg");
     s.epilogue();
 
-    auto result = parseLogMessage(buf);
+    auto result = parseLogMessage(std::move(buf));
     CHECK(result["file"].get<std::string>() == "file.cc");
     CHECK(result["line"].get<double>() == 1.0);
     CHECK(result["level"].get<double>() == 2.0);
@@ -220,24 +214,24 @@ TEST_CASE("Serializer") {
     CHECK(result.find("params") == result.end());
   }
   SECTION("Log prologue is correctly encoded") {
-    std::vector<char> buf;
+    np::MessageBuffer buf;
     np::Serializer s(&buf);
     s.prologue("file\".cc", 1, 2, {}, "msg\\");
     s.epilogue();
 
-    auto result = parseLogMessage(buf);
+    auto result = parseLogMessage(std::move(buf));
     CHECK(result["file"].get<std::string>() == "file\".cc");
     CHECK(result["message"].get<std::string>() == "msg\\");
   }
   SECTION("Log with one parameter") {
-    std::vector<char> buf;
+    np::MessageBuffer buf;
     np::Serializer s(&buf);
     s.prologue("file.cc", 1, 2, {}, "msg");
     s.writeKey("a");
     s.valueSerializer().write(3);
     s.epilogue();
 
-    auto result = parseLogMessage(buf);
+    auto result = parseLogMessage(std::move(buf));
     CHECK(result["file"].get<std::string>() == "file.cc");
     CHECK(result["line"].get<double>() == 1.0);
     CHECK(result["level"].get<double>() == 2.0);
@@ -247,7 +241,7 @@ TEST_CASE("Serializer") {
     CHECK(params["a"].get<double>() == 3.0);
   }
   SECTION("Log with multiple parameters") {
-    std::vector<char> buf;
+    np::MessageBuffer buf;
     np::Serializer s(&buf);
     s.prologue("file", 1, 2, {}, "msg");
     s.writeKey("a");
@@ -256,42 +250,42 @@ TEST_CASE("Serializer") {
     s.valueSerializer().write(4);
     s.epilogue();
 
-    auto result = parseLogMessage(buf);
+    auto result = parseLogMessage(std::move(buf));
     auto params = result["params"].get<pj::object>();
     CHECK(params.size() == 2);
     CHECK(params["a"].get<double>() == 3.0);
     CHECK(params["b"].get<double>() == 4.0);
   }
   SECTION("Parameter keys are correctly encoded") {
-    std::vector<char> buf;
+    np::MessageBuffer buf;
     np::Serializer s(&buf);
     s.prologue("file", 1, 2, {}, "msg");
     s.writeKey("\"");
     s.valueSerializer().write(3);
     s.epilogue();
 
-    auto result = parseLogMessage(buf);
+    auto result = parseLogMessage(std::move(buf));
     auto params = result["params"].get<pj::object>();
     CHECK(params.size() == 1);
     CHECK(params["\""].get<double>() == 3.0);
   }
   SECTION("Serializer removes path from file") {
     SECTION("forward slashes") {
-      std::vector<char> buf;
+      np::MessageBuffer buf;
       np::Serializer s(&buf);
       s.prologue("foo/bar/file.cc", 1, 2, {}, "msg");
       s.epilogue();
 
-      auto result = parseLogMessage(buf);
+      auto result = parseLogMessage(std::move(buf));
       CHECK(result["file"].get<std::string>() == "file.cc");
     }
     SECTION("backslashes") {
-      std::vector<char> buf;
+      np::MessageBuffer buf;
       np::Serializer s(&buf);
       s.prologue("foo\\bar\\file.cc", 1, 2, {}, "msg");
       s.epilogue();
 
-      auto result = parseLogMessage(buf);
+      auto result = parseLogMessage(std::move(buf));
       CHECK(result["file"].get<std::string>() == "file.cc");
     }
   }
