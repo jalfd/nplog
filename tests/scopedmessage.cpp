@@ -1,4 +1,4 @@
-#include <nplog/ScopedMessage.hpp>
+#include <nplog/scopedmessage.hpp>
 #include <vector>
 #include "mocks.hpp"
 #include <catch/catch.hpp>

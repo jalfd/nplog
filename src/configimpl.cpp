@@ -1,4 +1,4 @@
-#include "ConfigImpl.hpp"
+#include "configimpl.hpp"
 #include <atomic>
 
 namespace np {

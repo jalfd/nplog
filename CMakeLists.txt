@@ -27,21 +27,21 @@ set_property(TARGET Date APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_C
 find_package(Threads REQUIRED)
 
 add_library(nplog
-    src/Log.cc
-    src/Serializer.cc
-    src/Formatter.cc
-    src/Config.cc
-    src/ConfigImpl.hpp
-    src/ConfigImpl.cc
+    src/log.cpp
+    src/serializer.cpp
+    src/formatter.cpp
+    src/config.cpp
+    src/configimpl.hpp
+    src/configimpl.cpp
     src/utility.hpp
     src/platform.hpp
-    src/platform.cc
-    include/nplog/Formatter.hpp
-    include/nplog/Log.hpp
-    include/nplog/Serializer.hpp
-    include/nplog/ScopedMessage.hpp
+    src/platform.cpp
+    include/nplog/formatter.hpp
+    include/nplog/log.hpp
+    include/nplog/serializer.hpp
+    include/nplog/scopedmessage.hpp
     include/nplog/macros.hpp
-    include/nplog/Config.hpp
+    include/nplog/config.hpp
     )
 
 add_library(np::log ALIAS nplog)

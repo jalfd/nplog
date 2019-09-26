@@ -1,4 +1,4 @@
-#include <nplog/Formatter.hpp>
+#include <nplog/formatter.hpp>
 #include <numeric>
 #include "mocks.hpp"
 #include <catch/catch.hpp>

@@ -1,6 +1,6 @@
 #ifndef NP_LOG_MOCKS_HPP
 #define NP_LOG_MOCKS_HPP
-#include <nplog/Serializer.hpp>
+#include <nplog/serializer.hpp>
 #include <any>
 #include <iostream>
 #include <string>

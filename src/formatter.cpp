@@ -1,5 +1,5 @@
-#include <nplog/Formatter.hpp>
-#include <nplog/Serializer.hpp>
+#include <nplog/formatter.hpp>
+#include <nplog/serializer.hpp>
 #include <string>
 namespace np {
   void format(bool val, ValueSerializer& srl) { srl.write(val); }

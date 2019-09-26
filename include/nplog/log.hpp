@@ -1,11 +1,11 @@
 #ifndef NP_LOG_LOG_HPP
 #define NP_LOG_LOG_HPP
 
-#include <nplog/Config.hpp>
-#include <nplog/Formatter.hpp>
-#include <nplog/Serializer.hpp>
+#include <nplog/config.hpp>
+#include <nplog/formatter.hpp>
+#include <nplog/serializer.hpp>
 #include <nplog/export.hpp>
-#include <nplog/MessageBuffer.hpp>
+#include <nplog/messagebuffer.hpp>
 
 #include <string_view>
 

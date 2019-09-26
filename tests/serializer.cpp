@@ -1,4 +1,4 @@
-#include <nplog/Serializer.hpp>
+#include <nplog/serializer.hpp>
 #include <picojson/picojson.h>
 #include <regex>
 #include <sstream>
