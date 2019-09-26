@@ -15,7 +15,7 @@ bool isLogged(np::log::Log& log, int level) {
 
 TEST_CASE("Configuring Log Default Levels") {
   np::log::Config cfg;
-  cfg.sink = [&](auto, auto) mutable { ++msg_count; };
+  cfg.sink = [&](auto) mutable { ++msg_count; };
   np::log::applyConfig(cfg);
   auto lvls = np::log::getLevels("", 0);
   CHECK(lvls.effective_levels.message == 0);
@@ -47,7 +47,7 @@ TEST_CASE("Configuring Log Default Levels") {
 
 TEST_CASE("Configuring Log Levels by depth") {
   np::log::Config cfg;
-  cfg.sink = [&](auto, auto) mutable { ++msg_count; };
+  cfg.sink = [&](auto) mutable { ++msg_count; };
   np::log::applyConfig(cfg);
   cfg.levels.default_level = {1, 1};
   cfg.levels.levels_by_depth[0] = {9,9};
@@ -79,7 +79,7 @@ TEST_CASE("Configuring Log Levels by depth") {
 
 TEST_CASE("Configuring Log Levels by log name") {
   np::log::Config cfg;
-  cfg.sink = [&](auto, auto) mutable { ++msg_count; };
+  cfg.sink = [&](auto) mutable { ++msg_count; };
   cfg.levels.default_level = {1, 1};
   cfg.levels.levels_by_name["foo"] = {9,9};
   cfg.levels.levels_by_name["bar"] = {5,5};
@@ -105,7 +105,7 @@ TEST_CASE("Configuring Log Levels by log name") {
 
 TEST_CASE("Prioritizing log levels when both level and name rules apply") {
   np::log::Config cfg;
-  cfg.sink = [&](auto, auto) mutable { ++msg_count; };
+  cfg.sink = [&](auto) mutable { ++msg_count; };
   cfg.levels.default_level = {1, 1};
   cfg.levels.levels_by_name["foo"] = {9,9};
   cfg.levels.levels_by_name["bar"] = {5,5};

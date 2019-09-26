@@ -27,10 +27,10 @@ TEST_CASE("Log") {
     size_t msg_len = 0;
     np::log::Config cfg;
     cfg.levels.default_level = {9, 9};
-    cfg.sink = [&](np::log::level_type l, std::string_view msg) {
-      level = l;
-      msg_start = &msg[0];
-      msg_len = msg.size();
+    cfg.sink = [&](auto msg) {
+      level = msg.level;
+      msg_start = msg.message.data();
+      msg_len = msg.message.size();
     };
     np::log::applyConfig(cfg);
 
