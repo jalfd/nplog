@@ -1,4 +1,4 @@
-#include <nplog/Config.hpp>
+#include <nplog/config.hpp>
 #include <algorithm>
 #include <atomic>
 #include <functional>
@@ -7,7 +7,7 @@
 #include <shared_mutex>
 #include <string>
 #include <vector>
-#include "ConfigImpl.hpp"
+#include "configimpl.hpp"
 
 namespace np {
   namespace internal {

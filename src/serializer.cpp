@@ -1,8 +1,8 @@
-#include <nplog/Config.hpp>
-#include <nplog/Serializer.hpp>
+#include <nplog/config.hpp>
+#include <nplog/serializer.hpp>
 #include <algorithm>
 #include <cstdlib>
-#include "ConfigImpl.hpp"
+#include "configimpl.hpp"
 #include "platform.hpp"
 #include "utility.hpp"
 #include <locale.h>
@@ -12,7 +12,7 @@
 #include <chrono>
 #include <limits>
 
-#include "ToStringHelper.hpp"
+#include "tostringhelper.hpp"
 
 namespace np {
   namespace {

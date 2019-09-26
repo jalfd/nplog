@@ -1,6 +1,6 @@
 #ifndef NP_CONFIGIMPL_HPP
 #define NP_CONFIGIMPL_HPP
-#include <nplog/Config.hpp>
+#include <nplog/config.hpp>
 #include <nplog/export.hpp>
 #include <algorithm>
 #include <shared_mutex>

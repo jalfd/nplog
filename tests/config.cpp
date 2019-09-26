@@ -1,8 +1,8 @@
-#include <nplog/Config.hpp>
-#include <nplog/Log.hpp>
-#include <nplog/ScopedMessage.hpp>
+#include <nplog/config.hpp>
+#include <nplog/log.hpp>
+#include <nplog/scopedmessage.hpp>
 #include <nplog/macros.hpp>
-#include "../src/ConfigImpl.hpp"
+#include "../src/configimpl.hpp"
 #include <catch/catch.hpp>
 
 int msg_count = 0;

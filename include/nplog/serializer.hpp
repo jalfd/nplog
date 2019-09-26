@@ -4,7 +4,7 @@
 #include <nplog/common.hpp>
 #include <nplog/export.hpp>
 #include <string_view>
-#include <nplog/MessageBuffer.hpp>
+#include <nplog/messagebuffer.hpp>
 
 namespace np {
   struct NPLOG_EXPORT ValueSerializer {

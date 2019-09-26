@@ -1,5 +1,5 @@
-#include <nplog/Log.hpp>
-#include "ConfigImpl.hpp"
+#include <nplog/log.hpp>
+#include "configimpl.hpp"
 
 #include <algorithm>
 #include <atomic>
