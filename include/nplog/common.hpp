@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-namespace np {
+namespace np::log {
   using level_type = unsigned char;
 
   inline bool testLevel(level_type level, level_type threshold) {

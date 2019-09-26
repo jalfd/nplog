@@ -20,10 +20,10 @@ namespace np::log::internal {
   NP_MSVC_EXPAND_INDIRECT(INTERNAL_NP_VAR_MACRO_SELECTOR, (__VA_ARGS__, ARG3, ARG2, ARG1)) \
   (__VA_ARGS__)
 
-#define LOG_IMPL(log, msg_lvl, msg, ...) \
-  if (auto lvl_threshold = log.refreshLevels(log.knownVersion()); \
-      np::testLevel(msg_lvl, lvl_threshold.message)) { \
-    ::np::ScopedMessage sm(log, __FILE__, __LINE__, msg_lvl, msg, lvl_threshold.param); \
+#define LOG_IMPL(logger, msg_lvl, msg, ...) \
+  if (auto lvl_threshold = logger.refreshLevels(logger.knownVersion()); \
+      np::log::testLevel(msg_lvl, lvl_threshold.message)) { \
+    ::np::log::ScopedMessage sm(logger, __FILE__, __LINE__, msg_lvl, msg, lvl_threshold.param); \
     (void) __VA_ARGS__; \
   }
 

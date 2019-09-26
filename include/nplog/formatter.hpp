@@ -5,7 +5,7 @@
 #include <string_view>
 #include <type_traits>
 
-namespace np {
+namespace np::log {
   struct ValueSerializer;
   template <typename T>
   struct Formatter {};

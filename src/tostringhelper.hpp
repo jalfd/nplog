@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <string_view>
 
-namespace np {
+namespace np::log {
   // will return a pointer to the first non-zero digit
   template <typename T>
   inline char* fixed_unsigned_to_decimal(T number, char* buffer, size_t len) {

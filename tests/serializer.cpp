@@ -6,7 +6,7 @@
 
 namespace pj = picojson;
 
-pj::object parseLogMessage(np::MessageBuffer buf) {
+pj::object parseLogMessage(np::log::MessageBuffer buf) {
   pj::value val;
   std::string err;
   const auto contents = buf.contents();
@@ -19,8 +19,8 @@ pj::object parseLogMessage(np::MessageBuffer buf) {
 
 template <typename T>
 void checkFloatyValue(T val) {
-  np::MessageBuffer buf;
-  np::ValueSerializer vs(&buf);
+  np::log::MessageBuffer buf;
+  np::log::ValueSerializer vs(&buf);
 
   vs.write(val);
 
@@ -40,8 +40,8 @@ void checkFloatyValue(T val) {
 
 template <typename T>
 void checkIntegralValue(T val) {
-  np::MessageBuffer buf;
-  np::ValueSerializer vs(&buf);
+  np::log::MessageBuffer buf;
+  np::log::ValueSerializer vs(&buf);
 
   vs.write(val);
 
@@ -83,22 +83,22 @@ TEST_CASE("ValueSerializer") {
     auto inf = std::numeric_limits<float>::infinity();
 
     SECTION("NaN") {
-      np::MessageBuffer buf;
-      np::ValueSerializer vs(&buf);
+      np::log::MessageBuffer buf;
+      np::log::ValueSerializer vs(&buf);
       vs.write(nan);
       REQUIRE(buf.messageSize() == 4);
       REQUIRE(buf.contents() == "null");
     }
     SECTION("Inf") {
-      np::MessageBuffer buf;
-      np::ValueSerializer vs(&buf);
+      np::log::MessageBuffer buf;
+      np::log::ValueSerializer vs(&buf);
       vs.write(inf);
       REQUIRE(buf.messageSize() == 4);
       REQUIRE(buf.contents() == "null");
     }
     SECTION("-Inf") {
-      np::MessageBuffer buf;
-      np::ValueSerializer vs(&buf);
+      np::log::MessageBuffer buf;
+      np::log::ValueSerializer vs(&buf);
       vs.write(-inf);
       REQUIRE(buf.messageSize() == 4);
       REQUIRE(buf.contents() == "null");
@@ -133,15 +133,15 @@ TEST_CASE("ValueSerializer") {
   }
   SECTION("bool") {
     SECTION("true") {
-      np::MessageBuffer buf;
-      np::ValueSerializer vs(&buf);
+      np::log::MessageBuffer buf;
+      np::log::ValueSerializer vs(&buf);
       vs.write(true);
       REQUIRE(buf.messageSize() == 4);
       REQUIRE(buf.contents() == "true");
     }
     SECTION("false") {
-      np::MessageBuffer buf;
-      np::ValueSerializer vs(&buf);
+      np::log::MessageBuffer buf;
+      np::log::ValueSerializer vs(&buf);
       vs.write(false);
       REQUIRE(buf.messageSize() == 5);
       REQUIRE(buf.contents() == "false");
@@ -149,50 +149,50 @@ TEST_CASE("ValueSerializer") {
   }
   SECTION("string") {
     SECTION("empty string") {
-      np::MessageBuffer buf;
-      np::ValueSerializer vs(&buf);
+      np::log::MessageBuffer buf;
+      np::log::ValueSerializer vs(&buf);
       vs.write(std::string_view(""));
       REQUIRE(buf.contents() == R"("")");
     }
     SECTION("simple string") {
-      np::MessageBuffer buf;
-      np::ValueSerializer vs(&buf);
+      np::log::MessageBuffer buf;
+      np::log::ValueSerializer vs(&buf);
       vs.write(std::string_view("hello"));
       REQUIRE(buf.contents() == R"("hello")");
     }
     SECTION("string with quotes") {
-      np::MessageBuffer buf;
-      np::ValueSerializer vs(&buf);
+      np::log::MessageBuffer buf;
+      np::log::ValueSerializer vs(&buf);
       vs.write(std::string_view("hello \"world\""));
       REQUIRE(buf.contents() == "\"hello \\\"world\\\"\"");
     }
     SECTION("string with backslash") {
-      np::MessageBuffer buf;
-      np::ValueSerializer vs(&buf);
+      np::log::MessageBuffer buf;
+      np::log::ValueSerializer vs(&buf);
       vs.write(std::string_view("\\"));
       REQUIRE(buf.contents() == R"("\\")");
     }
     SECTION("string with non-ASCII characters") {
-      np::MessageBuffer buf;
-      np::ValueSerializer vs(&buf);
+      np::log::MessageBuffer buf;
+      np::log::ValueSerializer vs(&buf);
       vs.write(std::string_view("\u00d8"));
       REQUIRE(buf.contents() == "\"\u00d8\"");
     }
     SECTION("string with control characters") {
-      np::MessageBuffer buf;
-      np::ValueSerializer vs(&buf);
+      np::log::MessageBuffer buf;
+      np::log::ValueSerializer vs(&buf);
       vs.write(std::string_view("\a"));
       REQUIRE(buf.contents() == "\"\\u0007\"");
     }
     SECTION("string with whitespace") {
-      np::MessageBuffer buf;
-      np::ValueSerializer vs(&buf);
+      np::log::MessageBuffer buf;
+      np::log::ValueSerializer vs(&buf);
       vs.write(std::string_view("\t\r\n"));
       REQUIRE(buf.contents() == "\"\\t\\r\\n\"");
     }
     SECTION("string with null") {
-      np::MessageBuffer buf;
-      np::ValueSerializer vs(&buf);
+      np::log::MessageBuffer buf;
+      np::log::ValueSerializer vs(&buf);
       vs.write(std::string_view("\0", 1));
       REQUIRE(buf.contents() == "\"\\u0000\"");
     }
@@ -201,8 +201,8 @@ TEST_CASE("ValueSerializer") {
 
 TEST_CASE("Serializer") {
   SECTION("Log with no parameters") {
-    np::MessageBuffer buf;
-    np::Serializer s(&buf);
+    np::log::MessageBuffer buf;
+    np::log::Serializer s(&buf);
     s.prologue("file.cc", 1, 2, {}, "msg");
     s.epilogue();
 
@@ -214,8 +214,8 @@ TEST_CASE("Serializer") {
     CHECK(result.find("params") == result.end());
   }
   SECTION("Log prologue is correctly encoded") {
-    np::MessageBuffer buf;
-    np::Serializer s(&buf);
+    np::log::MessageBuffer buf;
+    np::log::Serializer s(&buf);
     s.prologue("file\".cc", 1, 2, {}, "msg\\");
     s.epilogue();
 
@@ -224,8 +224,8 @@ TEST_CASE("Serializer") {
     CHECK(result["message"].get<std::string>() == "msg\\");
   }
   SECTION("Log with one parameter") {
-    np::MessageBuffer buf;
-    np::Serializer s(&buf);
+    np::log::MessageBuffer buf;
+    np::log::Serializer s(&buf);
     s.prologue("file.cc", 1, 2, {}, "msg");
     s.writeKey("a");
     s.valueSerializer().write(3);
@@ -241,8 +241,8 @@ TEST_CASE("Serializer") {
     CHECK(params["a"].get<double>() == 3.0);
   }
   SECTION("Log with multiple parameters") {
-    np::MessageBuffer buf;
-    np::Serializer s(&buf);
+    np::log::MessageBuffer buf;
+    np::log::Serializer s(&buf);
     s.prologue("file", 1, 2, {}, "msg");
     s.writeKey("a");
     s.valueSerializer().write(3);
@@ -257,8 +257,8 @@ TEST_CASE("Serializer") {
     CHECK(params["b"].get<double>() == 4.0);
   }
   SECTION("Parameter keys are correctly encoded") {
-    np::MessageBuffer buf;
-    np::Serializer s(&buf);
+    np::log::MessageBuffer buf;
+    np::log::Serializer s(&buf);
     s.prologue("file", 1, 2, {}, "msg");
     s.writeKey("\"");
     s.valueSerializer().write(3);
@@ -271,8 +271,8 @@ TEST_CASE("Serializer") {
   }
   SECTION("Serializer removes path from file") {
     SECTION("forward slashes") {
-      np::MessageBuffer buf;
-      np::Serializer s(&buf);
+      np::log::MessageBuffer buf;
+      np::log::Serializer s(&buf);
       s.prologue("foo/bar/file.cc", 1, 2, {}, "msg");
       s.epilogue();
 
@@ -280,8 +280,8 @@ TEST_CASE("Serializer") {
       CHECK(result["file"].get<std::string>() == "file.cc");
     }
     SECTION("backslashes") {
-      np::MessageBuffer buf;
-      np::Serializer s(&buf);
+      np::log::MessageBuffer buf;
+      np::log::Serializer s(&buf);
       s.prologue("foo\\bar\\file.cc", 1, 2, {}, "msg");
       s.epilogue();
 

@@ -9,7 +9,7 @@
 
 #include <string_view>
 
-namespace np {
+namespace np::log {
   struct NPLOG_EXPORT Log {
     using buffer_type = MessageBuffer;
     using serializer_type = Serializer;
@@ -42,5 +42,9 @@ namespace np {
     unsigned version = 0;
     bool sensitive = false;
   };
-} // namespace np
+} // namespace np::log
+
+namespace np {
+  using log::Log;
+}
 #endif

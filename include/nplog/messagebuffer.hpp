@@ -5,7 +5,7 @@
 #include <string_view>
 #include <cstdlib>
 
-namespace np {
+namespace np::log {
     struct MessageBuffer {
         MessageBuffer() noexcept = default;
         ~MessageBuffer() noexcept { delete[] buf_begin; }

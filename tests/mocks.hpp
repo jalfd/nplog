@@ -31,7 +31,7 @@ namespace {
 
     void prologue(std::string_view file,
       int line,
-      np::level_type level,
+      np::log::level_type level,
       std::string_view log_name,
       std::string_view msg) {
       ops.emplace_back("prologue", std::make_tuple(file, line, level, log_name, msg, bid));
@@ -41,7 +41,7 @@ namespace {
 
     void writeKey(std::string_view name) { ops.emplace_back("writeKey", name); }
 
-    np::ValueSerializer valueSerializer() { return np::ValueSerializer{nullptr}; }
+    np::log::ValueSerializer valueSerializer() { return np::log::ValueSerializer{nullptr}; }
 
   private:
     int bid;

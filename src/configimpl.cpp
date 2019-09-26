@@ -1,7 +1,7 @@
 #include "configimpl.hpp"
 #include <atomic>
 
-namespace np {
+namespace np::log {
   std::shared_mutex config_mutex;
   std::atomic<unsigned> config_timestamp = 1;
 

@@ -1,7 +1,7 @@
 #include <nplog/formatter.hpp>
 #include <nplog/serializer.hpp>
 #include <string>
-namespace np {
+namespace np::log {
   void format(bool val, ValueSerializer& srl) { srl.write(val); }
 
   void format(short val, ValueSerializer& srl) { srl.write(static_cast<int>(val)); }

@@ -9,7 +9,7 @@
 #include <mutex>
 #include <string>
 
-namespace np {
+namespace np::log {
   namespace {
     struct LogState {
       std::mutex buffer_mutex;
@@ -56,7 +56,7 @@ namespace np {
   }
 
   void Log::submitMessage(level_type level, buffer_type& buffer) {
-    ::np::sendToSink(level, buffer.contents());
+    ::np::log::sendToSink(level, buffer.contents());
   }
 
   void Log::releaseBuffer(buffer_type&& buf) {
