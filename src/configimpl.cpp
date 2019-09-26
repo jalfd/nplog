@@ -6,11 +6,17 @@ namespace np::log {
   std::atomic<unsigned> config_timestamp = 1;
 
   namespace {
+    const Config::Sink stderr_log_sink = [](MessageInfo msg) {
+      fwrite(msg.message.data(), sizeof(char), msg.message.size(), stderr);
+    };
+
     LogConfig config;
   } // namespace
+
   void applyConfig(LogConfig cfg) {
     std::lock_guard lock(config_mutex);
     config = std::move(cfg);
+    if (!config.sink) { config.sink = stderr_log_sink; }
     std::atomic_fetch_add_explicit(&config_timestamp, 1u, std::memory_order_relaxed);
   }
 
@@ -51,12 +57,6 @@ namespace np::log {
 
   void sendToSink(level_type level, std::string_view buffer) {
     std::shared_lock<std::shared_mutex> lock(config_mutex); // TODO: is this where we serialize log messages from multiple threads?
-    config.sink(level, buffer);
+    config.sink(MessageInfo{level, buffer});
   }
-
-  namespace { // TODO: use this if sink is blank
-    const std::function<void(level_type, std::string_view)> stderr_log_sink
-      = [](level_type, std::string_view buffer) { std::fprintf(stderr, "%s\n", &buffer[0]); };
-  } // namespace
-
 } // namespace np
