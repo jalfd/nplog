@@ -7,7 +7,7 @@ int main() {
   // Configure logger to include messages of level 3 and down, and parameters of level 3 and down
   np::log::Config cfg;
   cfg.levels.default_level = {5, 3};
-  cfg.sink = [](auto, auto msg) { std::cout << msg << '\n'; };
+  cfg.sink = [](auto msg) { std::cout << msg.message << '\n'; };
   np::log::applyConfig(cfg);
 
   int fortytwo = 42;

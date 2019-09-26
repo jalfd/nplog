@@ -11,7 +11,14 @@
 #include <string_view>
 #include <algorithm>
 
-template class NPLOG_EXPORT std::function<void(np::log::level_type, std::string_view)>; // TODO: use an UDT
+namespace np::log {
+    struct MessageInfo {
+        level_type level;
+        std::string_view message;
+    };
+}
+
+template class NPLOG_EXPORT std::function<void(np::log::MessageInfo msg)>;
 
 namespace np::log {
   struct LevelSpec {
@@ -20,7 +27,7 @@ namespace np::log {
   };
 
   struct NPLOG_EXPORT Config {
-    using Sink = std::function<void(level_type, std::string_view)>;
+    using Sink = std::function<void(MessageInfo)>;
 
     enum Fields : uint32_t {
       File = 1,
