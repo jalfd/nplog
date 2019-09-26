@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <shared_mutex>
 
-namespace np {
+namespace np::log {
   struct LogConfig {
     LogConfig() = default;
     LogConfig(LogConfig&& other) = default;

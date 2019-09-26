@@ -14,7 +14,7 @@
 
 #include "tostringhelper.hpp"
 
-namespace np {
+namespace np::log {
   namespace {
     template <typename BufType>
     char* offset(BufType* ptr, size_t idx) {
@@ -110,11 +110,11 @@ namespace np {
       vs.write(log_name);
     }
     void processName(sv file, int line, level_type level, sv log_name) {
-      np::platform::executableName();
+      np::log::platform::executableName();
     }
-    void processId(sv file, int line, level_type level, sv log_name) { np::platform::processId(); }
-    void threadId(sv file, int line, level_type level, sv log_name) { np::platform::threadId(); }
-    void hostname(sv file, int line, level_type level, sv log_name) { np::platform::hostname(); }
+    void processId(sv file, int line, level_type level, sv log_name) { np::log::platform::processId(); }
+    void threadId(sv file, int line, level_type level, sv log_name) { np::log::platform::threadId(); }
+    void hostname(sv file, int line, level_type level, sv log_name) { np::log::platform::hostname(); }
 
   private:
     Serializer::buffer_type* buffer = nullptr;

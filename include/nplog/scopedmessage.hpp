@@ -4,7 +4,7 @@
 #include <nplog/log.hpp>
 #include <string_view>
 
-namespace np {
+namespace np::log {
   template <typename LogType>
   struct ScopedMessage {
     ScopedMessage(LogType& log,
@@ -32,7 +32,7 @@ namespace np {
     bool addArg(const char* name, T&& expr) {
       serializer.writeKey(name);
       auto vs = serializer.valueSerializer();
-      np::format(expr, vs);
+      np::log::format(expr, vs);
       return true;
     }
 

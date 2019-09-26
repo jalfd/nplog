@@ -9,7 +9,7 @@
 #include <vector>
 #include "configimpl.hpp"
 
-namespace np {
+namespace np::log {
   namespace internal {
     void applyConfig(Config::Sink sink, Config::Fields fields, bool sensitive, LevelSpec default_level, LevelRule* first, LevelRule* last) {
       LogConfig cfg;

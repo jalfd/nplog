@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <string_view>
 
-namespace np {
+namespace np::log {
   inline std::string_view filenameFromPath(std::string_view path) {
     const auto it
       = std::find_if(path.rbegin(), path.rend(), [](char c) { return c == '/' || c == '\\'; });

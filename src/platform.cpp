@@ -59,7 +59,7 @@ namespace {
 #endif
 } // namespace
 
-namespace np {
+namespace np::log {
   namespace internal {
     uint64_t processId() {
 #if NP_PLATFORM_WINDOWS

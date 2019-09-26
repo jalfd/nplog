@@ -10,9 +10,9 @@
 #include <string_view>
 #include <algorithm>
 
-template class NPLOG_EXPORT std::function<void(np::level_type, std::string_view)>; // TODO: use an UDT
+template class NPLOG_EXPORT std::function<void(np::log::level_type, std::string_view)>; // TODO: use an UDT
 
-namespace np {
+namespace np::log {
   struct LevelSpec {
     level_type message = {};
     level_type param = {};

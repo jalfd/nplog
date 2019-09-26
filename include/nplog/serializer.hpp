@@ -6,7 +6,7 @@
 #include <string_view>
 #include <nplog/messagebuffer.hpp>
 
-namespace np {
+namespace np::log {
   struct NPLOG_EXPORT ValueSerializer {
     using buffer_type = MessageBuffer;
     explicit ValueSerializer(buffer_type* buffer);
