@@ -54,7 +54,7 @@ TEST_CASE("macros") {
 
   SECTION("Low log level Messages are logged") {
     np::log::Logger log;
-    LOG(log, 0, "hello0");
+    NP_LOG(log, 0, "hello0");
     CHECK(np::log::ScopedMessage::msg == "hello0");
     CHECK(np::log::ScopedMessage::message_counter == 1);
   }
@@ -63,7 +63,7 @@ TEST_CASE("macros") {
     np::log::ScopedMessage::serialize_callback = [&](auto name, const void* expr) { ++calls; };
 
     np::log::Logger log;
-    LOG(log, 0, "hello1");
+    NP_LOG(log, 0, "hello1");
     CHECK(calls == 0);
     CHECK(np::log::ScopedMessage::msg == "hello1");
   }
@@ -75,7 +75,7 @@ TEST_CASE("macros") {
       CHECK(*static_cast<const int*>(expr) == 3);
     };
     np::log::Logger log;
-    LOG(log, 0, "hello2", ARG(foo(1, 2)));
+    NP_LOG(log, 0, "hello2", NP_ARG(foo(1, 2)));
     CHECK(calls == 1);
     CHECK(np::log::ScopedMessage::msg == "hello2");
   }
@@ -87,7 +87,7 @@ TEST_CASE("macros") {
       CHECK(*static_cast<const int*>(expr) == 3);
     };
     np::log::Logger log;
-    LOG(log, 0, "hello3", ARG("name", foo(1, 2)));
+    NP_LOG(log, 0, "hello3", NP_ARG("name", foo(1, 2)));
     CHECK(calls == 1);
     CHECK(np::log::ScopedMessage::msg == "hello3");
   }
@@ -99,7 +99,7 @@ TEST_CASE("macros") {
       CHECK(*static_cast<const int*>(expr) == 3);
     };
     np::log::Logger log;
-    LOG(log, 0, "hello4", ARG(2, foo(1, 2)));
+    NP_LOG(log, 0, "hello4", NP_ARG(2, foo(1, 2)));
     CHECK(calls == 1);
     CHECK(np::log::ScopedMessage::msg == "hello4");
   }
@@ -111,7 +111,7 @@ TEST_CASE("macros") {
       CHECK(*static_cast<const int*>(expr) == 42);
     };
     np::log::Logger log;
-    LOG(log, 0, "hello5", ARG(2, "name", bar()));
+    NP_LOG(log, 0, "hello5", NP_ARG(2, "name", bar()));
     CHECK(calls == 1);
     CHECK(np::log::ScopedMessage::msg == "hello5");
     CHECK(bar_called);
@@ -128,7 +128,7 @@ TEST_CASE("macros") {
       }
     };
     np::log::Logger log;
-    LOG(log, 0, "hello6", ARG(2 + 2), ARG(3 + 3));
+    NP_LOG(log, 0, "hello6", NP_ARG(2 + 2), NP_ARG(3 + 3));
     CHECK(calls == 2);
     CHECK(np::log::ScopedMessage::msg == "hello6");
   }
@@ -140,7 +140,7 @@ TEST_CASE("macros") {
       CHECK(*static_cast<const char*>(expr) == 'x');
     };
     np::log::Logger log;
-    LOG(log, 0, "hello7", ARG(5, 'x'), ARG(6, bar()));
+    NP_LOG(log, 0, "hello7", NP_ARG(5, 'x'), NP_ARG(6, bar()));
     CHECK(calls == 1);
     CHECK(np::log::ScopedMessage::msg == "hello7");
     CHECK(!bar_called);
@@ -151,7 +151,7 @@ TEST_CASE("macros") {
 
     np::log::ScopedMessage::default_level = 6;
     np::log::Logger log;
-    LOG(log, 0, "hello8", ARG(bar()));
+    NP_LOG(log, 0, "hello8", NP_ARG(bar()));
     CHECK(calls == 0);
     CHECK(np::log::ScopedMessage::msg == "hello8");
     CHECK(!bar_called);
@@ -161,7 +161,7 @@ TEST_CASE("macros") {
     np::log::ScopedMessage::serialize_callback = [&](auto name, const void* expr) { ++calls; };
 
     np::log::Logger log;
-    LOG(log, 0, "hello9", ARG(Chatty<0>{}));
+    NP_LOG(log, 0, "hello9", NP_ARG(Chatty<0>{}));
     CHECK(calls == 1);
     CHECK(Chatty<0>::ctor == 1);
     CHECK(Chatty<0>::dtor == 1);
@@ -173,7 +173,7 @@ TEST_CASE("macros") {
 
   SECTION("Don't evaluate message if level is too low") {
     np::log::Logger log;
-    LOG(log, 9, "hello10");
+    NP_LOG(log, 9, "hello10");
     CHECK(np::log::ScopedMessage::message_counter == 0);
   }
 
@@ -182,7 +182,7 @@ TEST_CASE("macros") {
 
     np::log::ScopedMessage::default_level = 6;
     np::log::Logger log;
-    LOG(log, 9, "hello11", ARG('x'));
+    NP_LOG(log, 9, "hello11", NP_ARG('x'));
     CHECK(calls == 0);
   }
 }
