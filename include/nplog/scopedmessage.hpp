@@ -1,7 +1,7 @@
 #ifndef NP_LOG_SCOPEDMESSAGE_HPP
 #define NP_LOG_SCOPEDMESSAGE_HPP
 
-#include <nplog/log.hpp>
+#include <nplog/logger.hpp>
 #include <string_view>
 
 namespace np::log {
