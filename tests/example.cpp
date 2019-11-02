@@ -1,7 +1,7 @@
 #include <nplog.hpp>
 #include <iostream>
 
-np::Log mylog;
+np::Logger mylog;
 
 int main() {
   // Configure logger to include messages of level 3 and down, and parameters of level 3 and down

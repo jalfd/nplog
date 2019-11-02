@@ -3,7 +3,7 @@
 
 TEST_CASE("Log") {
   SECTION("Buffers are acquired and reused") {
-    np::log::Log log;
+    np::log::Logger log;
     auto buf = log.acquireBuffer();
     buf.reserve(20);
     log.releaseBuffer(std::move(buf));
@@ -12,7 +12,7 @@ TEST_CASE("Log") {
   }
 
   SECTION("Buffers are cleared on reuse") {
-    np::log::Log log;
+    np::log::Logger log;
     auto buf = log.acquireBuffer();
     buf.append('x');
     log.releaseBuffer(std::move(buf));
@@ -21,7 +21,7 @@ TEST_CASE("Log") {
   }
 
   SECTION("Submitting a buffer sends it to the sink function") {
-    np::log::Log log;
+    np::log::Logger log;
     np::log::level_type level = 0;
     const char* msg_start = nullptr;
     size_t msg_len = 0;

@@ -5,14 +5,14 @@
 
 namespace np::log {
   namespace {
-    struct Log {
+    struct Logger {
       LevelSpec refreshLevels(unsigned) { return {5, 5}; }
       unsigned knownVersion() { return 0; }
     };
 
     // Mock class for testing
     struct ScopedMessage {
-      ScopedMessage(Log&, const char*, int, int, const char* m, int) {
+      ScopedMessage(Logger&, const char*, int, int, const char* m, int) {
         msg = m;
         ++message_counter;
       }
@@ -53,7 +53,7 @@ TEST_CASE("macros") {
   np::log::ScopedMessage::message_counter = 0;
 
   SECTION("Low log level Messages are logged") {
-    np::log::Log log;
+    np::log::Logger log;
     LOG(log, 0, "hello0");
     CHECK(np::log::ScopedMessage::msg == "hello0");
     CHECK(np::log::ScopedMessage::message_counter == 1);
@@ -62,7 +62,7 @@ TEST_CASE("macros") {
   SECTION("No args") {
     np::log::ScopedMessage::serialize_callback = [&](auto name, const void* expr) { ++calls; };
 
-    np::log::Log log;
+    np::log::Logger log;
     LOG(log, 0, "hello1");
     CHECK(calls == 0);
     CHECK(np::log::ScopedMessage::msg == "hello1");
@@ -74,7 +74,7 @@ TEST_CASE("macros") {
       CHECK(name == "foo(1, 2)");
       CHECK(*static_cast<const int*>(expr) == 3);
     };
-    np::log::Log log;
+    np::log::Logger log;
     LOG(log, 0, "hello2", ARG(foo(1, 2)));
     CHECK(calls == 1);
     CHECK(np::log::ScopedMessage::msg == "hello2");
@@ -86,7 +86,7 @@ TEST_CASE("macros") {
       CHECK(name == "name");
       CHECK(*static_cast<const int*>(expr) == 3);
     };
-    np::log::Log log;
+    np::log::Logger log;
     LOG(log, 0, "hello3", ARG("name", foo(1, 2)));
     CHECK(calls == 1);
     CHECK(np::log::ScopedMessage::msg == "hello3");
@@ -98,7 +98,7 @@ TEST_CASE("macros") {
       CHECK(name == "foo(1, 2)");
       CHECK(*static_cast<const int*>(expr) == 3);
     };
-    np::log::Log log;
+    np::log::Logger log;
     LOG(log, 0, "hello4", ARG(2, foo(1, 2)));
     CHECK(calls == 1);
     CHECK(np::log::ScopedMessage::msg == "hello4");
@@ -110,7 +110,7 @@ TEST_CASE("macros") {
       CHECK(name == "name");
       CHECK(*static_cast<const int*>(expr) == 42);
     };
-    np::log::Log log;
+    np::log::Logger log;
     LOG(log, 0, "hello5", ARG(2, "name", bar()));
     CHECK(calls == 1);
     CHECK(np::log::ScopedMessage::msg == "hello5");
@@ -127,7 +127,7 @@ TEST_CASE("macros") {
         CHECK(*static_cast<const int*>(expr) == 6);
       }
     };
-    np::log::Log log;
+    np::log::Logger log;
     LOG(log, 0, "hello6", ARG(2 + 2), ARG(3 + 3));
     CHECK(calls == 2);
     CHECK(np::log::ScopedMessage::msg == "hello6");
@@ -139,7 +139,7 @@ TEST_CASE("macros") {
       CHECK(name == "'x'");
       CHECK(*static_cast<const char*>(expr) == 'x');
     };
-    np::log::Log log;
+    np::log::Logger log;
     LOG(log, 0, "hello7", ARG(5, 'x'), ARG(6, bar()));
     CHECK(calls == 1);
     CHECK(np::log::ScopedMessage::msg == "hello7");
@@ -150,7 +150,7 @@ TEST_CASE("macros") {
     np::log::ScopedMessage::serialize_callback = [&](auto name, const void* expr) { ++calls; };
 
     np::log::ScopedMessage::default_level = 6;
-    np::log::Log log;
+    np::log::Logger log;
     LOG(log, 0, "hello8", ARG(bar()));
     CHECK(calls == 0);
     CHECK(np::log::ScopedMessage::msg == "hello8");
@@ -160,7 +160,7 @@ TEST_CASE("macros") {
   SECTION("Argument type is not copied or moved") {
     np::log::ScopedMessage::serialize_callback = [&](auto name, const void* expr) { ++calls; };
 
-    np::log::Log log;
+    np::log::Logger log;
     LOG(log, 0, "hello9", ARG(Chatty<0>{}));
     CHECK(calls == 1);
     CHECK(Chatty<0>::ctor == 1);
@@ -172,7 +172,7 @@ TEST_CASE("macros") {
   }
 
   SECTION("Don't evaluate message if level is too low") {
-    np::log::Log log;
+    np::log::Logger log;
     LOG(log, 9, "hello10");
     CHECK(np::log::ScopedMessage::message_counter == 0);
   }
@@ -181,7 +181,7 @@ TEST_CASE("macros") {
     np::log::ScopedMessage::serialize_callback = [&](auto name, const void* expr) { ++calls; };
 
     np::log::ScopedMessage::default_level = 6;
-    np::log::Log log;
+    np::log::Logger log;
     LOG(log, 9, "hello11", ARG('x'));
     CHECK(calls == 0);
   }
