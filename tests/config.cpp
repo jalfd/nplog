@@ -9,7 +9,7 @@ int msg_count = 0;
 
 bool isLogged(np::log::Logger& log, int level) {
   msg_count = 0;
-  LOG(log, level, "message text");
+  NP_LOG(log, level, "message text");
   return msg_count != 0;
 }
 
