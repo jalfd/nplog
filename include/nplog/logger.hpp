@@ -1,5 +1,5 @@
-#ifndef NP_LOG_LOG_HPP
-#define NP_LOG_LOG_HPP
+#ifndef NP_LOG_LOGGER_HPP
+#define NP_LOG_LOGGER_HPP
 
 #include <nplog/config.hpp>
 #include <nplog/formatter.hpp>
@@ -10,13 +10,13 @@
 #include <string_view>
 
 namespace np::log {
-  struct NPLOG_EXPORT Log {
+  struct NPLOG_EXPORT Logger {
     using buffer_type = MessageBuffer;
     using serializer_type = Serializer;
 
-    explicit Log(Log* parent = nullptr, const char* name = nullptr);
-    explicit Log(const char* name);
-    Log(const Log&) = delete;
+    explicit Logger(Logger* parent = nullptr, const char* name = nullptr);
+    explicit Logger(const char* name);
+    Logger(const Logger&) = delete;
 
     buffer_type acquireBuffer();
 
@@ -35,7 +35,7 @@ namespace np::log {
   private:
     LevelSpec effective_levels;
     LevelSpec levels_by_name_only;
-    Log* parent = nullptr;
+    Logger* parent = nullptr;
     const char* name_ptr = nullptr;
     size_t name_len = 0;
     const unsigned depth = 0;
@@ -45,6 +45,6 @@ namespace np::log {
 } // namespace np::log
 
 namespace np {
-  using log::Log;
+  using log::Logger;
 }
 #endif

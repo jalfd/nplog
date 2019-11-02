@@ -1,4 +1,4 @@
-#include <nplog/log.hpp>
+#include <nplog/logger.hpp>
 #include "configimpl.hpp"
 
 #include <algorithm>
@@ -13,14 +13,14 @@ namespace np::log {
   namespace {
     struct LogState {
       std::mutex buffer_mutex;
-      std::vector<Log::buffer_type> buffers;
+      std::vector<Logger::buffer_type> buffers;
     };
 
     static LogState state;
 
   } // namespace
 
-  Log::Log(Log* parent, const char* name)
+  Logger::Logger(Logger* parent, const char* name)
     : parent(parent)
     , name_ptr(name)
     , name_len(name_ptr ? strlen(name_ptr) : 0)
@@ -28,9 +28,9 @@ namespace np::log {
     refreshLevels(0);
   }
 
-  Log::Log(const char* name) : Log(nullptr, name) {}
+  Logger::Logger(const char* name) : Logger(nullptr, name) {}
 
-  LevelSpec Log::refreshLevels(unsigned version, bool exclude_depth) {
+  LevelSpec Logger::refreshLevels(unsigned version, bool exclude_depth) {
     if (!isCurrent(version)) {
       auto result = getLevels(std::string_view(name_ptr, name_len), depth);
       levels_by_name_only = result.levels_by_name_only;
@@ -47,7 +47,7 @@ namespace np::log {
     return exclude_depth ? levels_by_name_only : effective_levels;
   }
 
-  Log::buffer_type Log::acquireBuffer() {
+  Logger::buffer_type Logger::acquireBuffer() {
     std::lock_guard lock(state.buffer_mutex);
     if (state.buffers.empty()) { state.buffers.emplace_back(); }
       auto buf = std::move(state.buffers.back());
@@ -55,11 +55,11 @@ namespace np::log {
       return buf;
   }
 
-  void Log::submitMessage(level_type level, buffer_type& buffer) {
+  void Logger::submitMessage(level_type level, buffer_type& buffer) {
     ::np::log::sendToSink(level, buffer.contents());
   }
 
-  void Log::releaseBuffer(buffer_type&& buf) {
+  void Logger::releaseBuffer(buffer_type&& buf) {
     buf.clear();
     std::lock_guard lock(state.buffer_mutex);
     state.buffers.push_back(std::move(buf));
