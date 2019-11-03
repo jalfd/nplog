@@ -70,6 +70,12 @@ if (NP_CHECK_CONVERSIONS)
     target_compile_options(nplog PRIVATE -DNP_CHECK_CONVERSIONS=1)
 endif()
 
+### TODO
+
+target_compile_options(nplog PRIVATE -fprofile-instr-generate -fcoverage-mapping)
+target_link_options(nplog PRIVATE -fprofile-instr-generate -fcoverage-mapping)
+### END TODO
+
 target_compile_options(nplog PRIVATE
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
     -Werror -pedantic-errors -Wall -Wextra -Wconversion>
