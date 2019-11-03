@@ -14,10 +14,6 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 option(BUILD_SHARED_LIBS "Build as shared library" ON)
 
-if (NOT WIN32)
-    add_definitions(-Wfatal-errors)
-endif()
-
 add_library(Date INTERFACE IMPORTED)
 
 # Requires CMake 3.11, so use the more verbose option instead
@@ -69,6 +65,12 @@ GENERATE_EXPORT_HEADER(nplog
     include/nplog/export.hpp
 )
 
+target_compile_options(nplog PRIVATE
+    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
+    -Werror -pedantic-errors -Wall -Wextra -Wconversion>
+    $<$<CXX_COMPILER_ID:MSVC>:
+    /W4 /WX>)
+
 add_subdirectory(tests)
 
 install(TARGETS nplog
@@ -105,7 +107,6 @@ install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/nplog-config-version.cmake
     DESTINATION lib/cmake/nplog
     )
-
 
 export(EXPORT nplog-targets FILE ${CMAKE_CURRENT_BINARY_DIR}/nplog-targets.cmake NAMESPACE np::)
 export(PACKAGE nplog)
