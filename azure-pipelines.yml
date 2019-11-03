@@ -23,7 +23,7 @@ jobs:
           set -e
           mkdir build
           cd build
-          cmake -DCMAKE_BUILD_TYPE=Release -DNPLOG_JUNIT_REPORTER=nplog-test.xml ..
+          cmake -DCMAKE_BUILD_TYPE=Release -DNP_CHECK_CONVERSIONS=ON -DNPLOG_JUNIT_REPORTER=nplog-test.xml ..
           cmake --build . --clean-first --config Release
           ctest -C Release
       - task: PublishTestResults@2
