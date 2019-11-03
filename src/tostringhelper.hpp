@@ -55,7 +55,7 @@ namespace np::log {
         auto n = to_unsigned(number);
         char* end = unsigned_to_decimal(n, first + 1, last - first - 1);
         *first = '-';
-        return std::string(first, end - first);
+        return std::string_view(first, end - first);
       }
     }
     const auto end = unsigned_to_decimal(number, first, last - first);
@@ -72,7 +72,7 @@ namespace np::log {
         auto n = to_unsigned(number);
         char* start = fixed_unsigned_to_decimal(n, first + 1, last - first - 1);
         *--start = '-';
-        return std::string(start, last - start);
+        return std::string_view(start, last - start);
       }
     }
     const auto start = fixed_unsigned_to_decimal(number, first, last - first);
@@ -90,7 +90,7 @@ namespace np::log {
         char* start = fixed_unsigned_to_decimal(n, first + 1, last - first - 1);
         *--start = '-';
         std::fill(first, start, pad);
-        return std::string(start, last - start);
+        return std::string_view(start, last - start);
       }
     }
     const auto start = fixed_unsigned_to_decimal(number, first, last - first);
