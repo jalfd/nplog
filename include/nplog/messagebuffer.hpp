@@ -29,7 +29,7 @@ namespace np::log {
           // always make sure there's room for a null byte
           // beyond the requested size
           const auto minimum_size = requested_size + 1;
-          if (minimum_size <= buf_end - buf_begin) { return; }
+          if (static_cast<ptrdiff_t>(minimum_size) <= buf_end - buf_begin) { return; }
           // never grow by less than a factor 2x
           const auto new_size = std::max(bufferSize() * 2, minimum_size);
           grow(new_size);
@@ -65,9 +65,9 @@ namespace np::log {
 
         size_t bufferSize() const noexcept {
           // don't tell user about the last byte of the buffer, reserved for null termination
-          return buf_begin ? (buf_end - buf_begin) - 1 : 0;
+          return buf_begin ? static_cast<size_t>((buf_end - buf_begin) - 1) : 0;
         }
-        size_t messageSize() const noexcept { return msg_end - buf_begin; }
+        size_t messageSize() const noexcept { return static_cast<size_t>(msg_end - buf_begin); }
 
       private:
         void grow(size_t new_size) noexcept {
