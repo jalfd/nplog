@@ -13,6 +13,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 option(BUILD_SHARED_LIBS "Build as shared library" ON)
+set(NP_CHECK_CONVERSIONS OFF CACHE STRING "Check for overflows in various internal conversions")
 
 add_library(Date INTERFACE IMPORTED)
 
@@ -64,6 +65,10 @@ GENERATE_EXPORT_HEADER(nplog
     EXPORT_FILE_NAME
     include/nplog/export.hpp
 )
+
+if (NP_CHECK_CONVERSIONS)
+    target_compile_options(nplog PRIVATE -DNP_CHECK_CONVERSIONS=1)
+endif()
 
 target_compile_options(nplog PRIVATE
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
