@@ -65,7 +65,7 @@ namespace np::log {
 #if NP_PLATFORM_WINDOWS
       return GetCurrentProcessId();
 #else
-      return getpid();
+      return to_size_t_checked(getpid());
 #endif
     }
 
@@ -98,7 +98,7 @@ namespace np::log {
 #elif NP_PLATFORM_LINUX
       std::vector<char> buf(512);
       for (;;) {
-        int ret = readlink("/proc/self/exe", buf.data(), buf.size());
+        const auto ret = readlink("/proc/self/exe", buf.data(), buf.size());
         if (ret != -1) { return std::string(buf.data(), ret); }
         if (ret == -1 && errno != ENAMETOOLONG) { return "<error>"; }
         buf.resize(buf.size() * 2);

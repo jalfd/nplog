@@ -67,7 +67,7 @@ GENERATE_EXPORT_HEADER(nplog
 
 target_compile_options(nplog PRIVATE
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
-    -Werror -pedantic-errors -Wall>
+    -Werror -pedantic-errors -Wall -Wextra -Wconversion>
     $<$<CXX_COMPILER_ID:MSVC>:
     /W4 /WX>)
 

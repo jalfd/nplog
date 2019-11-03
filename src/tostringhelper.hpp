@@ -13,7 +13,7 @@ namespace np::log {
       *ptr-- = '0';
     } else {
       while (number != 0) {
-        *ptr-- = '0' + number % 10;
+        *ptr-- = static_cast<char>('0' + number % 10);
         number /= 10;
       }
     }
@@ -53,13 +53,13 @@ namespace np::log {
     if constexpr (std::is_signed_v<T>) {
       if (number < 0) {
         auto n = to_unsigned(number);
-        char* end = unsigned_to_decimal(n, first + 1, last - first - 1);
+        char* end = unsigned_to_decimal(n, first + 1, to_size_t_checked(last - first - 1));
         *first = '-';
-        return std::string_view(first, end - first);
+        return std::string_view(first, to_size_t_checked(end - first));
       }
     }
-    const auto end = unsigned_to_decimal(number, first, last - first);
-    return std::string_view(first, end - first);
+    const auto end = unsigned_to_decimal(number, first, to_size_t_checked(last - first));
+    return std::string_view(first, to_size_t_checked(end - first));
   }
 
   /// Takes a view spanning the available buffer
@@ -70,13 +70,13 @@ namespace np::log {
     if constexpr (std::is_signed_v<T>) {
       if (number < 0) {
         auto n = to_unsigned(number);
-        char* start = fixed_unsigned_to_decimal(n, first + 1, last - first - 1);
+        char* start = fixed_unsigned_to_decimal(n, first + 1, to_size_t_checked(last - first - 1));
         *--start = '-';
-        return std::string_view(start, last - start);
+        return std::string_view(start, to_size_t_checked(last - start));
       }
     }
-    const auto start = fixed_unsigned_to_decimal(number, first, last - first);
-    return std::string_view(start, last - start);
+    const auto start = fixed_unsigned_to_decimal(number, first, to_size_t_checked(last - first));
+    return std::string_view(start, to_size_t_checked(last - start));
   }
 
   /// Takes a view spanning the available buffer
@@ -87,15 +87,15 @@ namespace np::log {
     if constexpr (std::is_signed_v<T>) {
       if (number < 0) {
         auto n = to_unsigned(number);
-        char* start = fixed_unsigned_to_decimal(n, first + 1, last - first - 1);
+        char* start = fixed_unsigned_to_decimal(n, first + 1, to_size_t_checked(last - first - 1));
         *--start = '-';
         std::fill(first, start, pad);
-        return std::string_view(start, last - start);
+        return std::string_view(start, to_size_t_checked(last - start));
       }
     }
-    const auto start = fixed_unsigned_to_decimal(number, first, last - first);
+    const auto start = fixed_unsigned_to_decimal(number, first, to_size_t_checked(last - first));
     std::fill(first, start, pad);
-    return std::string_view(start, last - start);
+    return std::string_view(start, to_size_t_checked(last - start));
   }
 } // namespace np
 

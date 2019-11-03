@@ -38,8 +38,13 @@ namespace np::log {
     } c_locale;
 #endif
 
-    const std::map<level_type, std::string> level_names
-      = {{0, "Fatal"}, {1, "Error"}, {2, "Warning"}, {3, "Info"}, {4, "Debug"}, {5, "Trace"}};
+    const std::map<level_type, std::string> level_names = {
+      {static_cast<level_type>(0), "Fatal"},
+      {static_cast<level_type>(1), "Error"},
+      {static_cast<level_type>(2), "Warning"},
+      {static_cast<level_type>(3), "Info"},
+      {static_cast<level_type>(4), "Debug"},
+      {static_cast<level_type>(5), "Trace"}};
   } // namespace
 
   struct HeaderFields {
@@ -98,7 +103,7 @@ namespace np::log {
     void levelName(sv, int, level_type level, sv) {
       vs.writeLiteral(",\"levelString\":");
       const auto lvl = level & 0xff;
-      const auto it = level_names.find(static_cast<const unsigned char>(lvl));
+      const auto it = level_names.find(static_cast<level_type>(lvl));
       if (it == level_names.end()) {
           vs.write(lvl);
       } else {
@@ -275,11 +280,6 @@ namespace np::log {
     const auto len = result.ptr - buf;
 #endif
 
-    writeLiteral(std::string_view(buf, len));
+    writeLiteral(std::string_view(buf, to_size_t_checked(len)));
   }
-
-  /*
-    vs.writeLiteral(",\"message\":");
-    vs.write(msg);
-    */
 } // namespace np
