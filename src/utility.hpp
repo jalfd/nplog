@@ -8,7 +8,9 @@
 namespace np::log {
   template <typename T>
   size_t to_size_t_checked(T val) {
+#ifdef NP_CHECK_CONVERSIONS
     if (val < 0) { abort(); }
+#endif
     return static_cast<size_t>(val);
   }
 
