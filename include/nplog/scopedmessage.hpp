@@ -29,7 +29,7 @@ namespace np::log {
     }
 
     template <typename T>
-    bool addArg(const char* name, T&& expr) {
+    bool addParam(const char* name, T&& expr) {
       serializer.writeKey(name);
       auto vs = serializer.valueSerializer();
       np::log::format(expr, vs);
