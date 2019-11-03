@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include "configimpl.hpp"
+#include "utility.hpp"
 
 namespace np::log {
   namespace internal {
@@ -26,7 +27,7 @@ namespace np::log {
       std::for_each(first, last, [&](auto rule) {
         const auto& [name, depth, level] = rule;
         if (name.size() == 0) {
-          cfg.levels.levels_by_depth.resize(depth+1, level);
+          cfg.levels.levels_by_depth.resize(to_size_t_checked(depth+1), level);
         } else {
           const auto old_len = cfg.levels.name_data.size();
           std::copy(name.begin(), name.end(), std::back_inserter(cfg.levels.name_data));

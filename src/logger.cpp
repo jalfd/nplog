@@ -30,8 +30,8 @@ namespace np::log {
 
   Logger::Logger(const char* name) : Logger(nullptr, name) {}
 
-  LevelSpec Logger::refreshLevels(unsigned version, bool exclude_depth) {
-    if (!isCurrent(version)) {
+  LevelSpec Logger::refreshLevels(unsigned version_, bool exclude_depth) {
+    if (!isCurrent(version_)) {
       auto result = getLevels(std::string_view(name_ptr, name_len), depth);
       levels_by_name_only = result.levels_by_name_only;
       effective_levels = result.effective_levels;
@@ -42,7 +42,7 @@ namespace np::log {
         effective_levels = merge(effective_levels, parent_levels);
         levels_by_name_only = merge(levels_by_name_only, parent_levels);
       }
-      this->version = result.version;
+      version = result.version;
     }
     return exclude_depth ? levels_by_name_only : effective_levels;
   }
