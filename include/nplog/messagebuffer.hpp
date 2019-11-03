@@ -29,7 +29,7 @@ namespace np::log {
           // always make sure there's room for a null byte
           // beyond the requested size
           const auto minimum_size = requested_size + 1;
-          if (minimum_size <= buf_end - buf_begin) { return; }
+          if (static_cast<ptrdiff_t>(minimum_size) <= buf_end - buf_begin) { return; }
           // never grow by less than a factor 2x
           const auto new_size = std::max(bufferSize() * 2, minimum_size);
           grow(new_size);
