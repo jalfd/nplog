@@ -4,20 +4,20 @@
 #include <nplog/common.hpp>
 
 namespace np::log::internal {
-  inline const char* getArgName(const char* name, const char*) { return name; }
-  inline const char* getArgName(level_type, const char* name) { return name; }
+  inline const char* getParamName(const char* name, const char*) { return name; }
+  inline const char* getParamName(level_type, const char* name) { return name; }
 } // namespace np::log::internal
 
 #define NP_MSVC_EXPAND_INDIRECT(m, args) m args
 
-#define NP_ARG3(arg0, arg1, arg2) ((sm.suppressParam(arg0)) ? false : sm.addArg(arg1, arg2))
-#define NP_ARG2(arg0, arg1) \
-  ((sm.suppressParam(arg0)) ? false : sm.addArg(::np::log::internal::getArgName(arg0, #arg1), arg1))
-#define NP_ARG1(arg0) ((sm.suppressParam()) ? false : sm.addArg(#arg0, arg0))
+#define NP_WITH3(param0, param1, param2) ((sm.suppressParam(param0)) ? false : sm.addParam(param1, param2))
+#define NP_WITH2(param0, param1) \
+  ((sm.suppressParam(param0)) ? false : sm.addParam(::np::log::internal::getParamName(param0, #param1), param1))
+#define NP_WITH1(param0) ((sm.suppressParam()) ? false : sm.addParam(#param0, param0))
 
 #define INTERNAL_NP_VAR_MACRO_SELECTOR(_1, _2, _3, NAME, ...) NAME
-#define NP_ARG(...) \
-  NP_MSVC_EXPAND_INDIRECT(INTERNAL_NP_VAR_MACRO_SELECTOR, (__VA_ARGS__, NP_ARG3, NP_ARG2, NP_ARG1)) \
+#define NP_WITH(...) \
+  NP_MSVC_EXPAND_INDIRECT(INTERNAL_NP_VAR_MACRO_SELECTOR, (__VA_ARGS__, NP_WITH3, NP_WITH2, NP_WITH1)) \
   (__VA_ARGS__)
 
 #define NP_LOG_IMPL(logger, msg_lvl, msg, ...) \
@@ -31,7 +31,7 @@ namespace np::log::internal {
 
 #ifndef NP_LOG_REQUIRE_PREFIXES
 #define LOG NP_LOG
-#define ARG NP_ARG
+#define WITH NP_WITH
 #endif
 
 #endif
