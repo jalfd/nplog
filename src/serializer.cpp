@@ -46,17 +46,17 @@ namespace np::log {
     HeaderFields(Serializer& srl) : buffer(srl.buffer), vs(srl.valueSerializer()) {}
 
     using sv = std::string_view;
-    void file(sv filename, int line, level_type level, sv log_name) {
+    void file(sv filename, int, level_type, sv) {
       vs.writeLiteral(",\"file\":");
       vs.write(filenameFromPath(filename));
     }
 
-    void line(sv file, int line, level_type level, sv log_name) {
+    void line(sv, int line, level_type, sv) {
       vs.writeLiteral(",\"line\":");
       vs.write(line);
     }
 
-    void time(sv file, int line, level_type level, sv log_name) {
+    void time(sv, int, level_type, sv) {
       vs.writeLiteral(",\"time\":");
       auto now = std::chrono::system_clock::now();
       auto date = date::floor<date::days>(now);
@@ -90,31 +90,31 @@ namespace np::log {
       *ptr++ = '"';
     }
 
-    void level(sv file, int line, level_type level, sv log_name) {
+    void level(sv, int, level_type level, sv) {
       vs.writeLiteral(",\"level\":");
       vs.write(level & 0xff);
     }
 
-    void levelName(sv file, int line, level_type level, sv log_name) {
+    void levelName(sv, int, level_type level, sv) {
       vs.writeLiteral(",\"levelString\":");
       const auto lvl = level & 0xff;
-      const auto it = level_names.find(lvl);
+      const auto it = level_names.find(static_cast<const unsigned char>(lvl));
       if (it == level_names.end()) {
           vs.write(lvl);
       } else {
           vs.write(it->second);
       }
     }
-    void logName(sv file, int line, level_type level, sv log_name) {
+    void logName(sv, int, level_type, sv log_name) {
       vs.writeLiteral(",\"log\":");
       vs.write(log_name);
     }
-    void processName(sv file, int line, level_type level, sv log_name) {
+    void processName(sv, int, level_type, sv) {
       np::log::platform::executableName();
     }
-    void processId(sv file, int line, level_type level, sv log_name) { np::log::platform::processId(); }
-    void threadId(sv file, int line, level_type level, sv log_name) { np::log::platform::threadId(); }
-    void hostname(sv file, int line, level_type level, sv log_name) { np::log::platform::hostname(); }
+    void processId(sv, int, level_type, sv) { np::log::platform::processId(); }
+    void threadId(sv, int, level_type, sv ) { np::log::platform::threadId(); }
+    void hostname(sv, int, level_type, sv ) { np::log::platform::hostname(); }
 
   private:
     Serializer::buffer_type* buffer = nullptr;
