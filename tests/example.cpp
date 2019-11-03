@@ -11,8 +11,8 @@ int main() {
   np::log::applyConfig(cfg);
 
   int fortytwo = 42;
-  LOG(mylog, 0, "logging a message", ARG(fortytwo));
+  LOG(mylog, 0, "logging a message", WITH(fortytwo));
   LOG(mylog, 0, "logging a message");
-  LOG(mylog, 0, "logging a message", ARG(8, fortytwo));
-  LOG(mylog, 0, "logging a message", ARG("myval", fortytwo));
+  LOG(mylog, 0, "logging a message", WITH(8, fortytwo));
+  LOG(mylog, 0, "logging a message", WITH("myval", fortytwo));
 }

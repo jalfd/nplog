@@ -21,7 +21,7 @@ namespace np::log {
       inline bool suppressParam(const char* = nullptr) { return suppressParam(default_level); }
 
       template <typename T>
-      bool addArg(const char* name, const T& expr) {
+      bool addParam(const char* name, const T& expr) {
         serialize_callback(name, &expr);
         return true;
       }
@@ -59,7 +59,7 @@ TEST_CASE("macros") {
     CHECK(np::log::ScopedMessage::message_counter == 1);
   }
 
-  SECTION("No args") {
+  SECTION("No params") {
     np::log::ScopedMessage::serialize_callback = [&](auto name, const void* expr) { ++calls; };
 
     np::log::Logger log;
@@ -68,56 +68,56 @@ TEST_CASE("macros") {
     CHECK(np::log::ScopedMessage::msg == "hello1");
   }
 
-  SECTION("Single arg with implicit name and level") {
+  SECTION("Single param with implicit name and level") {
     np::log::ScopedMessage::serialize_callback = [&](auto name, const void* expr) {
       ++calls;
       CHECK(name == "foo(1, 2)");
       CHECK(*static_cast<const int*>(expr) == 3);
     };
     np::log::Logger log;
-    NP_LOG(log, 0, "hello2", NP_ARG(foo(1, 2)));
+    NP_LOG(log, 0, "hello2", NP_WITH(foo(1, 2)));
     CHECK(calls == 1);
     CHECK(np::log::ScopedMessage::msg == "hello2");
   }
 
-  SECTION("Single arg with name and implicit level") {
+  SECTION("Single param with name and implicit level") {
     np::log::ScopedMessage::serialize_callback = [&](auto name, const void* expr) {
       ++calls;
       CHECK(name == "name");
       CHECK(*static_cast<const int*>(expr) == 3);
     };
     np::log::Logger log;
-    NP_LOG(log, 0, "hello3", NP_ARG("name", foo(1, 2)));
+    NP_LOG(log, 0, "hello3", NP_WITH("name", foo(1, 2)));
     CHECK(calls == 1);
     CHECK(np::log::ScopedMessage::msg == "hello3");
   }
 
-  SECTION("Single arg with level and implicit name") {
+  SECTION("Single param with level and implicit name") {
     np::log::ScopedMessage::serialize_callback = [&](auto name, const void* expr) {
       ++calls;
       CHECK(name == "foo(1, 2)");
       CHECK(*static_cast<const int*>(expr) == 3);
     };
     np::log::Logger log;
-    NP_LOG(log, 0, "hello4", NP_ARG(2, foo(1, 2)));
+    NP_LOG(log, 0, "hello4", NP_WITH(2, foo(1, 2)));
     CHECK(calls == 1);
     CHECK(np::log::ScopedMessage::msg == "hello4");
   }
 
-  SECTION("Single explicit arg") {
+  SECTION("Single explicit param") {
     np::log::ScopedMessage::serialize_callback = [&](auto name, const void* expr) {
       ++calls;
       CHECK(name == "name");
       CHECK(*static_cast<const int*>(expr) == 42);
     };
     np::log::Logger log;
-    NP_LOG(log, 0, "hello5", NP_ARG(2, "name", bar()));
+    NP_LOG(log, 0, "hello5", NP_WITH(2, "name", bar()));
     CHECK(calls == 1);
     CHECK(np::log::ScopedMessage::msg == "hello5");
     CHECK(bar_called);
   }
 
-  SECTION("Multiple args") {
+  SECTION("Multiple param") {
     np::log::ScopedMessage::serialize_callback = [&](auto name, const void* expr) {
       if (++calls == 1) {
         CHECK(name == "2 + 2");
@@ -128,7 +128,7 @@ TEST_CASE("macros") {
       }
     };
     np::log::Logger log;
-    NP_LOG(log, 0, "hello6", NP_ARG(2 + 2), NP_ARG(3 + 3));
+    NP_LOG(log, 0, "hello6", NP_WITH(2 + 2), NP_WITH(3 + 3));
     CHECK(calls == 2);
     CHECK(np::log::ScopedMessage::msg == "hello6");
   }
@@ -140,7 +140,7 @@ TEST_CASE("macros") {
       CHECK(*static_cast<const char*>(expr) == 'x');
     };
     np::log::Logger log;
-    NP_LOG(log, 0, "hello7", NP_ARG(5, 'x'), NP_ARG(6, bar()));
+    NP_LOG(log, 0, "hello7", NP_WITH(5, 'x'), NP_WITH(6, bar()));
     CHECK(calls == 1);
     CHECK(np::log::ScopedMessage::msg == "hello7");
     CHECK(!bar_called);
@@ -151,17 +151,17 @@ TEST_CASE("macros") {
 
     np::log::ScopedMessage::default_level = 6;
     np::log::Logger log;
-    NP_LOG(log, 0, "hello8", NP_ARG(bar()));
+    NP_LOG(log, 0, "hello8", NP_WITH(bar()));
     CHECK(calls == 0);
     CHECK(np::log::ScopedMessage::msg == "hello8");
     CHECK(!bar_called);
   }
 
-  SECTION("Argument type is not copied or moved") {
+  SECTION("Parameters are not copied or moved") {
     np::log::ScopedMessage::serialize_callback = [&](auto name, const void* expr) { ++calls; };
 
     np::log::Logger log;
-    NP_LOG(log, 0, "hello9", NP_ARG(Chatty<0>{}));
+    NP_LOG(log, 0, "hello9", NP_WITH(Chatty<0>{}));
     CHECK(calls == 1);
     CHECK(Chatty<0>::ctor == 1);
     CHECK(Chatty<0>::dtor == 1);
@@ -177,12 +177,12 @@ TEST_CASE("macros") {
     CHECK(np::log::ScopedMessage::message_counter == 0);
   }
 
-  SECTION("Don't evaluate argument if message is discarded") {
+  SECTION("Don't evaluate parameter if message is discarded") {
     np::log::ScopedMessage::serialize_callback = [&](auto name, const void* expr) { ++calls; };
 
     np::log::ScopedMessage::default_level = 6;
     np::log::Logger log;
-    NP_LOG(log, 9, "hello11", NP_ARG('x'));
+    NP_LOG(log, 9, "hello11", NP_WITH('x'));
     CHECK(calls == 0);
   }
 }

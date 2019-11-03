@@ -86,11 +86,11 @@ TEST_CASE("ScopedMessage") {
     CHECK(std::get<0>(ops.at(5)) == "dtor");
   }
 
-  SECTION("ScopedMessage writes arguments to the buffer") {
+  SECTION("ScopedMessage writes parameters to the buffer") {
     test1::Foo foo;
     {
       np::log::ScopedMessage<MockLog> msg(log, "", 0, 0, "", 0);
-      msg.addArg("name", foo);
+      msg.addParam("name", foo);
     }
     CHECK(log.buffersRequested == 1);
     CHECK(ops.size() == 8);
@@ -120,7 +120,7 @@ TEST_CASE("ScopedMessage") {
     };
     {
       np::log::ScopedMessage<MockLog> msg(log, "", 0, 0, "", 0);
-      msg.addArg("name", nested());
+      msg.addParam("name", nested());
     }
     CHECK(log.buffersRequested == 2);
     CHECK(ops.size() == 14);
