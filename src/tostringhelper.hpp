@@ -13,7 +13,7 @@ namespace np::log {
       *ptr-- = '0';
     } else {
       while (number != 0) {
-        *ptr-- = static_cast<char>('0' + number % 10);
+        *ptr-- = static_cast<char>('0' + static_cast<char>(number % 10));
         number /= 10;
       }
     }
