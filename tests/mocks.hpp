@@ -4,14 +4,14 @@
 #include <any>
 #include <iostream>
 #include <string>
-#include <tuple>
+#include <utility>
 #include <vector>
 
 namespace {
   // convenience operator for catch to use
   bool operator==(const std::vector<char>& result, const std::string& expected);
 
-  using SerializerOp = std::tuple<std::string, std::any>;
+  using SerializerOp = std::pair<std::string, std::any>;
   std::vector<SerializerOp> ops;
 
   struct MockBuffer {
