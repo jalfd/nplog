@@ -1,3 +1,4 @@
+#include <nplog/config.hpp>
 #include <nplog/serializer.hpp>
 #include <picojson/picojson.h>
 #include <regex>
@@ -200,12 +201,18 @@ TEST_CASE("ValueSerializer") {
 }
 
 TEST_CASE("Serializer") {
+    np::log::Config cfg;
+    cfg.fields = static_cast<np::log::Config::Fields>(-1);
+    np::log::applyConfig(cfg);
+
   SECTION("Log with no parameters") {
     np::log::MessageBuffer buf;
     np::log::Serializer s(&buf);
     s.prologue("file.cc", 1, 2, {}, "msg");
     s.epilogue();
 
+    std::string msg = buf.contents().data();
+    CAPTURE(msg);
     auto result = parseLogMessage(std::move(buf));
     CHECK(result["file"].get<std::string>() == "file.cc");
     CHECK(result["line"].get<double>() == 1.0);
