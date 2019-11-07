@@ -4,14 +4,15 @@
 #include <any>
 #include <iostream>
 #include <string>
-#include <tuple>
+#include <utility>
 #include <vector>
+#include <tuple>
 
 namespace {
   // convenience operator for catch to use
   bool operator==(const std::vector<char>& result, const std::string& expected);
 
-  using SerializerOp = std::tuple<std::string, std::any>;
+  using SerializerOp = std::pair<std::string, std::any>;
   std::vector<SerializerOp> ops;
 
   struct MockBuffer {
@@ -34,7 +35,7 @@ namespace {
       np::log::level_type level,
       std::string_view log_name,
       std::string_view msg) {
-      ops.emplace_back("prologue", std::make_tuple(file, line, level, log_name, msg, bid));
+      ops.emplace_back("prologue", std::tuple{file, line, level, log_name, msg, bid});
     }
 
     void epilogue() { ops.emplace_back("epilogue", bid); }
