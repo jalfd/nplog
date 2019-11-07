@@ -65,7 +65,7 @@ namespace np::log {
 #if NP_PLATFORM_WINDOWS
       return GetCurrentProcessId();
 #else
-      return to_size_t_checked(getpid());
+      return static_cast<uint64_t>((getpid()));
 #endif
     }
 
@@ -73,7 +73,7 @@ namespace np::log {
 #if NP_PLATFORM_WINDOWS
       return GetCurrentThreadId();
 #elif NP_PLATFORM_LINUX
-      return syscall(SYS_gettid);
+      return static_cast<uint64_t>(syscall(SYS_gettid));
 #elif NP_PLATFORM_MAC
       uint64_t tid;
       pthread_threadid_np(pthread_self(), &tid);
@@ -99,7 +99,7 @@ namespace np::log {
       std::vector<char> buf(512);
       for (;;) {
         const auto ret = readlink("/proc/self/exe", buf.data(), buf.size());
-        if (ret != -1) { return std::string(buf.data(), ret); }
+        if (ret != -1) { return std::string(buf.data(), to_size_t_checked(ret)); }
         if (ret == -1 && errno != ENAMETOOLONG) { return "<error>"; }
         buf.resize(buf.size() * 2);
       }
@@ -128,7 +128,7 @@ namespace np::log {
 
   namespace platform {
     uint64_t processId() { return internal::processId(); }
-    uint64_t threadId() { return internal::processId(); }
+    uint64_t threadId() { return internal::threadId(); }
     std::string hostname() {
       {
         std::shared_lock<std::shared_mutex> lock(internal::mtx);

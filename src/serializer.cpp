@@ -115,11 +115,21 @@ namespace np::log {
       vs.write(log_name);
     }
     void processName(sv, int, level_type, sv) {
-      np::log::platform::executableName();
+      vs.writeLiteral(",\"process\":");
+      vs.write(np::log::platform::executableName());
     }
-    void processId(sv, int, level_type, sv) { np::log::platform::processId(); }
-    void threadId(sv, int, level_type, sv ) { np::log::platform::threadId(); }
-    void hostname(sv, int, level_type, sv ) { np::log::platform::hostname(); }
+    void processId(sv, int, level_type, sv) {
+      vs.writeLiteral(",\"pid\":");
+      vs.write(np::log::platform::processId());
+    }
+    void threadId(sv, int, level_type, sv ) {
+      vs.writeLiteral(",\"tid\":");
+      vs.write(np::log::platform::threadId());
+    }
+    void hostname(sv, int, level_type, sv ) {
+      vs.writeLiteral(",\"host\":");
+      vs.write(np::log::platform::hostname());
+    }
 
   private:
     Serializer::buffer_type* buffer = nullptr;
