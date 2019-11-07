@@ -49,10 +49,9 @@ namespace np::log {
     return {version, lvls, levels_by_name, config.levels.sensitive};
   }
 
-  std::atomic<Config::Fields> enabled_fields
-    = static_cast<Config::Fields>(Config::File | Config::Line | Config::Time | Config::Level);
   Config::Fields enabledFields() {
-    return std::atomic_load_explicit(&enabled_fields, std::memory_order_acquire);
+    std::shared_lock<std::shared_mutex> lock(config_mutex);
+    return config.fields;
   }
 
   void sendToSink(level_type level, std::string_view buffer) {

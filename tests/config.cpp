@@ -1,9 +1,10 @@
-#include <nplog/config.hpp>
-#include <nplog/logger.hpp>
 #include <nplog/scopedmessage.hpp>
 #include <nplog/macros.hpp>
 #include "../src/configimpl.hpp"
 #include <catch/catch.hpp>
+#include <picojson/picojson.h>
+
+namespace pj = picojson;
 
 int msg_count = 0;
 
@@ -125,4 +126,109 @@ TEST_CASE("Prioritizing log levels when both level and name rules apply") {
   // matches both lvl0 -> 7 and name -> 5 and inherited name -> 9
   np::log::Logger log2(&log0, "bar");
   CHECK(isLogged(log0, 9));
+}
+
+TEST_CASE("Header fields can be toggled on and off") {
+  np::log::Config cfg;
+  std::string err;
+  pj::object result;
+  cfg.fields = static_cast<np::log::Config::Fields>(0);
+  cfg.sink = [&](auto msg) mutable {
+    pj::value val;
+    pj::parse(val, msg.message.begin(), msg.message.end(), &err);
+    result = val.get<pj::object>();
+    REQUIRE(err.empty());
+  };
+
+  np::log::Logger log;
+
+  SECTION("If all fields are disabled, only message is logged") {
+      np::log::applyConfig(cfg);
+      NP_LOG(log, 0, "dummy message");
+      CAPTURE(result);
+      REQUIRE(result.size() == 1);
+      REQUIRE(result["message"].get<std::string>() == "dummy message");
+  }
+
+  SECTION("Add File field") {
+      cfg.fields = np::log::Config::File;
+      np::log::applyConfig(cfg);
+      NP_LOG(log, 0, "dummy message");
+      CAPTURE(result);
+      REQUIRE(result.size() == 2);
+      REQUIRE(result.find("file") != result.end());
+  }
+
+  SECTION("Add Line field") {
+      cfg.fields = np::log::Config::Line;
+      np::log::applyConfig(cfg);
+      NP_LOG(log, 0, "dummy message");
+      CAPTURE(result);
+      REQUIRE(result.size() == 2);
+      REQUIRE(result.find("line") != result.end());
+  }
+  SECTION("Add Time field") {
+      cfg.fields = np::log::Config::Time;
+      np::log::applyConfig(cfg);
+      NP_LOG(log, 0, "dummy message");
+      CAPTURE(result);
+      REQUIRE(result.size() == 2);
+      REQUIRE(result.find("time") != result.end());
+  }
+  SECTION("Add Level field") {
+      cfg.fields = np::log::Config::Level;
+      np::log::applyConfig(cfg);
+      NP_LOG(log, 0, "dummy message");
+      CAPTURE(result);
+      REQUIRE(result.size() == 2);
+      REQUIRE(result.find("level") != result.end());
+  }
+  SECTION("Add LevelName field") {
+      cfg.fields = np::log::Config::LevelName;
+      np::log::applyConfig(cfg);
+      NP_LOG(log, 0, "dummy message");
+      CAPTURE(result);
+      REQUIRE(result.size() == 2);
+      REQUIRE(result.find("levelString") != result.end());
+  }
+  SECTION("Add LogName field") {
+      cfg.fields = np::log::Config::LogName;
+      np::log::applyConfig(cfg);
+      NP_LOG(log, 0, "dummy message");
+      CAPTURE(result);
+      REQUIRE(result.size() == 2);
+      REQUIRE(result.find("log") != result.end());
+  }
+  SECTION("Add ProcessName field") {
+      cfg.fields = np::log::Config::ProcessName;
+      np::log::applyConfig(cfg);
+      NP_LOG(log, 0, "dummy message");
+      CAPTURE(result);
+      REQUIRE(result.size() == 2);
+      REQUIRE(result.find("process") != result.end());
+  }
+  SECTION("Add ProcessId field") {
+      cfg.fields = np::log::Config::ProcessId;
+      np::log::applyConfig(cfg);
+      NP_LOG(log, 0, "dummy message");
+      CAPTURE(result);
+      REQUIRE(result.size() == 2);
+      REQUIRE(result.find("pid") != result.end());
+  }
+  SECTION("Add ThreadId field") {
+      cfg.fields = np::log::Config::ThreadId;
+      np::log::applyConfig(cfg);
+      NP_LOG(log, 0, "dummy message");
+      CAPTURE(result);
+      REQUIRE(result.size() == 2);
+      REQUIRE(result.find("tid") != result.end());
+  }
+  SECTION("Add Hostname field") {
+      cfg.fields = np::log::Config::Hostname;
+      np::log::applyConfig(cfg);
+      NP_LOG(log, 0, "dummy message");
+      CAPTURE(result);
+      REQUIRE(result.size() == 2);
+      REQUIRE(result.find("host") != result.end());
+  }
 }
