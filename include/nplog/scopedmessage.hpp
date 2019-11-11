@@ -2,6 +2,7 @@
 #define NP_LOG_SCOPEDMESSAGE_HPP
 
 #include <nplog/logger.hpp>
+#include <nplog/formatter.hpp>
 #include <string_view>
 
 namespace np::log {
