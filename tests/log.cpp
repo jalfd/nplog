@@ -5,10 +5,11 @@ TEST_CASE("Log") {
   SECTION("Buffers are acquired and reused") {
     np::log::Logger log;
     auto buf = log.acquireBuffer();
-    buf.reserve(20);
+    buf.append('x');
+    const auto size = buf.bufferSize();
     log.releaseBuffer(std::move(buf));
     auto b2 = log.acquireBuffer();
-    CHECK(b2.bufferSize() == 20);
+    CHECK(b2.bufferSize() == size);
   }
 
   SECTION("Buffers are cleared on reuse") {

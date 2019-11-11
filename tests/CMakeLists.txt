@@ -14,6 +14,7 @@ add_executable(tests
     serializer.cpp
     log.cpp
     config.cpp
+    messagebuffer.cpp
 )
 target_link_libraries(tests PRIVATE Catch picojson nplog)
 
