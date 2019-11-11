@@ -111,8 +111,10 @@ namespace np::log {
       }
     }
     void logName(sv, int, level_type, sv log_name) {
-      vs.writeLiteral(",\"log\":");
-      vs.write(log_name);
+      if (!log_name.empty()) {
+        vs.writeLiteral(",\"log\":");
+        vs.write(log_name);
+      }
     }
     void processName(sv, int, level_type, sv) {
       vs.writeLiteral(",\"process\":");
