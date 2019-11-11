@@ -21,6 +21,7 @@ namespace np::log {
     void write(long long val);
     void write(unsigned long long val);
     void write(std::string_view val);
+    void write(const char* val);
     void write(bool val);
     void writeLiteral(std::string_view val);
 

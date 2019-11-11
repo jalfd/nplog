@@ -202,6 +202,8 @@ namespace np::log {
 
   void ValueSerializer::write(std::string_view val) { writeString(val); }
 
+  void ValueSerializer::write(const char* val) { write(std::string_view(val)); }
+
   void ValueSerializer::write(bool val) { writeLiteral(val ? "true" : "false"); }
 
   void ValueSerializer::writeString(std::string_view val) {
