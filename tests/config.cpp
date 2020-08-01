@@ -140,7 +140,7 @@ TEST_CASE("Header fields can be toggled on and off") {
     REQUIRE(err.empty());
   };
 
-  np::log::Logger log;
+  np::log::Logger log("myname");;
 
   SECTION("If all fields are disabled, only message is logged") {
       np::log::applyConfig(cfg);
