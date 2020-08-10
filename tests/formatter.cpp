@@ -1,6 +1,7 @@
 #include <nplog/formatter.hpp>
+#include <nplog/messagebuffer.hpp>
+#include <nplog/serializer.hpp>
 #include <numeric>
-#include "mocks.hpp"
 #include <catch/catch.hpp>
 
 TEST_CASE("Formatter works for built-in numeric types") {
@@ -78,7 +79,6 @@ TEST_CASE("Formatter works for built-in numeric types") {
 TEST_CASE("Formatter works for strings") {
   np::log::MessageBuffer b;
   np::log::ValueSerializer srl(&b);
-  ops.clear();
 
   np::log::format(std::string_view("hello world"), srl);
   REQUIRE(b.contents() == "\"hello world\"");
@@ -87,7 +87,6 @@ TEST_CASE("Formatter works for strings") {
 TEST_CASE("Formatter works for bools") {
   np::log::MessageBuffer b;
   np::log::ValueSerializer srl(&b);
-  ops.clear();
 
   np::log::format(true, srl);
   REQUIRE(b.contents() == "true");
@@ -107,7 +106,6 @@ struct np::log::Formatter<TestType> {
 TEST_CASE("Formatter can be extended for custom types") {
   np::log::MessageBuffer b;
   np::log::ValueSerializer srl(&b);
-  ops.clear();
 
   np::log::format(TestType(), srl);
   REQUIRE(TestType::count == 1);

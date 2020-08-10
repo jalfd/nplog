@@ -12,6 +12,13 @@
 #include "utility.hpp"
 #include <locale.h>
 
+#ifdef _WIN32
+#include <intrin.h>
+#pragma intrinsic(_BitScanReverse)
+#else
+#include <strings.h>
+#endif
+
 #include "tostringhelper.hpp"
 
 namespace np::log {
@@ -38,12 +45,8 @@ namespace np::log {
     } c_locale;
 #endif
 
-    const std::map<level_type, std::string> level_names = {{static_cast<level_type>(0), "Fatal"},
-      {static_cast<level_type>(1), "Error"},
-      {static_cast<level_type>(2), "Warning"},
-      {static_cast<level_type>(3), "Info"},
-      {static_cast<level_type>(4), "Debug"},
-      {static_cast<level_type>(5), "Trace"}};
+    const std::string level_names[]
+      = {"<invalid>", "Fatal", "Error", "Warning", "Status", "Debug", "Debug", "Debug", "Trace"};
   } // namespace
 
   struct HeaderFields {
@@ -101,13 +104,16 @@ namespace np::log {
 
     void levelName(sv, int, level_type level, sv) {
       vs.writeLiteral(",\"levelString\":");
-      const auto lvl = level & 0xff;
-      const auto it = level_names.find(static_cast<level_type>(lvl));
-      if (it == level_names.end()) {
-        vs.write(lvl);
-      } else {
-        vs.write(it->second);
-      }
+#ifdef _WIN32
+      unsigned long index = 0;
+      unsigned long lvl = level & 0xff;
+      if (!_BitScanReverse(&index, lvl)) { index = 1; }
+#else
+      unsigned int lvl = level & 0xff;
+      unsigned int index = static_cast<unsigned int>(ffs(static_cast<int>(lvl)));
+      if (index == 0) { index = 1; }
+#endif
+      vs.write(level_names[index]);
     }
     void logName(sv, int, level_type, sv log_name) {
       if (!log_name.empty()) {
@@ -164,42 +170,48 @@ namespace np::log {
     if (enabled_fields & Config::Hostname) { hf.hostname(file, line, level, log_name); }
   }
 
-  void Serializer::epilogue() {
-    if (has_params) { buffer->append('}'); }
-    buffer->append('}');
-  }
+  void Serializer::epilogue() { buffer->append('}'); }
 
   void Serializer::writeKey(std::string_view name) {
     auto vs = valueSerializer();
-    if (!has_params) {
-      vs.writeLiteral(",\"params\":{");
-    } else {
-      vs.writeLiteral(",");
-    }
+    if (!is_empty) { vs.writeLiteral(","); }
+    is_empty = false;
     vs.write(name);
     buffer->append(':');
-    has_params = true;
   }
 
   ValueSerializer Serializer::valueSerializer() { return ValueSerializer(buffer); }
 
+  void Serializer::startObject(std::string_view name) {
+    auto vs = valueSerializer();
+    vs.writeLiteral(",\"");
+    vs.writeLiteral(name);
+    vs.writeLiteral("\":{");
+    is_empty = true;
+  }
+
+  void Serializer::endObject() {
+    buffer->append('}');
+    is_empty = false;
+  }
+
   ValueSerializer::ValueSerializer(buffer_type* buffer) : buffer(buffer) {}
 
-  void ValueSerializer::write(double val) { writeNumber(val, "%.12g"); }
+  void ValueSerializer::write(double val) { writeFloatingPoint(val, "%.12g"); }
 
-  void ValueSerializer::write(long double val) { writeNumber(val, "%.12Lg"); }
+  void ValueSerializer::write(long double val) { writeFloatingPoint(val, "%.12Lg"); }
 
-  void ValueSerializer::write(int val) { writeNumber(val, "%d"); }
+  void ValueSerializer::write(int val) { writeInteger(val); }
 
-  void ValueSerializer::write(unsigned int val) { writeNumber(val, "%u"); }
+  void ValueSerializer::write(unsigned int val) { writeInteger(val); }
 
-  void ValueSerializer::write(long long val) { writeNumber(val, "%lld"); }
+  void ValueSerializer::write(long long val) { writeInteger(val); }
 
-  void ValueSerializer::write(unsigned long long val) { writeNumber(val, "%llu"); }
+  void ValueSerializer::write(unsigned long long val) { writeInteger(val); }
 
-  void ValueSerializer::write(long val) { writeNumber(val, "%ld"); }
+  void ValueSerializer::write(long val) { writeInteger(val); }
 
-  void ValueSerializer::write(unsigned long val) { writeNumber(val, "%lu"); }
+  void ValueSerializer::write(unsigned long val) { writeInteger(val); }
 
   void ValueSerializer::write(std::string_view val) { writeString(val); }
 
@@ -255,24 +267,23 @@ namespace np::log {
   }
 
   template <typename T>
-  void ValueSerializer::writeNumber(T val, const char* format) noexcept {
-    if constexpr (!std::is_floating_point_v<T>) {
-      // ensure we have room for this type
+  void ValueSerializer::writeInteger(T val) noexcept {
+    // ensure we have room for this type
+    const auto cur_size = buffer->messageSize();
+    const auto max_size = std::numeric_limits<T>::digits10 + 2;
+    char* at = buffer->insertAt(max_size);
+    const auto num_view = decimal_from(val, at, at + max_size);
+    buffer->shrinkTo(cur_size + num_view.size());
+    return;
+  }
 
-      const auto cur_size = buffer->messageSize();
-      const auto max_size = std::numeric_limits<T>::digits10 + 2;
-      char* at = buffer->insertAt(max_size);
-      const auto num_view = decimal_from(val, at, at + max_size);
-      buffer->shrinkTo(cur_size + num_view.size());
+  template <typename T>
+  void ValueSerializer::writeFloatingPoint(T val, const char* format) noexcept {
+    if (!std::isfinite(val)) {
+      writeLiteral("null");
       return;
     }
 
-    if constexpr (std::is_floating_point_v<T>) {
-      if (!std::isfinite(val)) {
-        writeLiteral("null");
-        return;
-      }
-    }
     static constexpr int bufsize = 1024;
     char buf[bufsize];
 #ifndef has_to_chars

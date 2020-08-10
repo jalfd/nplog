@@ -5,6 +5,7 @@
 #include <nplog/export.hpp>
 #include <algorithm>
 #include <functional>
+#include <iterator>
 #include <map>
 #include <string>
 #include <string_view>
@@ -20,10 +21,7 @@ namespace np::log {
 template class NPLOG_EXPORT std::function<void(np::log::MessageInfo msg)>;
 
 namespace np::log {
-  struct LevelSpec {
-    level_type message = {};
-    level_type param = {};
-  };
+  inline level_type threshold(level_type input) { return static_cast<level_type>(input * 2 - 1); }
 
   struct NPLOG_EXPORT Config {
     using Sink = std::function<void(MessageInfo)>;
@@ -42,7 +40,7 @@ namespace np::log {
     };
 
     struct Levels {
-      LevelSpec default_level;
+      LevelSpec default_level = {threshold(Status), threshold(Status)};
       std::map<int, LevelSpec> levels_by_depth;
       std::map<std::string, LevelSpec> levels_by_name;
     };
@@ -50,9 +48,6 @@ namespace np::log {
     Sink sink;
     Fields fields = static_cast<Fields>(File | Line | Time | LevelName);
     Levels levels;
-    // Some messages or parameters may be marked sensitive, and will only be logged when this flag
-    // is set
-    bool sensitive_enabled = false;
   };
   namespace internal {
     struct LevelRule {
@@ -63,7 +58,6 @@ namespace np::log {
 
     NPLOG_EXPORT void applyConfig(Config::Sink sink,
       Config::Fields fields,
-      bool sensitive,
       LevelSpec default_level,
       LevelRule* first,
       LevelRule* last);
@@ -88,7 +82,6 @@ namespace np::log {
 
     internal::applyConfig(config.sink,
       config.fields,
-      config.sensitive_enabled,
       config.levels.default_level,
       &level_rules[0],
       &level_rules[level_rules.size()]);

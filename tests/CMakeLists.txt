@@ -5,8 +5,6 @@ target_link_libraries(example PRIVATE nplog)
 
 add_executable(tests
     tests.cpp
-    mocks.hpp
-    utils.hpp
     macros.cpp
     common.cpp
     scopedmessage.cpp
@@ -15,6 +13,7 @@ add_executable(tests
     log.cpp
     config.cpp
     messagebuffer.cpp
+    logparams.cpp
 )
 target_link_libraries(tests PRIVATE Catch picojson nplog)
 
