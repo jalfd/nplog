@@ -28,7 +28,9 @@ namespace np::log {
   private:
     void writeString(std::string_view val);
     template <typename T>
-    void writeNumber(T val, const char* format) noexcept;
+    void writeInteger(T val) noexcept;
+    template <typename T>
+    void writeFloatingPoint(T val, const char* format) noexcept;
 
     buffer_type* buffer;
   };
@@ -48,9 +50,12 @@ namespace np::log {
 
     ValueSerializer valueSerializer();
 
+    void startObject(std::string_view group_name);
+    void endObject();
+
   private:
-    buffer_type* buffer;
-    bool has_params = false;
+    buffer_type* buffer = nullptr;
+    bool is_empty = true;
 
     friend struct HeaderFields;
   };
