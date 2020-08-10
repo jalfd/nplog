@@ -48,9 +48,12 @@ namespace np::log {
 
     ValueSerializer valueSerializer();
 
+    void startObject(std::string_view group_name);
+    void endObject();
+
   private:
-    buffer_type* buffer;
-    bool has_params = false;
+    buffer_type* buffer = nullptr;
+    bool is_empty = true;
 
     friend struct HeaderFields;
   };

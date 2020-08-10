@@ -7,7 +7,7 @@
 
 namespace pj = picojson;
 
-pj::object parseLogMessage(np::log::MessageBuffer buf) {
+static pj::object parseLogMessage(np::log::MessageBuffer buf) {
   pj::value val;
   std::string err;
   const auto contents = buf.contents();
@@ -234,8 +234,10 @@ TEST_CASE("Serializer") {
     np::log::MessageBuffer buf;
     np::log::Serializer s(&buf);
     s.prologue("file.cc", 1, 2, {}, "msg");
+    s.startObject("params");
     s.writeKey("a");
     s.valueSerializer().write(3);
+    s.endObject();
     s.epilogue();
 
     auto result = parseLogMessage(std::move(buf));
@@ -251,10 +253,12 @@ TEST_CASE("Serializer") {
     np::log::MessageBuffer buf;
     np::log::Serializer s(&buf);
     s.prologue("file", 1, 2, {}, "msg");
+    s.startObject("params");
     s.writeKey("a");
     s.valueSerializer().write(3);
     s.writeKey("b");
     s.valueSerializer().write(4);
+    s.endObject();
     s.epilogue();
 
     auto result = parseLogMessage(std::move(buf));
@@ -267,8 +271,10 @@ TEST_CASE("Serializer") {
     np::log::MessageBuffer buf;
     np::log::Serializer s(&buf);
     s.prologue("file", 1, 2, {}, "msg");
+    s.startObject("params");
     s.writeKey("\"");
     s.valueSerializer().write(3);
+    s.endObject();
     s.epilogue();
 
     auto result = parseLogMessage(std::move(buf));
@@ -297,3 +303,4 @@ TEST_CASE("Serializer") {
     }
   }
 }
+// TODO: add tests for subobject handling

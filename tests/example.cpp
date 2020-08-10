@@ -15,4 +15,8 @@ int main() {
   LOG(mylog, 0, "logging a message");
   LOG(mylog, 0, "logging a message", WITH(8, fortytwo));
   LOG(mylog, 0, "logging a message", WITH("myval", fortytwo));
+  
+  np::Logger otherlog(nullptr, nullptr, {{"name", std::string_view("yoyo")}, {"loggerparam1", 1.234}});
+  LOG(otherlog, 0, "Wooosh", WITH("myval", fortytwo));
+  LOG(otherlog, 0, "Wooosh2");
 }

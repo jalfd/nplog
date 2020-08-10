@@ -1,160 +1,123 @@
+#include <nplog/messagebuffer.hpp>
 #include <nplog/scopedmessage.hpp>
+#include <picojson/picojson.h>
 #include <vector>
-#include "mocks.hpp"
 #include <catch/catch.hpp>
+// FIXME: also needs some consideration for testing derived class bringing things together -
+// including that it imports static params, and consider buffer allocation
 
-namespace test1 {
-  struct Foo {};
-} // namespace test1
+namespace pj = picojson;
+
+static pj::object parseLogMessage(const np::log::MessageBuffer& buf) {
+  pj::value val;
+  std::string err;
+  const auto contents = buf.contents();
+  picojson::parse(val, contents.begin(), contents.end(), &err);
+  CAPTURE(contents);
+  REQUIRE(err == "");
+  REQUIRE(val.is<pj::object>());
+  return val.get<pj::object>();
+}
+
+namespace testns {
+  struct CustomParamType {};
+} // namespace testns
 
 namespace np::log {
   template <>
-  struct Formatter<test1::Foo> {
-    void operator()(const test1::Foo& val, ValueSerializer& srl) {
-      ops.emplace_back("format", &val);
+  struct Formatter<testns::CustomParamType> {
+    void operator()(const testns::CustomParamType& val, ValueSerializer& srl) {
+      srl.write("a custom value");
     }
   };
-} // namespace np
-
-namespace {
-  struct MockLog {
-    using buffer_type = MockBuffer;
-    using serializer_type = MockSerializer;
-
-    buffer_type acquireBuffer() {
-      ++buffersRequested;
-      return buffer_type();
-    }
-
-    std::string_view name() const { return "logname"; }
-    bool permitSensitive() const { return false; }
-
-    void submitMessage(np::log::level_type level, const buffer_type& buffer) {
-      ops.emplace_back("submitMessage", std::pair<np::log::level_type, int>(level, buffer.id));
-    }
-
-    void releaseBuffer(buffer_type buffer) { ops.emplace_back("releaseBuffer", buffer.id); }
-
-    int buffersRequested = 0;
-  };
-
-} // namespace
+} // namespace np::log
 
 bool operator==(const std::vector<char>& result, const std::string& expected) {
   std::vector<char> e(expected.begin(), expected.end());
   return result == e;
 }
 
-TEST_CASE("ScopedMessage") {
-  ops.clear();
-  MockLog log;
+TEST_CASE("ScopedMessageBase") {
+  np::log::Config cfg;
+  cfg.fields = static_cast<np::log::Config::Fields>(0);
+  np::log::applyConfig(cfg);
+  SECTION("ScopedMessage writes message to the buffer") {
+    np::log::ScopedMessageBase msg(
+      "file", 3, 1, "hello", 0, np::log::MessageBuffer(), false, "name", {});
+    msg.endMessage();
+    const auto& buffer = msg.buffer();
+    const auto obj = parseLogMessage(buffer);
 
-  SECTION("ScopedMessage requests a buffer") {
-    np::log::ScopedMessage<MockLog> msg(log, "", 0, 0, "hello", 0);
-    CHECK(log.buffersRequested == 1);
+    CHECK(obj.size() == 1);
+    CHECK(obj.at("message") == pj::value("hello"));
   }
 
-  SECTION("ScopedMessage writes its header to the buffer") {
-    { np::log::ScopedMessage<MockLog> msg(log, "file", 3, 1, "hello", 0); }
-    // this should ask for a buffer, and fill it appropriately
-    CHECK(log.buffersRequested == 1);
-    CHECK(ops.size() == 6);
-    CHECK(std::get<0>(ops.at(0)) == "ctor");
-    const auto buffer_id = std::any_cast<int>(std::get<1>(ops.at(0)));
-    CHECK(std::get<0>(ops.at(1)) == "prologue");
-    {
-      using arg_type = std::
-        tuple<std::string_view, int, np::log::level_type, std::string_view, std::string_view, int>;
-      const auto [file, line, level, name, msg, bid]
-        = std::any_cast<arg_type>(std::get<1>(ops.at(1)));
-      CHECK(file == "file");
-      CHECK(line == 3);
-      CHECK(level == 1);
-      CHECK(name == "logname");
-      CHECK(msg == "hello");
-      CHECK(bid == buffer_id);
-    }
-    CHECK(std::get<0>(ops.at(2)) == "epilogue");
-    CHECK(std::any_cast<int>(std::get<1>(ops.at(2))) == buffer_id);
-    CHECK(std::get<0>(ops.at(3)) == "submitMessage");
-    const auto level_and_buffer
-      = std::any_cast<std::pair<np::log::level_type, int>>(std::get<1>(ops.at(3)));
-    CHECK(level_and_buffer.first == 1);
-    CHECK(level_and_buffer.second == buffer_id);
-    CHECK(std::get<0>(ops.at(4)) == "releaseBuffer");
-    CHECK(std::any_cast<int>(std::get<1>(ops.at(4))) == buffer_id);
-    CHECK(std::get<0>(ops.at(5)) == "dtor");
+  SECTION("ScopedMessage writes header fields to the buffer") {
+    cfg.fields = static_cast<np::log::Config::Fields>(-1);
+    np::log::applyConfig(cfg);
+
+    np::log::ScopedMessageBase msg(
+      "file", 3, 1, "hello", 0, np::log::MessageBuffer(), false, "name", {});
+    msg.endMessage();
+    const auto& buffer = msg.buffer();
+    const auto obj = parseLogMessage(buffer);
+
+    CHECK(obj.at("file") == pj::value("file"));
+    CHECK(obj.at("level") == pj::value(1.0));
+    CHECK(obj.at("message") == pj::value("hello"));
+    CHECK(obj.at("log") == pj::value("name"));
   }
 
-  SECTION("ScopedMessage writes parameters to the buffer") {
-    test1::Foo foo;
-    {
-      np::log::ScopedMessage<MockLog> msg(log, "", 0, 0, "", 0);
-      msg.addParam("name", foo);
-    }
-    CHECK(log.buffersRequested == 1);
-    CHECK(ops.size() == 8);
-    CHECK(std::get<0>(ops.at(0)) == "ctor");
-    CHECK(std::get<0>(ops.at(1)) == "prologue");
-    CHECK(std::get<0>(ops.at(2)) == "writeKey");
-    CHECK(std::any_cast<std::string_view>(std::get<1>(ops.at(2))) == "name");
-    CHECK(std::get<0>(ops.at(3)) == "format");
-    CHECK(std::any_cast<const test1::Foo*>(std::get<1>(ops.at(3))) == &foo);
-    CHECK(std::get<0>(ops.at(4)) == "epilogue");
-    CHECK(std::get<0>(ops.at(5)) == "submitMessage");
-    CHECK(std::get<0>(ops.at(6)) == "releaseBuffer");
-    CHECK(std::get<0>(ops.at(7)) == "dtor");
+  SECTION("ScopedMessage writes parameters with standard types to the buffer") {
+    np::log::ScopedMessageBase msg("", 0, 0, "", 0, np::log::MessageBuffer(), false, "", {});
+    msg.addParam("number", 42);
+    msg.addParam("string", std::string_view("42"));
+    msg.endMessage();
+    const auto& buffer = msg.buffer();
+    const auto obj = parseLogMessage(buffer);
+
+    CHECK(obj.at("params").is<pj::object>());
+    const auto params = obj.at("params").get<pj::object>();
+    CHECK(params.size() == 2);
+    CHECK(params.at("number") == pj::value(42.0));
+    CHECK(params.at("string") == pj::value("42"));
+  }
+
+  SECTION("ScopedMessage writes parameters with custom types to the buffer") {
+    testns::CustomParamType p;
+    np::log::ScopedMessageBase msg("", 0, 0, "", 0, np::log::MessageBuffer(), false, "", {});
+    msg.addParam("p", p);
+    msg.endMessage();
+    const auto& buffer = msg.buffer();
+    const auto obj = parseLogMessage(buffer);
+
+    CHECK(obj.at("params").is<pj::object>());
+    const auto params = obj.at("params").get<pj::object>();
+    CHECK(params.size() == 1);
+    CHECK(params.at("p") == pj::value("a custom value"));
   }
 
   SECTION("Params are suppressed correctly") {
-    np::log::ScopedMessage<MockLog> msg(log, "", 0, 0, "", 3);
+    np::log::ScopedMessageBase msg("", 0, 0, "", 3, np::log::MessageBuffer(), false, "", {});
     CHECK(!msg.suppressParam(2));
     CHECK(!msg.suppressParam(3));
     CHECK(msg.suppressParam(4));
   }
-
-  SECTION("ScopedMessage can handle reentrancy") {
+}
+TEST_CASE("ScopedMessage") {
+  SECTION("ScopedMessage can handle reentrancy") { // TODO: needs to be rewritten. Must work on SM,
+                                                   // not SMBase level
+    pj::object inner_message;
     const auto nested = [&]() {
-      np::log::ScopedMessage<MockLog>(log, "", 0, 0, "", 0);
-      return test1::Foo();
+      np::log::ScopedMessageBase msg("", 0, 0, "", 0, np::log::MessageBuffer(), false, "", {});
+      msg.addParam("name", std::string_view("inner"));
+      msg.endMessage();
+      inner_message = parseLogMessage(msg.buffer());
+      return std::string("outer");
     };
-    {
-      np::log::ScopedMessage<MockLog> msg(log, "", 0, 0, "", 0);
-      msg.addParam("name", nested());
-    }
-    CHECK(log.buffersRequested == 2);
-    CHECK(ops.size() == 14);
-    // Outer message is created using buffer1 (buf not yet written)
-    CHECK(std::get<0>(ops.at(0)) == "ctor");
-    const auto buffer1 = std::any_cast<int>(std::get<1>(ops.at(0)));
-    CHECK(std::get<0>(ops.at(1)) == "prologue");
-    // Inner message is created using buffer2
-    CHECK(std::get<0>(ops.at(2)) == "ctor");
-    const auto buffer2 = std::any_cast<int>(std::get<1>(ops.at(2)));
-    CHECK(std::get<0>(ops.at(3)) == "prologue");
-    {
-      using arg_type = std::
-        tuple<std::string_view, int, np::log::level_type, std::string_view, std::string_view, int>;
-      const auto bid = std::get<5>(std::any_cast<arg_type>(std::get<1>(ops.at(3))));
-      CHECK(bid == buffer2);
-    }
-    CHECK(std::get<0>(ops.at(4)) == "epilogue");
-    CHECK(std::any_cast<int>(std::get<1>(ops.at(4))) == buffer2);
-    // Inner emessage is written
-    CHECK(std::get<0>(ops.at(5)) == "submitMessage");
-    CHECK(std::any_cast<std::pair<np::log::level_type, int>>(std::get<1>(ops.at(5))).second == buffer2);
-    CHECK(std::get<0>(ops.at(6)) == "releaseBuffer");
-    CHECK(std::any_cast<int>(std::get<1>(ops.at(6))) == buffer2);
-    CHECK(std::get<0>(ops.at(7)) == "dtor");
-    CHECK(std::get<0>(ops.at(8)) == "writeKey");
-    CHECK(std::get<0>(ops.at(9)) == "format");
-    CHECK(std::get<0>(ops.at(10)) == "epilogue");
-    CHECK(std::any_cast<int>(std::get<1>(ops.at(10))) == buffer1);
-    // Outer message is written
-    CHECK(std::get<0>(ops.at(11)) == "submitMessage");
-    CHECK(std::any_cast<std::pair<np::log::level_type, int>>(std::get<1>(ops.at(11))).second == buffer1);
-    CHECK(std::get<0>(ops.at(12)) == "releaseBuffer");
-    CHECK(std::any_cast<int>(std::get<1>(ops.at(12))) == buffer1);
-    CHECK(std::get<0>(ops.at(13)) == "dtor");
+
+    np::log::ScopedMessageBase msg("", 0, 0, "", 0, np::log::MessageBuffer(), false, "", {});
+    msg.endMessage();
+    msg.addParam("name", nested());
   }
 }

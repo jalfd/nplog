@@ -23,6 +23,11 @@ set_property(TARGET Date APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_C
 
 find_package(Threads REQUIRED)
 
+# TODO get rid of this again
+if (NOT WIN32)
+    add_definitions(-Wfatal-errors)
+endif()
+
 add_library(nplog
     src/logger.cpp
     src/serializer.cpp
