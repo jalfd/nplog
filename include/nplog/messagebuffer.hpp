@@ -31,6 +31,12 @@ namespace np::log {
           *msg_end++ = c;
         }
 
+        template <size_t N>
+        void append(std::array<char, N> a) noexcept {
+          reserveAdditional(N);
+          msg_end = std::copy_n(a.begin(), N, msg_end);
+        }
+
         char* insertAt(size_t insert_length) noexcept { 
           reserveAdditional(insert_length);
             char* insert_point = msg_end;
