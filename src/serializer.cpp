@@ -11,6 +11,7 @@
 #include <date/date.h>
 #include <chrono>
 #include <limits>
+#include <array>
 
 #include "tostringhelper.hpp"
 
@@ -223,35 +224,25 @@ namespace np::log {
     std::for_each(val.begin(), val.end(), [this](char c) {
       switch (c) {
       case '"':
-        buffer->append('\\');
-        buffer->append('"');
+          buffer->append(std::array<char, 2>{'\\', '"'});
         return;
       case '\\':
-        buffer->append('\\');
-        buffer->append('\\');
+          buffer->append(std::array<char, 2>{'\\', '\\'});
         return;
       case '\n':
-        buffer->append('\\');
-        buffer->append('n');
+          buffer->append(std::array<char, 2>{'\\', 'n'});
         return;
       case '\r':
-        buffer->append('\\');
-        buffer->append('r');
+          buffer->append(std::array<char, 2>{'\\', 'r'});
         return;
       case '\t':
-        buffer->append('\\');
-        buffer->append('t');
+          buffer->append(std::array<char, 2>{'\\', 't'});
         return;
       default:
         if (static_cast<unsigned char>(c) < 0x20) {
-          buffer->append('\\');
-          buffer->append('u');
-          buffer->append('0');
-          buffer->append('0');
-          buffer->append(c < 0x10 ? '0' : '1');
           char b[2];
           snprintf(b, 2, "%x", (c & 0xf));
-          buffer->append(b[0]);
+          buffer->append(std::array<char, 6>{'\\', 'u', '0', '0', c < 0x10 ? '0' : '1', b[0]});
         } else {
           buffer->append(c);
         }
