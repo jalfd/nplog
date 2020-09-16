@@ -42,13 +42,13 @@ namespace np::log {
     };
 
     struct Levels {
-        LevelSpec default_level;
+        LevelSpec default_level = {3, 3};
         std::map<int, LevelSpec> levels_by_depth;
         std::map<std::string, LevelSpec> levels_by_name;
     };
 
     Sink sink;
-    Fields fields;
+    Fields fields = static_cast<Fields>(File | Line | Time | LevelName);
     Levels levels;
     // Some messages or parameters may be marked sensitive, and will only be logged when this flag is set
     bool sensitive_enabled = false;
