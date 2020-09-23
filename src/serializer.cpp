@@ -72,25 +72,33 @@ namespace np::log {
       // make sure the buffer has enough capacity
       auto* ptr = buffer->insertAt(26);
       *ptr++ = '"';
-      padded_decimal_from(static_cast<int>(ymd.year()), ptr, ptr + 4, '0');
+      /*
+      static std::atomic<DecimalString4> cached_year;
+      DecimalString4 year_from_cache = cached_year.load(); // explicit mem model plz
+      const auto year = static_cast<int>(ymd.year());
+      if (year != num(cached_year)) {
+
+      }
+      */
+      stringhelper::padded_decimal_from(static_cast<int>(ymd.year()), ptr, ptr + 4, '0');
       ptr += 4;
       *ptr++ = '-';
-      padded_decimal_from(static_cast<unsigned int>(ymd.month()), ptr, ptr + 2, '0');
+      stringhelper::padded_decimal_from(static_cast<unsigned int>(ymd.month()), ptr, ptr + 2, '0');
       ptr += 2;
       *ptr++ = '-';
-      padded_decimal_from(static_cast<unsigned int>(ymd.day()), ptr, ptr + 2, '0');
+      stringhelper::padded_decimal_from(static_cast<unsigned int>(ymd.day()), ptr, ptr + 2, '0');
       ptr += 2;
       *ptr++ = 'T';
-      padded_decimal_from(time.hours().count(), ptr, ptr + 2, '0');
+      stringhelper::padded_decimal_from(time.hours().count(), ptr, ptr + 2, '0');
       ptr += 2;
       *ptr++ = ':';
-      padded_decimal_from(time.minutes().count(), ptr, ptr + 2, '0');
+      stringhelper::padded_decimal_from(time.minutes().count(), ptr, ptr + 2, '0');
       ptr += 2;
       *ptr++ = ':';
-      padded_decimal_from(static_cast<unsigned long>(time.seconds().count()), ptr, ptr + 2, '0');
+      stringhelper::padded_decimal_from(static_cast<unsigned long>(time.seconds().count()), ptr, ptr + 2, '0');
       ptr += 2;
       *ptr++ = '.';
-      padded_decimal_from(static_cast<unsigned long>(time.subseconds().count()), ptr, ptr + 3, '0');
+      stringhelper::padded_decimal_from(static_cast<unsigned long>(time.subseconds().count()), ptr, ptr + 3, '0');
       ptr += 3;
       *ptr++ = 'Z';
       *ptr++ = '"';
@@ -264,7 +272,7 @@ namespace np::log {
       const auto cur_size = buffer->messageSize();
       const auto max_size = std::numeric_limits<T>::digits10 + 2;
       char* at = buffer->insertAt(max_size);
-      const auto num_view = decimal_from(val, at, at + max_size);
+      const auto num_view = stringhelper::decimal_from(val, at, at + max_size);
       buffer->shrinkTo(cur_size + num_view.size());
       return;
     }
