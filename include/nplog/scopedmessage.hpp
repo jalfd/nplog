@@ -12,13 +12,11 @@ namespace np::log {
       int line,
       level_type level,
       const char* m,
-      level_type param_level,
       MessageBuffer buffer,
       bool permit_sensitive,
       std::string_view log_name,
       std::string_view logger_params_data)
-      : param_level(param_level)
-      , message_buffer(std::move(buffer))
+      : message_buffer(std::move(buffer))
       , serializer(&message_buffer)
       , message_level(level)
       , permit_sensitive(permit_sensitive) {
@@ -46,12 +44,6 @@ namespace np::log {
       np::log::format(expr, vs);
       return true;
     }
-
-    bool suppressParam(uint16_t i) {
-      return !testLevel(static_cast<level_type>(i), static_cast<level_type>(param_level))
-        || (i >> 8) > static_cast<uint16_t>(permit_sensitive);
-    }
-    bool suppressParam(const char* = nullptr) { return suppressParam(message_level); }
 
     const MessageBuffer &buffer() { return message_buffer; }
 
@@ -93,6 +85,15 @@ namespace np::log {
   private:
     LogType& log;
   };
+
+  // ok, this should just take the whole level spec (including permit_sensitive)
+  inline bool suppressParam(LevelSpec level, level_type, level_type param_level) {
+    return !testLevel(param_level, static_cast<level_type>(level.param))
+      || (param_level >> 8) > static_cast<level_type>(level.category); // FIXME: update for generic cateogry
+  }
+  inline bool suppressParam(LevelSpec level, level_type msg_level, const char* = nullptr) {
+    return suppressParam(level, msg_level, msg_level);
+  }
 
 } // namespace np::log
 #endif

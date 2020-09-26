@@ -10,10 +10,10 @@ namespace np::log::internal {
 
 #define NP_MSVC_EXPAND_INDIRECT(m, args) m args
 
-#define NP_WITH3(param0, param1, param2) ((sm.suppressParam(param0)) ? false : sm.addParam(param1, param2))
+#define NP_WITH3(param0, param1, param2) ((::np::log::suppressParam(lvl_threshold.param, msg_level, param0)) ? false : sm.addParam(param1, param2))
 #define NP_WITH2(param0, param1) \
-  ((sm.suppressParam(param0)) ? false : sm.addParam(::np::log::internal::getParamName(param0, #param1), param1))
-#define NP_WITH1(param0) ((sm.suppressParam()) ? false : sm.addParam(#param0, param0))
+  ((::np::log::suppressParam(lvl_threshold.param, msg_level, param0)) ? false : sm.addParam(::np::log::internal::getParamName(param0, #param1), param1))
+#define NP_WITH1(param0) ((::np::log::suppressParam(lvl_threshold.param, msg_level)) ? false : sm.addParam(#param0, param0))
 
 #define INTERNAL_NP_VAR_MACRO_SELECTOR(_1, _2, _3, NAME, ...) NAME
 #define NP_WITH(...) \
@@ -24,6 +24,7 @@ namespace np::log::internal {
   if (auto lvl_threshold = logger.refreshLevels(logger.knownVersion()); \
       np::log::testLevel(msg_lvl, lvl_threshold.message)) { \
     ::np::log::ScopedMessage sm(logger, __FILE__, __LINE__, msg_lvl, msg, lvl_threshold.param); \
+      const auto msg_level = msg_lvl; \
     (void) __VA_ARGS__; \
   }
 
