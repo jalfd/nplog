@@ -24,15 +24,18 @@ namespace np::log {
     Serializer s(&data);
     std::vector<const LogParam*> param_ptrs; // FIXME: should reserve
     std::transform(
-      params.begin(), params.end(), std::back_inserter(param_ptrs), [](const LogParam& p) { return &p; });
+      params.begin(), params.end(), std::back_inserter(param_ptrs), [](const LogParam& p) {
+        return &p;
+      });
     std::sort(param_ptrs.begin(), param_ptrs.end(), [](const LogParam* lhs, const LogParam* rhs) {
       return strcmp(lhs->name, rhs->name) < 0;
     });
     for (const auto& param_ptr : param_ptrs) {
       const auto start = data.messageSize();
-      const auto name_end = param_ptr->func(s, data);
+      const auto name_end
+        = param_ptr->func(s, data); // func really shouldn't add a comma, should it?
       const auto end = data.messageSize();
-      offsets.emplace_back(start, name_end, end);
+      offsets.emplace_back(start == 0 ? start : start + 1, name_end, end);
     }
 
     // Merge with parent's params
@@ -47,26 +50,32 @@ namespace np::log {
         = [&dest](const LoggerParams& src, size_t first, size_t name_last, size_t last) {
             const auto new_first = dest.data.messageSize();
             const auto span
-              = src.data.contents().substr(first, last); // the span of characters to copy
+              = src.data.contents().substr(first, last - first); // the span of characters to copy
             auto* insert_at = dest.data.insertAt(last - first);
-            span.copy(insert_at, last - first, first);
+            span.copy(insert_at, span.size(), 0);
+            dest.data.append(',');
 
             dest.offsets.emplace_back(
               new_first, new_first + (name_last - first), new_first + (last - first));
           };
 
       while (parent_it != parent->offsets.end() && self_it != offsets.end()) {
-        const auto parent_name
-          = std::string_view(parent->data.contents().substr(std::get<0>(*parent_it),
-            std::get<1>(*parent_it) - std::get<0>(*parent_it))); // FIXME: this is a very long line
+        const auto parent_name = std::string_view(parent->data.contents().substr(
+          std::get<0>(*parent_it), std::get<1>(*parent_it) - std::get<0>(*parent_it)));
         const auto self_name = std::string_view(data.contents().substr(
           std::get<0>(*self_it), std::get<1>(*self_it) - std::get<0>(*self_it)));
 
-        auto* current = parent_name < self_name ? parent : this;
-        auto& current_it = parent_name < self_name ? parent_it : self_it;
+        bool pick_from_parent = parent_name < self_name;
+        auto* current = pick_from_parent ? parent : this;
+        auto& current_it = pick_from_parent ? parent_it : self_it;
         copy_to_dest(
           *current, std::get<0>(*current_it), std::get<1>(*current_it), std::get<2>(*current_it));
-        ++current_it;
+        if (parent_name == self_name) {
+          ++current_it;
+          ++parent_it;
+        } else {
+          ++current_it;
+        }
       }
 
       // whichever range has stuff left, just copy it in
@@ -77,12 +86,14 @@ namespace np::log {
       for (; self_it != offsets.end(); ++self_it) {
         copy_to_dest(*this, std::get<0>(*self_it), std::get<1>(*self_it), std::get<2>(*self_it));
       }
+      dest.data.shrinkTo(dest.data.messageSize() - 1);
       *this = std::move(dest);
     }
   }
 
   Logger::Logger(Logger* parent, const char* name)
     : parent(parent)
+    , logger_params(parent ? parent->logger_params : nullptr)
     , name_ptr(name)
     , name_len(name_ptr ? strlen(name_ptr) : 0)
     , depth(parent ? parent->depth + 1 : 0) {
@@ -92,7 +103,7 @@ namespace np::log {
   Logger::Logger(const char* name) : Logger(nullptr, name) {}
 
   Logger::~Logger() {
-      // Delete, unless we're pointing at our parent's params
+    // Delete, unless we're pointing at our parent's params
     if (!(parent && parent->logger_params == logger_params)) { delete logger_params; }
   }
 
@@ -115,9 +126,9 @@ namespace np::log {
   Logger::buffer_type Logger::acquireBuffer() {
     std::lock_guard lock(state.buffer_mutex);
     if (state.buffers.empty()) { state.buffers.emplace_back(); }
-      auto buf = std::move(state.buffers.back());
-      state.buffers.pop_back();
-      return buf;
+    auto buf = std::move(state.buffers.back());
+    state.buffers.pop_back();
+    return buf;
   }
 
   void Logger::submitMessage(level_type level, buffer_type& buffer) {
@@ -129,4 +140,4 @@ namespace np::log {
     std::lock_guard lock(state.buffer_mutex);
     state.buffers.push_back(std::move(buf));
   }
-} // namespace np
+} // namespace np::log
