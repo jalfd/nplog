@@ -43,7 +43,9 @@ namespace np::log {
 
     explicit Logger(Logger* parent, const char* name, std::initializer_list<LogParam> params)
       : Logger(parent, name) {
-          logger_params = new LoggerParams(parent ? parent->logger_params : nullptr, params);
+          if (params.size() != 0) {
+            logger_params = new LoggerParams(parent ? parent->logger_params : nullptr, params);
+          }
       }
 
     Logger(const Logger&) = delete;
