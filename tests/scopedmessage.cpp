@@ -43,7 +43,7 @@ TEST_CASE("ScopedMessageBase") {
   np::log::applyConfig(cfg);
   SECTION("ScopedMessage writes message to the buffer") {
     np::log::ScopedMessageBase msg(
-      "file", 3, 1, "hello", 0, np::log::MessageBuffer(), false, "name", {});
+      "file", 3, 1, "hello", np::log::MessageBuffer(), "name", {});
     msg.endMessage();
     const auto& buffer = msg.buffer();
     const auto obj = parseLogMessage(buffer);
@@ -57,7 +57,7 @@ TEST_CASE("ScopedMessageBase") {
     np::log::applyConfig(cfg);
 
     np::log::ScopedMessageBase msg(
-      "file", 3, 1, "hello", 0, np::log::MessageBuffer(), false, "name", {});
+      "file", 3, 1, "hello", np::log::MessageBuffer(), "name", {});
     msg.endMessage();
     const auto& buffer = msg.buffer();
     const auto obj = parseLogMessage(buffer);
@@ -69,7 +69,7 @@ TEST_CASE("ScopedMessageBase") {
   }
 
   SECTION("ScopedMessage writes parameters with standard types to the buffer") {
-    np::log::ScopedMessageBase msg("", 0, 0, "", 0, np::log::MessageBuffer(), false, "", {});
+    np::log::ScopedMessageBase msg("", 0, 0, "", np::log::MessageBuffer(), "", {});
     msg.addParam("number", 42);
     msg.addParam("string", std::string_view("42"));
     msg.endMessage();
@@ -85,7 +85,7 @@ TEST_CASE("ScopedMessageBase") {
 
   SECTION("ScopedMessage writes parameters with custom types to the buffer") {
     testns::CustomParamType p;
-    np::log::ScopedMessageBase msg("", 0, 0, "", 0, np::log::MessageBuffer(), false, "", {});
+    np::log::ScopedMessageBase msg("", 0, 0, "", np::log::MessageBuffer(), "", {});
     msg.addParam("p", p);
     msg.endMessage();
     const auto& buffer = msg.buffer();
@@ -96,27 +96,20 @@ TEST_CASE("ScopedMessageBase") {
     CHECK(params.size() == 1);
     CHECK(params.at("p") == pj::value("a custom value"));
   }
-
-  SECTION("Params are suppressed correctly") {
-    np::log::ScopedMessageBase msg("", 0, 0, "", 3, np::log::MessageBuffer(), false, "", {});
-    CHECK(!msg.suppressParam(2));
-    CHECK(!msg.suppressParam(3));
-    CHECK(msg.suppressParam(4));
-  }
 }
 TEST_CASE("ScopedMessage") {
   SECTION("ScopedMessage can handle reentrancy") { // TODO: needs to be rewritten. Must work on SM,
                                                    // not SMBase level
     pj::object inner_message;
     const auto nested = [&]() {
-      np::log::ScopedMessageBase msg("", 0, 0, "", 0, np::log::MessageBuffer(), false, "", {});
+      np::log::ScopedMessageBase msg("", 0, 0, "", np::log::MessageBuffer(), "", {});
       msg.addParam("name", std::string_view("inner"));
       msg.endMessage();
       inner_message = parseLogMessage(msg.buffer());
       return std::string("outer");
     };
 
-    np::log::ScopedMessageBase msg("", 0, 0, "", 0, np::log::MessageBuffer(), false, "", {});
+    np::log::ScopedMessageBase msg("", 0, 0, "", np::log::MessageBuffer(), "", {});
     msg.endMessage();
     msg.addParam("name", nested());
   }

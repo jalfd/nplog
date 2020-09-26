@@ -19,8 +19,8 @@ TEST_CASE("Configuring Log Default Levels") {
   cfg.sink = [&](auto) mutable { ++msg_count; };
   np::log::applyConfig(cfg);
   auto lvls = np::log::getLevels("", 0);
-  CHECK(lvls.effective_levels.message == 3);
-  CHECK(lvls.effective_levels.param == 3);
+  CHECK(lvls.effective_levels.message == np::log::threshold(np::log::Status));
+  CHECK(lvls.effective_levels.param == np::log::threshold(np::log::Status));
   auto prev_level = lvls.version;
 
   cfg.levels.default_level = {1, 1};

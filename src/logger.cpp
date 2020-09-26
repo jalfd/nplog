@@ -101,7 +101,6 @@ namespace np::log {
       auto result = getLevels(std::string_view(name_ptr, name_len), depth);
       levels_by_name_only = result.levels_by_name_only;
       effective_levels = result.effective_levels;
-      sensitive = result.sensitive;
 
       if (parent) {
         auto parent_levels = parent->refreshLevels(result.version, true);

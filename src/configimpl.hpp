@@ -19,7 +19,6 @@ namespace np::log {
       LevelSpec default_level;
       std::vector<std::pair<std::string_view, LevelSpec>> levels_by_name;
       std::vector<LevelSpec> levels_by_depth;
-      bool sensitive;
     };
     Levels levels;
     Sink sink;
@@ -35,12 +34,11 @@ namespace np::log {
     unsigned version = 0;
     LevelSpec effective_levels;
     LevelSpec levels_by_name_only;
-    bool sensitive = false;
   };
   NPLOG_EXPORT LevelsResult getLevels(std::string_view n, unsigned d);
 
   inline LevelSpec merge(LevelSpec lhs, LevelSpec rhs) {
-    return {std::max(lhs.message, rhs.message), std::max(lhs.param, rhs.param)};
+    return {static_cast<level_type>(lhs.message | rhs.message), static_cast<level_type>(lhs.param | rhs.param)};
   }
 
   Config::Fields enabledFields();

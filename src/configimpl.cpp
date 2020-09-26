@@ -46,7 +46,7 @@ namespace np::log {
       lvls = merge(lvls, config.levels.levels_by_depth[d]);
     }
 
-    return {version, lvls, levels_by_name, config.levels.sensitive};
+    return {version, lvls, levels_by_name};
   }
 
   Config::Fields enabledFields() {
