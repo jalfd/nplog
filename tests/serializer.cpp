@@ -303,4 +303,3 @@ TEST_CASE("Serializer") {
     }
   }
 }
-// TODO: add tests for subobject handling
