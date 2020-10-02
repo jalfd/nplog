@@ -11,7 +11,6 @@
 #include <string_view>
 
 namespace np::log {
-    // FIXME: can't use serializer_type typedef. Should we? Or get rid of? Or reference Logger::serializer_type?
   struct LogParam { // FIXME: move to detail
     template <typename T>
     LogParam(const char* name, T&& value)
@@ -20,13 +19,12 @@ namespace np::log {
         const auto name_end = buffer.messageSize(); // FIXME: do we really want to depend on buffer?
         auto vs = serializer.valueSerializer();
         np::log::format(value, vs);
-        return name_end;
+        return static_cast<uint32_t>(name_end);
       }) {}
     const char* name;
     std::function<uint32_t(Serializer&, MessageBuffer&)> func;
   };
-  struct NPLOG_EXPORT LoggerParams {
-      // FIXME: note, this whole thing could live in the .cc file
+  struct LoggerParams {
     LoggerParams() = default;
     LoggerParams(LoggerParams* parent, std::initializer_list<LogParam> params);
 
@@ -41,12 +39,7 @@ namespace np::log {
     explicit Logger(Logger* parent = nullptr, const char* name = nullptr);
     explicit Logger(const char* name);
 
-    explicit Logger(Logger* parent, const char* name, std::initializer_list<LogParam> params)
-      : Logger(parent, name) {
-          if (params.size() != 0) {
-            logger_params = new LoggerParams(parent ? parent->logger_params : nullptr, params);
-          }
-      }
+    explicit Logger(Logger* parent, const char* name, std::initializer_list<LogParam> params);
 
     Logger(const Logger&) = delete;
 

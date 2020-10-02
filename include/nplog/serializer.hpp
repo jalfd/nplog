@@ -28,7 +28,9 @@ namespace np::log {
   private:
     void writeString(std::string_view val);
     template <typename T>
-    void writeNumber(T val, const char* format) noexcept;
+    void writeInteger(T val) noexcept;
+    template <typename T>
+    void writeFloatingPoint(T val, const char* format) noexcept;
 
     buffer_type* buffer;
   };

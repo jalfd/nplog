@@ -115,8 +115,7 @@ namespace np::log {
 #ifdef _WIN32
       unsigned long index = 0;
       unsigned long lvl = level & 0xff;
-      if (!_BitScanReverse(&index, lvl)) {
-          index = 1
+      if (!_BitScanReverse(&index, lvl)) { index = 1;
       }
 #else
     unsigned int lvl = level & 0xff;
@@ -213,21 +212,21 @@ namespace np::log {
 
   ValueSerializer::ValueSerializer(buffer_type* buffer) : buffer(buffer) {}
 
-  void ValueSerializer::write(double val) { writeNumber(val, "%.12g"); }
+  void ValueSerializer::write(double val) { writeFloatingPoint(val, "%.12g"); }
 
-  void ValueSerializer::write(long double val) { writeNumber(val, "%.12Lg"); }
+  void ValueSerializer::write(long double val) { writeFloatingPoint(val, "%.12Lg"); }
 
-  void ValueSerializer::write(int val) { writeNumber(val, "%d"); }
+  void ValueSerializer::write(int val) { writeInteger(val); }
 
-  void ValueSerializer::write(unsigned int val) { writeNumber(val, "%u"); }
+  void ValueSerializer::write(unsigned int val) { writeInteger(val); }
 
-  void ValueSerializer::write(long long val) { writeNumber(val, "%lld"); }
+  void ValueSerializer::write(long long val) { writeInteger(val); }
 
-  void ValueSerializer::write(unsigned long long val) { writeNumber(val, "%llu"); }
+  void ValueSerializer::write(unsigned long long val) { writeInteger(val); }
 
-  void ValueSerializer::write(long val) { writeNumber(val, "%ld"); }
+  void ValueSerializer::write(long val) { writeInteger(val); }
 
-  void ValueSerializer::write(unsigned long val) { writeNumber(val, "%lu"); }
+  void ValueSerializer::write(unsigned long val) { writeInteger(val); }
 
   void ValueSerializer::write(std::string_view val) { writeString(val); }
 
@@ -283,24 +282,23 @@ namespace np::log {
   }
 
   template <typename T>
-  void ValueSerializer::writeNumber(T val, const char* format) noexcept {
-    if constexpr (!std::is_floating_point_v<T>) {
-      // ensure we have room for this type
+  void ValueSerializer::writeInteger(T val) noexcept {
+    // ensure we have room for this type
+    const auto cur_size = buffer->messageSize();
+    const auto max_size = std::numeric_limits<T>::digits10 + 2;
+    char* at = buffer->insertAt(max_size);
+    const auto num_view = decimal_from(val, at, at + max_size);
+    buffer->shrinkTo(cur_size + num_view.size());
+    return;
+  }
 
-      const auto cur_size = buffer->messageSize();
-      const auto max_size = std::numeric_limits<T>::digits10 + 2;
-      char* at = buffer->insertAt(max_size);
-      const auto num_view = decimal_from(val, at, at + max_size);
-      buffer->shrinkTo(cur_size + num_view.size());
-      return;
-    }
-
-    if constexpr (std::is_floating_point_v<T>) {
-      if (!std::isfinite(val)) {
+  template <typename T>
+  void ValueSerializer::writeFloatingPoint(T val, const char* format) noexcept {
+    if (!std::isfinite(val)) {
         writeLiteral("null");
         return;
-      }
     }
+
     static constexpr int bufsize = 1024;
     char buf[bufsize];
 #ifndef has_to_chars

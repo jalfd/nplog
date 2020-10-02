@@ -31,10 +31,10 @@ namespace np::log {
       return strcmp(lhs->name, rhs->name) < 0;
     });
     for (const auto& param_ptr : param_ptrs) {
-      const auto start = data.messageSize();
+      const auto start = static_cast<uint32_t>(data.messageSize());
       const auto name_end
-        = param_ptr->func(s, data); // func really shouldn't add a comma, should it?
-      const auto end = data.messageSize();
+        = static_cast<uint32_t>(param_ptr->func(s, data)); // func really shouldn't add a comma, should it?
+      const auto end = static_cast<uint32_t>(data.messageSize());
       offsets.emplace_back(start == 0 ? start : start + 1, name_end, end);
     }
 
@@ -56,7 +56,7 @@ namespace np::log {
             dest.data.append(',');
 
             dest.offsets.emplace_back(
-              new_first, new_first + (name_last - first), new_first + (last - first));
+              static_cast<uint32_t>(new_first), static_cast<uint32_t>(new_first + (name_last - first)), static_cast<uint32_t>(new_first + (last - first)));
           };
 
       while (parent_it != parent->offsets.end() && self_it != offsets.end()) {
@@ -101,6 +101,13 @@ namespace np::log {
   }
 
   Logger::Logger(const char* name) : Logger(nullptr, name) {}
+
+  Logger::Logger(Logger* parent, const char* name, std::initializer_list<LogParam> params)
+    : Logger(parent, name) {
+    if (params.size() != 0) {
+      logger_params = new LoggerParams(parent ? parent->logger_params : nullptr, params);
+    }
+  }
 
   Logger::~Logger() {
     // Delete, unless we're pointing at our parent's params
