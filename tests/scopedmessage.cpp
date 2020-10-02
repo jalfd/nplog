@@ -3,20 +3,20 @@
 #include <picojson/picojson.h>
 #include <vector>
 #include <catch/catch.hpp>
-// FIXME: also needs some consideration for testing derived class bringing things together -
-// including that it imports static params, and consider buffer allocation
 
 namespace pj = picojson;
 
-static pj::object parseLogMessage(const np::log::MessageBuffer& buf) {
+static pj::object parseMessage(std::string_view contents) {
   pj::value val;
   std::string err;
-  const auto contents = buf.contents();
   picojson::parse(val, contents.begin(), contents.end(), &err);
-  CAPTURE(contents);
   REQUIRE(err == "");
   REQUIRE(val.is<pj::object>());
   return val.get<pj::object>();
+}
+
+static pj::object parseLogMessage(const np::log::MessageBuffer& buf) {
+  return parseMessage(buf.contents());
 }
 
 namespace testns {
@@ -42,8 +42,7 @@ TEST_CASE("ScopedMessageBase") {
   cfg.fields = static_cast<np::log::Config::Fields>(0);
   np::log::applyConfig(cfg);
   SECTION("ScopedMessage writes message to the buffer") {
-    np::log::ScopedMessageBase msg(
-      "file", 3, 1, "hello", np::log::MessageBuffer(), "name", {});
+    np::log::ScopedMessageBase msg("file", 3, 1, "hello", np::log::MessageBuffer(), "name", {});
     msg.endMessage();
     const auto& buffer = msg.buffer();
     const auto obj = parseLogMessage(buffer);
@@ -56,8 +55,7 @@ TEST_CASE("ScopedMessageBase") {
     cfg.fields = static_cast<np::log::Config::Fields>(-1);
     np::log::applyConfig(cfg);
 
-    np::log::ScopedMessageBase msg(
-      "file", 3, 1, "hello", np::log::MessageBuffer(), "name", {});
+    np::log::ScopedMessageBase msg("file", 3, 1, "hello", np::log::MessageBuffer(), "name", {});
     msg.endMessage();
     const auto& buffer = msg.buffer();
     const auto obj = parseLogMessage(buffer);
@@ -98,19 +96,27 @@ TEST_CASE("ScopedMessageBase") {
   }
 }
 TEST_CASE("ScopedMessage") {
-  SECTION("ScopedMessage can handle reentrancy") { // TODO: needs to be rewritten. Must work on SM,
-                                                   // not SMBase level
-    pj::object inner_message;
-    const auto nested = [&]() {
-      np::log::ScopedMessageBase msg("", 0, 0, "", np::log::MessageBuffer(), "", {});
-      msg.addParam("name", std::string_view("inner"));
-      msg.endMessage();
-      inner_message = parseLogMessage(msg.buffer());
-      return std::string("outer");
-    };
+  SECTION("ScopedMessage can handle reentrancy") {
+    std::vector<pj::object> out;
 
-    np::log::ScopedMessageBase msg("", 0, 0, "", np::log::MessageBuffer(), "", {});
-    msg.endMessage();
-    msg.addParam("name", nested());
+    np::log::Config cfg;
+    cfg.fields = static_cast<np::log::Config::Fields>(0);
+    cfg.sink = [&](const np::log::MessageInfo& mi) { out.push_back(parseMessage(mi.message)); };
+    np::log::applyConfig(cfg);
+
+    np::log::Logger logger;
+    {
+      np::log::ScopedMessage msg(logger, "", 0, 0, "outer message", 0);
+      msg.addParam("name", [&]() {
+        np::log::ScopedMessage msg_inner(logger, "", 0, 0, "inner message", 0);
+        msg_inner.addParam("name", std::string_view("inner"));
+        return std::string("outer");
+      }());
+    }
+    REQUIRE(out.size() == 2);
+    REQUIRE(out[0].at("message") == pj::value("inner message"));
+    REQUIRE(out[0].at("params").get<pj::object>().at("name") == pj::value("inner"));
+    REQUIRE(out[1].at("message") == pj::value("outer message"));
+    REQUIRE(out[1].at("params").get<pj::object>().at("name") == pj::value("outer"));
   }
 }

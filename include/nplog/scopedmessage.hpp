@@ -5,7 +5,6 @@
 #include <nplog/logger.hpp>
 #include <string_view>
 
-// TODO: consider private inheritance, make derived class publicly expose what it needs
 namespace np::log {
   struct ScopedMessageBase {
     ScopedMessageBase(const char* file,
@@ -54,9 +53,8 @@ namespace np::log {
     bool has_params = false;
   };
 
-  template <typename LogType>
-  struct ScopedMessage : ScopedMessageBase {
-    ScopedMessage(LogType& log,
+  struct ScopedMessage : private ScopedMessageBase {
+    ScopedMessage(Logger& log,
       const char* file,
       int line,
       level_type level,
@@ -77,8 +75,10 @@ namespace np::log {
         log.releaseBuffer(std::move(message_buffer));
     }
 
+    using ScopedMessageBase::addParam;
+
   private:
-    LogType& log;
+    Logger& log;
   };
 } // namespace np::log
 #endif
