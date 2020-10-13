@@ -2,6 +2,7 @@
 #define NP_CONFIGIMPL_HPP
 #include <nplog/config.hpp>
 #include <nplog/export.hpp>
+#include <nplog/messagebuffer.hpp>
 #include <algorithm>
 #include <shared_mutex>
 
@@ -45,5 +46,8 @@ namespace np::log {
 
   void sendToSink(level_type level, std::string_view buffer);
 
-} // namespace np
+  MessageBuffer acquireBuffer();
+
+  void releaseBuffer(MessageBuffer&& buf);
+} // namespace np::log
 #endif

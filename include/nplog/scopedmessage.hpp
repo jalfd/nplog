@@ -6,29 +6,16 @@
 #include <string_view>
 
 namespace np::log {
-  struct ScopedMessageBase {
+  struct NPLOG_EXPORT ScopedMessageBase {
     ScopedMessageBase(const char* file,
       int line,
       level_type level,
       const char* m,
       MessageBuffer buffer,
       std::string_view log_name,
-      std::string_view logger_params_data)
-      : message_buffer(std::move(buffer))
-      , serializer(&message_buffer)
-      , message_level(level) {
-      serializer.prologue(file, line, level, log_name, m);
-      if (!logger_params_data.empty()) {
-        serializer.startObject("static");
-        serializer.valueSerializer().writeLiteral(logger_params_data);
-        serializer.endObject();
-      }
-    }
+      std::string_view logger_params_data);
 
-    void endMessage() {
-      if (has_params) { serializer.endObject(); }
-      serializer.epilogue();
-    }
+    void endMessage();
 
     template <typename T>
     bool addParam(const char* name, T&& expr) {
@@ -53,27 +40,14 @@ namespace np::log {
     bool has_params = false;
   };
 
-  struct ScopedMessage : private ScopedMessageBase {
+  struct NPLOG_EXPORT ScopedMessage : private ScopedMessageBase {
     ScopedMessage(Logger& log,
       const char* file,
       int line,
       level_type level,
-      const char* m,
-      level_type param_level)
-      : ScopedMessageBase(file,
-        line,
-        level,
-        m,
-        log.acquireBuffer(),
-        log.name(),
-        log.loggerParams() ? log.loggerParams()->data.contents() : std::string_view())
-      , log(log) {}
+      const char* m);
 
-    ~ScopedMessage() {
-        endMessage();
-        log.submitMessage(message_level, message_buffer);
-        log.releaseBuffer(std::move(message_buffer));
-    }
+    ~ScopedMessage();
 
     using ScopedMessageBase::addParam;
 

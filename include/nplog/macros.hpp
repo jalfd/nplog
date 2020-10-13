@@ -23,7 +23,7 @@ namespace np::log::internal {
 #define NP_LOG_IMPL(logger, msg_lvl, msg, ...) \
   if (auto lvl_threshold = logger.refreshLevels(logger.knownVersion()); \
       np::log::testLevel(msg_lvl, lvl_threshold.message)) { \
-    ::np::log::ScopedMessage sm(logger, __FILE__, __LINE__, msg_lvl, msg, lvl_threshold.param); \
+    ::np::log::ScopedMessage sm(logger, __FILE__, __LINE__, msg_lvl, msg); \
       const auto msg_level = msg_lvl; \
     (void) __VA_ARGS__; \
   }

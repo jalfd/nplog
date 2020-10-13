@@ -33,6 +33,7 @@ endif()
 add_library(nplog
     src/logger.cpp
     src/serializer.cpp
+    src/scopedmessage.cpp
     src/formatter.cpp
     src/config.cpp
     src/configimpl.hpp

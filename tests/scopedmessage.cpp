@@ -106,9 +106,9 @@ TEST_CASE("ScopedMessage") {
 
     np::log::Logger logger;
     {
-      np::log::ScopedMessage msg(logger, "", 0, 0, "outer message", 0);
+      np::log::ScopedMessage msg(logger, "", 0, 0, "outer message");
       msg.addParam("name", [&]() {
-        np::log::ScopedMessage msg_inner(logger, "", 0, 0, "inner message", 0);
+        np::log::ScopedMessage msg_inner(logger, "", 0, 0, "inner message");
         msg_inner.addParam("name", std::string_view("inner"));
         return std::string("outer");
       }());

@@ -11,6 +11,14 @@ namespace np::log {
     };
 
     LogConfig config;
+
+    struct LogState {
+      std::mutex buffer_mutex;
+      std::vector<MessageBuffer> buffers;
+    };
+
+    static LogState state;
+
   } // namespace
 
   void applyConfig(LogConfig cfg) {
@@ -57,5 +65,19 @@ namespace np::log {
   void sendToSink(level_type level, std::string_view buffer) {
     std::shared_lock<std::shared_mutex> lock(config_mutex); // TODO: is this where we serialize log messages from multiple threads?
     config.sink(MessageInfo{level, buffer});
+  }
+
+  MessageBuffer acquireBuffer() {
+    std::lock_guard lock(state.buffer_mutex);
+    if (state.buffers.empty()) { state.buffers.emplace_back(); }
+    auto buf = std::move(state.buffers.back());
+    state.buffers.pop_back();
+    return buf;
+  }
+
+  void releaseBuffer(MessageBuffer&& buf) {
+    buf.clear();
+    std::lock_guard lock(state.buffer_mutex);
+    state.buffers.push_back(std::move(buf));
   }
 } // namespace np

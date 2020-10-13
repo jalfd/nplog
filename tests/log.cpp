@@ -2,6 +2,8 @@
 #include <catch/catch.hpp>
 
 TEST_CASE("Log") {
+    REQUIRE(false);
+/*
   SECTION("Buffers are acquired and reused") {
     np::log::Logger log;
     auto buf = log.acquireBuffer();
@@ -42,4 +44,5 @@ TEST_CASE("Log") {
     CHECK(msg_len == 1);
     CHECK(level == 3);
   }
+  */
 }
