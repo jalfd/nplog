@@ -13,7 +13,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 option(BUILD_SHARED_LIBS "Build as shared library" ON)
-set(NP_CHECK_CONVERSIONS OFF CACHE STRING "Check for overflows in various internal conversions")
+option(NP_CHECK_CONVERSIONS "Check for overflows in various internal conversions" OFF)
+option(NP_LIBRARY_DEV "Enable compiler flags useful to nplog project developers" OFF)
 
 add_library(Date INTERFACE IMPORTED)
 
@@ -22,6 +23,12 @@ add_library(Date INTERFACE IMPORTED)
 set_property(TARGET Date APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/src/external/include)
 
 find_package(Threads REQUIRED)
+
+if (NP_LIBRARY_DEV)
+    if (NOT WIN32)
+        add_definitions(-Wfatal-errors)
+    endif()
+endif()
 
 add_library(nplog
     src/logger.cpp
