@@ -23,7 +23,7 @@ namespace np::log {
     };
     Levels levels;
     Sink sink;
-    Fields fields;
+    Fields fields = static_cast<Config::Fields>(Config::File | Config::Line | Config::Time);
   };
 
   void applyConfig(LogConfig cfg);

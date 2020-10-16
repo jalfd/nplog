@@ -49,7 +49,7 @@ namespace np::log {
     };
 
     Sink sink;
-    Fields fields;
+    Fields fields = static_cast<Fields>(File | Line | Time | LevelName);
     Levels levels;
     // Some messages or parameters may be marked sensitive, and will only be logged when this flag is set
     bool sensitive_enabled = false;
