@@ -47,5 +47,5 @@ namespace np::log {
 
   void sendToSink(level_type level, std::string_view buffer);
 
-} // namespace np
+} // namespace np::log
 #endif

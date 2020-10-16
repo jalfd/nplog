@@ -50,9 +50,9 @@ namespace np::log {
   Logger::buffer_type Logger::acquireBuffer() {
     std::lock_guard lock(state.buffer_mutex);
     if (state.buffers.empty()) { state.buffers.emplace_back(); }
-      auto buf = std::move(state.buffers.back());
-      state.buffers.pop_back();
-      return buf;
+    auto buf = std::move(state.buffers.back());
+    state.buffers.pop_back();
+    return buf;
   }
 
   void Logger::submitMessage(level_type level, buffer_type& buffer) {
@@ -64,4 +64,4 @@ namespace np::log {
     std::lock_guard lock(state.buffer_mutex);
     state.buffers.push_back(std::move(buf));
   }
-} // namespace np
+} // namespace np::log

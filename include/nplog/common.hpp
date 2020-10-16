@@ -6,9 +6,7 @@
 namespace np::log {
   using level_type = unsigned char;
 
-  inline bool testLevel(level_type level, level_type threshold) {
-      return level <= threshold;
-  }
-} // namespace np
+  inline bool testLevel(level_type level, level_type threshold) { return level <= threshold; }
+} // namespace np::log
 
 #endif

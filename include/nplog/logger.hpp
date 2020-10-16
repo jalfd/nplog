@@ -2,9 +2,9 @@
 #define NP_LOG_LOGGER_HPP
 
 #include <nplog/config.hpp>
-#include <nplog/serializer.hpp>
 #include <nplog/export.hpp>
 #include <nplog/messagebuffer.hpp>
+#include <nplog/serializer.hpp>
 
 #include <string_view>
 

@@ -3,8 +3,8 @@
 
 #include <nplog/common.hpp>
 #include <nplog/export.hpp>
-#include <string_view>
 #include <nplog/messagebuffer.hpp>
+#include <string_view>
 
 namespace np::log {
   struct NPLOG_EXPORT ValueSerializer {
@@ -54,5 +54,5 @@ namespace np::log {
 
     friend struct HeaderFields;
   };
-} // namespace np
+} // namespace np::log
 #endif

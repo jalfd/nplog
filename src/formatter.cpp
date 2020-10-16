@@ -43,4 +43,4 @@ namespace np::log {
   void format(std::string_view val, ValueSerializer& srl) { srl.write(val); }
 
   void format(const std::string& val, ValueSerializer& srl) { srl.write(std::string_view(val)); }
-} // namespace np
+} // namespace np::log

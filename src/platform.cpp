@@ -12,8 +12,8 @@
 #endif
 
 #if NP_PLATFORM_WINDOWS
-#include <winsock2.h>
 #include <Windows.h>
+#include <winsock2.h>
 #elif NP_PLATFORM_LINUX
 #include <sys/syscall.h>
 #include <errno.h>
@@ -148,4 +148,4 @@ namespace np::log {
       return internal::cached->executable;
     }
   } // namespace platform
-} // namespace np
+} // namespace np::log

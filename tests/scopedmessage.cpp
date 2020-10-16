@@ -14,7 +14,7 @@ namespace np::log {
       ops.emplace_back("format", &val);
     }
   };
-} // namespace np
+} // namespace np::log
 
 namespace {
   struct MockLog {
@@ -142,7 +142,8 @@ TEST_CASE("ScopedMessage") {
     CHECK(std::any_cast<int>(std::get<1>(ops.at(4))) == buffer2);
     // Inner emessage is written
     CHECK(std::get<0>(ops.at(5)) == "submitMessage");
-    CHECK(std::any_cast<std::pair<np::log::level_type, int>>(std::get<1>(ops.at(5))).second == buffer2);
+    CHECK(
+      std::any_cast<std::pair<np::log::level_type, int>>(std::get<1>(ops.at(5))).second == buffer2);
     CHECK(std::get<0>(ops.at(6)) == "releaseBuffer");
     CHECK(std::any_cast<int>(std::get<1>(ops.at(6))) == buffer2);
     CHECK(std::get<0>(ops.at(7)) == "dtor");
@@ -152,7 +153,8 @@ TEST_CASE("ScopedMessage") {
     CHECK(std::any_cast<int>(std::get<1>(ops.at(10))) == buffer1);
     // Outer message is written
     CHECK(std::get<0>(ops.at(11)) == "submitMessage");
-    CHECK(std::any_cast<std::pair<np::log::level_type, int>>(std::get<1>(ops.at(11))).second == buffer1);
+    CHECK(std::any_cast<std::pair<np::log::level_type, int>>(std::get<1>(ops.at(11))).second
+      == buffer1);
     CHECK(std::get<0>(ops.at(12)) == "releaseBuffer");
     CHECK(std::any_cast<int>(std::get<1>(ops.at(12))) == buffer1);
     CHECK(std::get<0>(ops.at(13)) == "dtor");
