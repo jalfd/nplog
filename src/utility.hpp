@@ -26,6 +26,6 @@ namespace np::log {
     if (it != path.end()) { path.remove_suffix(to_size_t_checked(path.end() - it)); }
     return path;
   }
-} // namespace np
+} // namespace np::log
 
 #endif

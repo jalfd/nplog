@@ -1,8 +1,8 @@
 #ifndef NP_LOG_SCOPEDMESSAGE_HPP
 #define NP_LOG_SCOPEDMESSAGE_HPP
 
-#include <nplog/logger.hpp>
 #include <nplog/formatter.hpp>
+#include <nplog/logger.hpp>
 #include <string_view>
 
 namespace np::log {
@@ -38,7 +38,8 @@ namespace np::log {
     }
 
     bool suppressParam(uint16_t i) {
-      return !testLevel(static_cast<level_type>(i), static_cast<level_type>(param_level)) || (i >> 8) > static_cast<uint16_t>(permit_sensitive);
+      return !testLevel(static_cast<level_type>(i), static_cast<level_type>(param_level))
+        || (i >> 8) > static_cast<uint16_t>(permit_sensitive);
     }
     bool suppressParam(const char* = nullptr) { return suppressParam(message_level); }
 
@@ -52,5 +53,5 @@ namespace np::log {
     bool permit_sensitive;
   };
 
-} // namespace np
+} // namespace np::log
 #endif

@@ -9,6 +9,6 @@ namespace np::log::platform {
   uint64_t threadId();
   std::string hostname();
   std::string executableName();
-} // namespace np::platform
+} // namespace np::log::platform
 
 #endif

@@ -34,7 +34,7 @@ namespace np::log {
       static inline int message_counter = 0;
     };
   } // namespace
-} // namespace np
+} // namespace np::log
 
 int foo(int i, int j) { return i + j; }
 

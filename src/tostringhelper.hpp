@@ -97,6 +97,6 @@ namespace np::log {
     std::fill(first, start, pad);
     return std::string_view(start, to_size_t_checked(last - start));
   }
-} // namespace np
+} // namespace np::log
 
 #endif

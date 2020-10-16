@@ -14,8 +14,7 @@ TEST_CASE("Formatter works for built-in numeric types") {
     np::log::MessageBuffer b;
     np::log::ValueSerializer srl(&b);
     np::log::format(std::numeric_limits<unsigned short>::min(), srl);
-    REQUIRE(
-      std::numeric_limits<unsigned short>::min() == std::stoul(std::string(b.contents())));
+    REQUIRE(std::numeric_limits<unsigned short>::min() == std::stoul(std::string(b.contents())));
   }
   SECTION("int") {
     np::log::MessageBuffer b;
@@ -27,8 +26,7 @@ TEST_CASE("Formatter works for built-in numeric types") {
     np::log::MessageBuffer b;
     np::log::ValueSerializer srl(&b);
     np::log::format(std::numeric_limits<unsigned int>::min(), srl);
-    REQUIRE(
-      std::numeric_limits<unsigned int>::min() == std::stoul(std::string(b.contents())));
+    REQUIRE(std::numeric_limits<unsigned int>::min() == std::stoul(std::string(b.contents())));
   }
   SECTION("long") {
     np::log::MessageBuffer b;
@@ -40,8 +38,7 @@ TEST_CASE("Formatter works for built-in numeric types") {
     np::log::MessageBuffer b;
     np::log::ValueSerializer srl(&b);
     np::log::format(std::numeric_limits<unsigned long>::min(), srl);
-    REQUIRE(
-      std::numeric_limits<unsigned long>::min() == std::stoul(std::string(b.contents())));
+    REQUIRE(std::numeric_limits<unsigned long>::min() == std::stoul(std::string(b.contents())));
   }
   SECTION("long long") {
     np::log::MessageBuffer b;
@@ -53,22 +50,20 @@ TEST_CASE("Formatter works for built-in numeric types") {
     np::log::MessageBuffer b;
     np::log::ValueSerializer srl(&b);
     np::log::format(std::numeric_limits<unsigned long long>::min(), srl);
-    REQUIRE(std::numeric_limits<unsigned long long>::min()
-      == std::stoull(std::string(b.contents())));
+    REQUIRE(
+      std::numeric_limits<unsigned long long>::min() == std::stoull(std::string(b.contents())));
   }
   SECTION("float") {
     np::log::MessageBuffer b;
     np::log::ValueSerializer srl(&b);
     np::log::format(std::numeric_limits<float>::min(), srl);
-    REQUIRE(
-      Approx(std::numeric_limits<float>::min()) == std::stof(std::string(b.contents())));
+    REQUIRE(Approx(std::numeric_limits<float>::min()) == std::stof(std::string(b.contents())));
   }
   SECTION("double") {
     np::log::MessageBuffer b;
     np::log::ValueSerializer srl(&b);
     np::log::format(std::numeric_limits<double>::min(), srl);
-    REQUIRE(
-      Approx(std::numeric_limits<double>::min()) == std::stod(std::string(b.contents())));
+    REQUIRE(Approx(std::numeric_limits<double>::min()) == std::stod(std::string(b.contents())));
   }
   SECTION("long double") {
     np::log::MessageBuffer b;

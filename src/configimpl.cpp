@@ -55,7 +55,8 @@ namespace np::log {
   }
 
   void sendToSink(level_type level, std::string_view buffer) {
-    std::shared_lock<std::shared_mutex> lock(config_mutex); // TODO: is this where we serialize log messages from multiple threads?
+    std::shared_lock<std::shared_mutex> lock(
+      config_mutex); // TODO: is this where we serialize log messages from multiple threads?
     config.sink(MessageInfo{level, buffer});
   }
-} // namespace np
+} // namespace np::log

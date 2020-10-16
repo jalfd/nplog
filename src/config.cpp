@@ -12,7 +12,12 @@
 
 namespace np::log {
   namespace internal {
-    void applyConfig(Config::Sink sink, Config::Fields fields, bool sensitive, LevelSpec default_level, LevelRule* first, LevelRule* last) {
+    void applyConfig(Config::Sink sink,
+      Config::Fields fields,
+      bool sensitive,
+      LevelSpec default_level,
+      LevelRule* first,
+      LevelRule* last) {
       LogConfig cfg;
       cfg.sink = sink;
       cfg.fields = fields;
@@ -27,7 +32,7 @@ namespace np::log {
       std::for_each(first, last, [&](auto rule) {
         const auto& [name, depth, level] = rule;
         if (name.size() == 0) {
-          cfg.levels.levels_by_depth.resize(to_size_t_checked(depth+1), level);
+          cfg.levels.levels_by_depth.resize(to_size_t_checked(depth + 1), level);
         } else {
           const auto old_len = cfg.levels.name_data.size();
           std::copy(name.begin(), name.end(), std::back_inserter(cfg.levels.name_data));
@@ -38,5 +43,5 @@ namespace np::log {
 
       applyConfig(std::move(cfg));
     }
-  }
-} // namespace np
+  } // namespace internal
+} // namespace np::log

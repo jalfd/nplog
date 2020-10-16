@@ -1,5 +1,5 @@
-#include <nplog.hpp>
 #include <iostream>
+#include <nplog.hpp>
 
 np::Logger mylog;
 

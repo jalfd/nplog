@@ -1,16 +1,16 @@
+#include <date/date.h>
 #include <nplog/config.hpp>
 #include <nplog/serializer.hpp>
 #include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <cstdio>
 #include <cstdlib>
+#include <limits>
 #include "configimpl.hpp"
 #include "platform.hpp"
 #include "utility.hpp"
 #include <locale.h>
-#include <cmath>
-#include <cstdio>
-#include <date/date.h>
-#include <chrono>
-#include <limits>
 
 #include "tostringhelper.hpp"
 
@@ -38,8 +38,7 @@ namespace np::log {
     } c_locale;
 #endif
 
-    const std::map<level_type, std::string> level_names = {
-      {static_cast<level_type>(0), "Fatal"},
+    const std::map<level_type, std::string> level_names = {{static_cast<level_type>(0), "Fatal"},
       {static_cast<level_type>(1), "Error"},
       {static_cast<level_type>(2), "Warning"},
       {static_cast<level_type>(3), "Info"},
@@ -105,9 +104,9 @@ namespace np::log {
       const auto lvl = level & 0xff;
       const auto it = level_names.find(static_cast<level_type>(lvl));
       if (it == level_names.end()) {
-          vs.write(lvl);
+        vs.write(lvl);
       } else {
-          vs.write(it->second);
+        vs.write(it->second);
       }
     }
     void logName(sv, int, level_type, sv log_name) {
@@ -124,11 +123,11 @@ namespace np::log {
       vs.writeLiteral(",\"pid\":");
       vs.write(np::log::platform::processId());
     }
-    void threadId(sv, int, level_type, sv ) {
+    void threadId(sv, int, level_type, sv) {
       vs.writeLiteral(",\"tid\":");
       vs.write(np::log::platform::threadId());
     }
-    void hostname(sv, int, level_type, sv ) {
+    void hostname(sv, int, level_type, sv) {
       vs.writeLiteral(",\"host\":");
       vs.write(np::log::platform::hostname());
     }
@@ -153,16 +152,16 @@ namespace np::log {
     HeaderFields hf(*this);
 
     Config::Fields enabled_fields = enabledFields();
-    if (enabled_fields &  Config::File) { hf.file(file, line, level, log_name); }
-    if (enabled_fields &  Config::Line) { hf.line(file, line, level, log_name); }
-    if (enabled_fields &  Config::Time) { hf.time(file, line, level, log_name); }
-    if (enabled_fields &  Config::Level) { hf.level(file, line, level, log_name); }
-    if (enabled_fields &  Config::LevelName) { hf.levelName(file, line, level, log_name); }
-    if (enabled_fields &  Config::LogName) { hf.logName(file, line, level, log_name); }
-    if (enabled_fields &  Config::ProcessName) { hf.processName(file, line, level, log_name); }
-    if (enabled_fields &  Config::ProcessId) { hf.processId(file, line, level, log_name); }
-    if (enabled_fields &  Config::ThreadId) { hf.threadId(file, line, level, log_name); }
-    if (enabled_fields &  Config::Hostname) { hf.hostname(file, line, level, log_name); }
+    if (enabled_fields & Config::File) { hf.file(file, line, level, log_name); }
+    if (enabled_fields & Config::Line) { hf.line(file, line, level, log_name); }
+    if (enabled_fields & Config::Time) { hf.time(file, line, level, log_name); }
+    if (enabled_fields & Config::Level) { hf.level(file, line, level, log_name); }
+    if (enabled_fields & Config::LevelName) { hf.levelName(file, line, level, log_name); }
+    if (enabled_fields & Config::LogName) { hf.logName(file, line, level, log_name); }
+    if (enabled_fields & Config::ProcessName) { hf.processName(file, line, level, log_name); }
+    if (enabled_fields & Config::ProcessId) { hf.processId(file, line, level, log_name); }
+    if (enabled_fields & Config::ThreadId) { hf.threadId(file, line, level, log_name); }
+    if (enabled_fields & Config::Hostname) { hf.hostname(file, line, level, log_name); }
   }
 
   void Serializer::epilogue() {
@@ -296,4 +295,4 @@ namespace np::log {
 
     writeLiteral(std::string_view(buf, to_size_t_checked(len)));
   }
-} // namespace np
+} // namespace np::log

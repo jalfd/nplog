@@ -201,9 +201,9 @@ TEST_CASE("ValueSerializer") {
 }
 
 TEST_CASE("Serializer") {
-    np::log::Config cfg;
-    cfg.fields = static_cast<np::log::Config::Fields>(-1);
-    np::log::applyConfig(cfg);
+  np::log::Config cfg;
+  cfg.fields = static_cast<np::log::Config::Fields>(-1);
+  np::log::applyConfig(cfg);
 
   SECTION("Log with no parameters") {
     np::log::MessageBuffer buf;

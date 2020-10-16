@@ -29,6 +29,6 @@ namespace np::log {
   NPLOG_EXPORT void format(std::string_view val, ValueSerializer& srl);
   NPLOG_EXPORT void format(const std::string& val, ValueSerializer& srl);
 
-} // namespace np
+} // namespace np::log
 
 #endif
