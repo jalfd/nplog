@@ -14,7 +14,6 @@ namespace np::log {
   namespace internal {
     void applyConfig(Config::Sink sink,
       Config::Fields fields,
-      bool sensitive,
       LevelSpec default_level,
       LevelRule* first,
       LevelRule* last) {
@@ -22,7 +21,6 @@ namespace np::log {
       cfg.sink = sink;
       cfg.fields = fields;
       cfg.levels.default_level = default_level;
-      cfg.levels.sensitive = sensitive;
 
       // so for each level rule
       const auto name_len = std::accumulate(

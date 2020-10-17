@@ -12,6 +12,13 @@
 #include "utility.hpp"
 #include <locale.h>
 
+#ifdef _WIN32
+#include <intrin.h>
+#pragma intrinsic(_BitScanReverse)
+#else
+#include <strings.h>
+#endif
+
 #include "tostringhelper.hpp"
 
 namespace np::log {
@@ -38,12 +45,8 @@ namespace np::log {
     } c_locale;
 #endif
 
-    const std::map<level_type, std::string> level_names = {{static_cast<level_type>(0), "Fatal"},
-      {static_cast<level_type>(1), "Error"},
-      {static_cast<level_type>(2), "Warning"},
-      {static_cast<level_type>(3), "Info"},
-      {static_cast<level_type>(4), "Debug"},
-      {static_cast<level_type>(5), "Trace"}};
+    const std::string level_names[]
+      = {"<invalid>", "Fatal", "Error", "Warning", "Status", "Debug", "Debug", "Debug", "Trace"};
   } // namespace
 
   struct HeaderFields {
@@ -101,13 +104,16 @@ namespace np::log {
 
     void levelName(sv, int, level_type level, sv) {
       vs.writeLiteral(",\"levelString\":");
-      const auto lvl = level & 0xff;
-      const auto it = level_names.find(static_cast<level_type>(lvl));
-      if (it == level_names.end()) {
-        vs.write(lvl);
-      } else {
-        vs.write(it->second);
-      }
+#ifdef _WIN32
+      unsigned long index = 0;
+      unsigned long lvl = level & 0xff;
+      if (!_BitScanReverse(&index, lvl)) { index = 1; }
+#else
+      unsigned int lvl = level & 0xff;
+      unsigned int index = static_cast<unsigned int>(ffs(static_cast<int>(lvl)));
+      if (index == 0) { index = 1; }
+#endif
+      vs.write(level_names[index]);
     }
     void logName(sv, int, level_type, sv log_name) {
       if (!log_name.empty()) {

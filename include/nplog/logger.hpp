@@ -29,8 +29,6 @@ namespace np::log {
 
     std::string_view name() const { return std::string_view(name_ptr, name_len); }
 
-    bool permitSensitive() const { return sensitive; }
-
   private:
     LevelSpec effective_levels;
     LevelSpec levels_by_name_only;
@@ -39,7 +37,6 @@ namespace np::log {
     size_t name_len = 0;
     const unsigned depth = 0;
     unsigned version = 0;
-    bool sensitive = false;
   };
 } // namespace np::log
 

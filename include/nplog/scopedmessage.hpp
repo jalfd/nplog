@@ -41,12 +41,9 @@ namespace np::log {
       const char* file,
       int line,
       level_type level,
-      const char* m,
-      level_type param_level)
+      const char* m)
       : ScopedMessageBase(file, line, level, m, log.acquireBuffer(), log.name())
-      , log(log)
-      , param_level(param_level)
-      , permit_sensitive(log.permitSensitive()) {}
+      , log(log) {}
 
     ~ScopedMessage() {
       endMessage();
@@ -56,16 +53,8 @@ namespace np::log {
 
     using ScopedMessageBase::addParam;
 
-    bool suppressParam(uint16_t i) {
-      return !testLevel(static_cast<level_type>(i), static_cast<level_type>(param_level))
-        || (i >> 8) > static_cast<uint16_t>(permit_sensitive);
-    }
-    bool suppressParam(const char* = nullptr) { return suppressParam(message_level); }
-
   private:
     Logger& log;
-    level_type param_level;
-    bool permit_sensitive;
   };
 } // namespace np::log
 #endif
