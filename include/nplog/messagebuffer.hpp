@@ -1,6 +1,7 @@
 #ifndef NPLOG_MESSAGEBUFFER_HPP
 #define NPLOG_MESSAGEBUFFER_HPP
 
+#include <nplog/export.hpp>
 #include <algorithm>
 #include <cstdlib>
 #include <string_view>
@@ -84,6 +85,10 @@ namespace np::log {
     char* buf_end = nullptr;
     char* msg_end = nullptr;
   };
+
+  NPLOG_EXPORT MessageBuffer acquireBuffer();
+
+  NPLOG_EXPORT void releaseBuffer(MessageBuffer&& buf);
 } // namespace np::log
 
 #endif

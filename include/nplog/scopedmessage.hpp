@@ -57,7 +57,7 @@ namespace np::log {
         line,
         level,
         m,
-        log.acquireBuffer(),
+        acquireBuffer(),
         log.name(),
         log.loggerParams() ? log.loggerParams()->data.contents() : std::string_view())
       , log(log) {}
@@ -65,7 +65,7 @@ namespace np::log {
     ~ScopedMessage() {
       endMessage();
       log.submitMessage(message_level, message_buffer);
-      log.releaseBuffer(std::move(message_buffer));
+      releaseBuffer(std::move(message_buffer));
     }
 
     using ScopedMessageBase::addParam;

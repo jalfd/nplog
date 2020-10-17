@@ -1,6 +1,8 @@
 #include <nplog/messagebuffer.hpp>
 #include <catch/catch.hpp>
 
+using namespace np::log;
+
 TEST_CASE("MessageBuffer") {
   np::log::MessageBuffer buf;
 
@@ -73,5 +75,24 @@ TEST_CASE("MessageBuffer") {
     buf.clear();
 
     REQUIRE(buf.contents().empty());
+  }
+}
+
+TEST_CASE("MessageBuffer management") {
+  SECTION("Buffers are acquired and reused") {
+    auto buf = acquireBuffer();
+    buf.append('x');
+    const auto size = buf.bufferSize();
+    releaseBuffer(std::move(buf));
+    auto b2 = acquireBuffer();
+    CHECK(b2.bufferSize() == size);
+  }
+
+  SECTION("Buffers are cleared on reuse") {
+    auto buf = acquireBuffer();
+    buf.append('x');
+    releaseBuffer(std::move(buf));
+    auto b2 = acquireBuffer();
+    CHECK(b2.messageSize() == 0);
   }
 }
