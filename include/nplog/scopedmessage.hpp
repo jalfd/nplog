@@ -6,52 +6,72 @@
 #include <string_view>
 
 namespace np::log {
-  template <typename LogType>
-  struct ScopedMessage {
-    ScopedMessage(LogType& log,
-      const char* file,
+  struct NPLOG_EXPORT ScopedMessageBase {
+    ScopedMessageBase(const char* file,
       int line,
       level_type level,
       const char* m,
-      level_type param_level)
-      : log(log)
-      , param_level(param_level)
-      , message_buffer(log.acquireBuffer())
-      , serializer(&message_buffer)
-      , message_level(level)
-      , permit_sensitive(log.permitSensitive()) {
-      serializer.prologue(file, line, level, log.name(), m);
+      MessageBuffer buffer,
+      std::string_view log_name,
+      std::string_view logger_params_data)
+      : message_buffer(std::move(buffer)), serializer(&message_buffer), message_level(level) {
+      serializer.prologue(file, line, level, log_name, m);
+      if (!logger_params_data.empty()) {
+        serializer.startObject("static");
+        serializer.valueSerializer().writeLiteral(logger_params_data);
+        serializer.endObject();
+      }
     }
 
-    ~ScopedMessage() {
+    void endMessage() {
+      if (has_params) { serializer.endObject(); }
       serializer.epilogue();
-      log.submitMessage(message_level, message_buffer);
-      log.releaseBuffer(std::move(message_buffer));
     }
 
     template <typename T>
     bool addParam(const char* name, T&& expr) {
+      if (!has_params) {
+        has_params = true;
+        serializer.startObject("params");
+      }
       serializer.writeKey(name);
       auto vs = serializer.valueSerializer();
       np::log::format(expr, vs);
       return true;
     }
 
-    bool suppressParam(uint16_t i) {
-      return !testLevel(static_cast<level_type>(i), static_cast<level_type>(param_level))
-        || (i >> 8) > static_cast<uint16_t>(permit_sensitive);
-    }
-    bool suppressParam(const char* = nullptr) { return suppressParam(message_level); }
+    const MessageBuffer& buffer() { return message_buffer; }
 
-  private:
-    LogType& log;
+  protected:
     level_type param_level;
-    typename LogType::buffer_type message_buffer;
-    typename LogType::serializer_type serializer;
+    MessageBuffer message_buffer;
+    Serializer serializer;
 
     level_type message_level;
-    bool permit_sensitive;
+    bool has_params = false;
   };
 
+  struct NPLOG_EXPORT ScopedMessage : private ScopedMessageBase {
+    ScopedMessage(Logger& log, const char* file, int line, level_type level, const char* m)
+      : ScopedMessageBase(file,
+        line,
+        level,
+        m,
+        log.acquireBuffer(),
+        log.name(),
+        log.loggerParams() ? log.loggerParams()->data.contents() : std::string_view())
+      , log(log) {}
+
+    ~ScopedMessage() {
+      endMessage();
+      log.submitMessage(message_level, message_buffer);
+      log.releaseBuffer(std::move(message_buffer));
+    }
+
+    using ScopedMessageBase::addParam;
+
+  private:
+    Logger& log;
+  };
 } // namespace np::log
 #endif
