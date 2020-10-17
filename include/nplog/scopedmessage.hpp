@@ -6,28 +6,18 @@
 #include <string_view>
 
 namespace np::log {
-  template <typename LogType>
-  struct ScopedMessage {
-    ScopedMessage(LogType& log,
-      const char* file,
+  struct NPLOG_EXPORT ScopedMessageBase {
+    ScopedMessageBase(const char* file,
       int line,
       level_type level,
       const char* m,
-      level_type param_level)
-      : log(log)
-      , param_level(param_level)
-      , message_buffer(log.acquireBuffer())
-      , serializer(&message_buffer)
-      , message_level(level)
-      , permit_sensitive(log.permitSensitive()) {
-      serializer.prologue(file, line, level, log.name(), m);
+      MessageBuffer buffer,
+      std::string_view log_name)
+      : message_buffer(std::move(buffer)), serializer(&message_buffer), message_level(level) {
+      serializer.prologue(file, line, level, log_name, m);
     }
 
-    ~ScopedMessage() {
-      serializer.epilogue();
-      log.submitMessage(message_level, message_buffer);
-      log.releaseBuffer(std::move(message_buffer));
-    }
+    void endMessage() { serializer.epilogue(); }
 
     template <typename T>
     bool addParam(const char* name, T&& expr) {
@@ -37,6 +27,35 @@ namespace np::log {
       return true;
     }
 
+    const MessageBuffer& buffer() { return message_buffer; }
+
+  protected:
+    MessageBuffer message_buffer;
+    Serializer serializer;
+
+    level_type message_level;
+  };
+
+  struct NPLOG_EXPORT ScopedMessage : private ScopedMessageBase {
+    ScopedMessage(Logger& log,
+      const char* file,
+      int line,
+      level_type level,
+      const char* m,
+      level_type param_level)
+      : ScopedMessageBase(file, line, level, m, log.acquireBuffer(), log.name())
+      , log(log)
+      , param_level(param_level)
+      , permit_sensitive(log.permitSensitive()) {}
+
+    ~ScopedMessage() {
+      endMessage();
+      log.submitMessage(message_level, message_buffer);
+      log.releaseBuffer(std::move(message_buffer));
+    }
+
+    using ScopedMessageBase::addParam;
+
     bool suppressParam(uint16_t i) {
       return !testLevel(static_cast<level_type>(i), static_cast<level_type>(param_level))
         || (i >> 8) > static_cast<uint16_t>(permit_sensitive);
@@ -44,14 +63,9 @@ namespace np::log {
     bool suppressParam(const char* = nullptr) { return suppressParam(message_level); }
 
   private:
-    LogType& log;
+    Logger& log;
     level_type param_level;
-    typename LogType::buffer_type message_buffer;
-    typename LogType::serializer_type serializer;
-
-    level_type message_level;
     bool permit_sensitive;
   };
-
 } // namespace np::log
 #endif

@@ -5,8 +5,6 @@ target_link_libraries(example PRIVATE nplog)
 
 add_executable(tests
     tests.cpp
-    mocks.hpp
-    utils.hpp
     macros.cpp
     common.cpp
     scopedmessage.cpp
