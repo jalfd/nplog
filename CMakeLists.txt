@@ -34,6 +34,7 @@ add_library(nplog
     src/logger.cpp
     src/serializer.cpp
     src/formatter.cpp
+    src/messagebuffer.cpp
     src/config.cpp
     src/configimpl.hpp
     src/configimpl.cpp

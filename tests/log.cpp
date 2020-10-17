@@ -1,26 +1,8 @@
+#include <nplog/messagebuffer.hpp>
 #include <nplog/scopedmessage.hpp>
 #include <catch/catch.hpp>
 
 TEST_CASE("Log") {
-  SECTION("Buffers are acquired and reused") {
-    np::log::Logger log;
-    auto buf = log.acquireBuffer();
-    buf.append('x');
-    const auto size = buf.bufferSize();
-    log.releaseBuffer(std::move(buf));
-    auto b2 = log.acquireBuffer();
-    CHECK(b2.bufferSize() == size);
-  }
-
-  SECTION("Buffers are cleared on reuse") {
-    np::log::Logger log;
-    auto buf = log.acquireBuffer();
-    buf.append('x');
-    log.releaseBuffer(std::move(buf));
-    auto b2 = log.acquireBuffer();
-    CHECK(b2.messageSize() == 0);
-  }
-
   SECTION("Submitting a buffer sends it to the sink function") {
     np::log::Logger log;
     np::log::level_type level = 0;
@@ -35,10 +17,11 @@ TEST_CASE("Log") {
     };
     np::log::applyConfig(cfg);
 
-    auto buf = log.acquireBuffer();
+    auto buf = np::log::acquireBuffer();
     buf.append('x');
     log.submitMessage(3, buf);
     CHECK(msg_start == buf.contents().data());
+    np::log::releaseBuffer(std::move(buf));
     CHECK(msg_len == 1);
     CHECK(level == 3);
   }

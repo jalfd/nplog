@@ -10,16 +10,6 @@
 #include <string>
 
 namespace np::log {
-  namespace {
-    struct LogState {
-      std::mutex buffer_mutex;
-      std::vector<Logger::buffer_type> buffers;
-    };
-
-    static LogState state;
-
-  } // namespace
-
   LoggerParams::LoggerParams(LoggerParams* parent, std::initializer_list<LogParam> params) {
     Serializer s(&data);
     std::vector<const LogParam*> param_ptrs; // FIXME: should reserve
@@ -131,21 +121,7 @@ namespace np::log {
     return exclude_depth ? levels_by_name_only : effective_levels;
   }
 
-  Logger::buffer_type Logger::acquireBuffer() {
-    std::lock_guard lock(state.buffer_mutex);
-    if (state.buffers.empty()) { state.buffers.emplace_back(); }
-    auto buf = std::move(state.buffers.back());
-    state.buffers.pop_back();
-    return buf;
-  }
-
   void Logger::submitMessage(level_type level, buffer_type& buffer) {
     ::np::log::sendToSink(level, buffer.contents());
-  }
-
-  void Logger::releaseBuffer(buffer_type&& buf) {
-    buf.clear();
-    std::lock_guard lock(state.buffer_mutex);
-    state.buffers.push_back(std::move(buf));
   }
 } // namespace np::log
