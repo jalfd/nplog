@@ -170,24 +170,30 @@ namespace np::log {
     if (enabled_fields & Config::Hostname) { hf.hostname(file, line, level, log_name); }
   }
 
-  void Serializer::epilogue() {
-    if (has_params) { buffer->append('}'); }
-    buffer->append('}');
-  }
+  void Serializer::epilogue() { buffer->append('}'); }
 
   void Serializer::writeKey(std::string_view name) {
     auto vs = valueSerializer();
-    if (!has_params) {
-      vs.writeLiteral(",\"params\":{");
-    } else {
-      vs.writeLiteral(",");
-    }
+    if (!is_empty) { vs.writeLiteral(","); }
+    is_empty = false;
     vs.write(name);
     buffer->append(':');
-    has_params = true;
   }
 
   ValueSerializer Serializer::valueSerializer() { return ValueSerializer(buffer); }
+
+  void Serializer::startObject(std::string_view name) {
+    auto vs = valueSerializer();
+    vs.writeLiteral(",\"");
+    vs.writeLiteral(name);
+    vs.writeLiteral("\":{");
+    is_empty = true;
+  }
+
+  void Serializer::endObject() {
+    buffer->append('}');
+    is_empty = false;
+  }
 
   ValueSerializer::ValueSerializer(buffer_type* buffer) : buffer(buffer) {}
 

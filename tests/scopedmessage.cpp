@@ -42,7 +42,7 @@ TEST_CASE("ScopedMessageBase") {
   cfg.fields = static_cast<np::log::Config::Fields>(0);
   np::log::applyConfig(cfg);
   SECTION("ScopedMessage writes message to the buffer") {
-    np::log::ScopedMessageBase msg("file", 3, 1, "hello", np::log::MessageBuffer(), "name");
+    np::log::ScopedMessageBase msg("file", 3, 1, "hello", np::log::MessageBuffer(), "name", {});
     msg.endMessage();
     const auto& buffer = msg.buffer();
     const auto obj = parseLogMessage(buffer);
@@ -55,7 +55,7 @@ TEST_CASE("ScopedMessageBase") {
     cfg.fields = static_cast<np::log::Config::Fields>(-1);
     np::log::applyConfig(cfg);
 
-    np::log::ScopedMessageBase msg("file", 3, 1, "hello", np::log::MessageBuffer(), "name");
+    np::log::ScopedMessageBase msg("file", 3, 1, "hello", np::log::MessageBuffer(), "name", {});
     msg.endMessage();
     const auto& buffer = msg.buffer();
     const auto obj = parseLogMessage(buffer);
@@ -67,7 +67,7 @@ TEST_CASE("ScopedMessageBase") {
   }
 
   SECTION("ScopedMessage writes parameters with standard types to the buffer") {
-    np::log::ScopedMessageBase msg("", 0, 0, "", np::log::MessageBuffer(), "");
+    np::log::ScopedMessageBase msg("", 0, 0, "", np::log::MessageBuffer(), "", {});
     msg.addParam("number", 42);
     msg.addParam("string", std::string_view("42"));
     msg.endMessage();
@@ -83,7 +83,7 @@ TEST_CASE("ScopedMessageBase") {
 
   SECTION("ScopedMessage writes parameters with custom types to the buffer") {
     testns::CustomParamType p;
-    np::log::ScopedMessageBase msg("", 0, 0, "", np::log::MessageBuffer(), "");
+    np::log::ScopedMessageBase msg("", 0, 0, "", np::log::MessageBuffer(), "", {});
     msg.addParam("p", p);
     msg.endMessage();
     const auto& buffer = msg.buffer();
