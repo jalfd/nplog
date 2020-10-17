@@ -43,13 +43,9 @@ namespace np::log {
 
     Logger(const Logger&) = delete;
 
-    buffer_type acquireBuffer();
-
     ~Logger();
 
     void submitMessage(level_type level, buffer_type& buffer);
-
-    void releaseBuffer(buffer_type&& buf);
 
     LevelSpec refreshLevels(unsigned version, bool exclude_depth = false);
 
