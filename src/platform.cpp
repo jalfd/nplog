@@ -12,8 +12,8 @@
 #endif
 
 #if NP_PLATFORM_WINDOWS
-#include <Windows.h>
 #include <winsock2.h>
+#include <Windows.h>
 #elif NP_PLATFORM_LINUX
 #include <sys/syscall.h>
 #include <errno.h>
