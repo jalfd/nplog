@@ -1,23 +1,36 @@
 #include "configimpl.hpp"
 #include <atomic>
+#include <mutex>
+#include <memory>
 
 namespace np::log {
-  std::shared_mutex config_mutex;
-  std::atomic<unsigned> config_timestamp = 1;
-
   namespace {
+    std::mutex sink_mutex;
+    std::atomic<unsigned> config_timestamp = 1;
     const Config::Sink stderr_log_sink = [](MessageInfo msg) {
       fwrite(msg.message.data(), sizeof(char), msg.message.size(), stderr);
     };
 
-    LogConfig config;
+    auto config = std::make_shared<LogConfig>();
+
+    std::shared_ptr<LogConfig> getConfig() {
+      thread_local unsigned cached_version = 0;
+      thread_local std::shared_ptr<LogConfig> cached_ptr;
+
+      if (!isCurrent(cached_version)) {
+        cached_ptr = std::atomic_load_explicit(&config, std::memory_order_acquire);
+        cached_version = std::atomic_load_explicit(&config_timestamp, std::memory_order_acquire);
+      }
+
+      return cached_ptr;
+    }
   } // namespace
 
   void applyConfig(LogConfig cfg) {
-    std::lock_guard lock(config_mutex);
-    config = std::move(cfg);
-    if (!config.sink) { config.sink = stderr_log_sink; }
-    std::atomic_fetch_add_explicit(&config_timestamp, 1u, std::memory_order_relaxed);
+    const auto new_cfg = std::make_shared<LogConfig>(std::move(cfg));
+    if (!cfg.sink) { cfg.sink = stderr_log_sink; }
+    std::atomic_store_explicit(&config, new_cfg, std::memory_order_release);
+    std::atomic_fetch_add_explicit(&config_timestamp, 1u, std::memory_order_release);
   }
 
   bool isCurrent(unsigned v) {
@@ -25,16 +38,17 @@ namespace np::log {
   }
 
   LevelsResult getLevels(std::string_view n, unsigned d) {
-    auto version = std::atomic_load_explicit(&config_timestamp, std::memory_order_relaxed);
+    auto version = std::atomic_load_explicit(&config_timestamp, std::memory_order_acquire);
 
-    std::shared_lock<std::shared_mutex> lock(config_mutex);
+    const auto cfg_ptr = getConfig();
+    const auto& cfg = *cfg_ptr;
 
-    LevelSpec lvls = config.levels.default_level;
+    LevelSpec lvls = cfg.levels.default_level;
 
     const auto fun = [](const auto lhs, const auto rhs) { return lhs.first < rhs.first; };
 
     if (!n.empty()) {
-      const auto& lbn = config.levels.levels_by_name;
+      const auto& lbn = cfg.levels.levels_by_name;
       const auto it = std::lower_bound(lbn.begin(), lbn.end(), std::pair{n, LevelSpec{}}, fun);
 
       if (it != lbn.end() && it->first == n) { lvls = merge(lvls, it->second); }
@@ -42,20 +56,17 @@ namespace np::log {
 
     auto levels_by_name = lvls;
 
-    if (d < config.levels.levels_by_depth.size()) {
-      lvls = merge(lvls, config.levels.levels_by_depth[d]);
+    if (d < cfg.levels.levels_by_depth.size()) {
+      lvls = merge(lvls, cfg.levels.levels_by_depth[d]);
     }
 
     return {version, lvls, levels_by_name};
   }
 
-  Config::Fields enabledFields() {
-    std::shared_lock<std::shared_mutex> lock(config_mutex);
-    return config.fields;
-  }
+  Config::Fields enabledFields() { return getConfig()->fields; }
 
   void sendToSink(level_type level, std::string_view buffer) {
-    std::lock_guard<std::shared_mutex> lock(config_mutex);
-    config.sink(MessageInfo{level, buffer});
+    std::lock_guard<std::mutex> lock(sink_mutex);
+    getConfig()->sink(MessageInfo{level, buffer});
   }
 } // namespace np::log
