@@ -1,7 +1,7 @@
 #include "configimpl.hpp"
 #include <atomic>
-#include <mutex>
 #include <memory>
+#include <mutex>
 
 namespace np::log {
   namespace {
@@ -13,18 +13,22 @@ namespace np::log {
 
     auto config = std::make_shared<LogConfig>();
 
-    std::shared_ptr<LogConfig> getConfig() {
+    std::shared_ptr<LogConfig> getConfig(unsigned known_global_version) {
       thread_local unsigned cached_version = 0;
       thread_local std::shared_ptr<LogConfig> cached_ptr;
 
-      if (!isCurrent(cached_version)) {
+      if (!isCurrent(cached_version, known_global_version)) {
         cached_ptr = std::atomic_load_explicit(&config, std::memory_order_acquire);
-        cached_version = std::atomic_load_explicit(&config_timestamp, std::memory_order_acquire);
+        cached_version = currentVersion();
       }
 
       return cached_ptr;
     }
   } // namespace
+
+  unsigned currentVersion() {
+    return std::atomic_load_explicit(&config_timestamp, std::memory_order_acquire);
+  }
 
   void applyConfig(LogConfig cfg) {
     const auto new_cfg = std::make_shared<LogConfig>(std::move(cfg));
@@ -33,14 +37,10 @@ namespace np::log {
     std::atomic_fetch_add_explicit(&config_timestamp, 1u, std::memory_order_release);
   }
 
-  bool isCurrent(unsigned v) {
-    return v == std::atomic_load_explicit(&config_timestamp, std::memory_order_acquire);
-  }
-
   LevelsResult getLevels(std::string_view n, unsigned d) {
-    auto version = std::atomic_load_explicit(&config_timestamp, std::memory_order_acquire);
+    auto version = currentVersion();
 
-    const auto cfg_ptr = getConfig();
+    const auto cfg_ptr = getConfig(version);
     const auto& cfg = *cfg_ptr;
 
     LevelSpec lvls = cfg.levels.default_level;
@@ -63,19 +63,19 @@ namespace np::log {
     return {version, lvls, levels_by_name};
   }
 
-  Config::Fields enabledFields() {
+  Config::Fields enabledFields(unsigned global_version) {
     thread_local unsigned cached_version = 0;
     thread_local Config::Fields cached_fields;
 
-    if (!isCurrent(cached_version)) {
-      cached_fields = getConfig()->fields;
-      cached_version = std::atomic_load_explicit(&config_timestamp, std::memory_order_acquire);
+    if (!isCurrent(cached_version, global_version)) {
+      cached_fields = getConfig(global_version)->fields;
+      cached_version = currentVersion();
     }
     return cached_fields;
   }
 
-  void sendToSink(level_type level, std::string_view buffer) {
+  void sendToSink(level_type level, std::string_view buffer, unsigned global_version) {
     std::lock_guard<std::mutex> lock(sink_mutex);
-    getConfig()->sink(MessageInfo{level, buffer});
+    getConfig(global_version)->sink(MessageInfo{level, buffer});
   }
 } // namespace np::log

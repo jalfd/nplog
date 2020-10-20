@@ -19,7 +19,7 @@ TEST_CASE("Log") {
 
     auto buf = np::log::acquireBuffer();
     buf.append('x');
-    log.submitMessage(3, buf);
+    log.submitMessage(3, buf, np::log::currentVersion());
     CHECK(msg_start == buf.contents().data());
     np::log::releaseBuffer(std::move(buf));
     CHECK(msg_len == 1);

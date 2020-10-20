@@ -27,12 +27,15 @@ namespace np::log::internal {
   (__VA_ARGS__)
 
 #define NP_LOG_IMPL(logger, msg_lvl, msg, ...) \
-  if (auto lvl_threshold = logger.refreshLevels(logger.knownVersion()); \
+do { \
+  const auto current_version = ::np::log::currentVersion(); \
+  if (auto lvl_threshold = logger.refreshLevels(logger.knownVersion(), current_version); \
       np::log::testLevel(msg_lvl, lvl_threshold.message)) { \
-    ::np::log::ScopedMessage sm(logger, __FILE__, __LINE__, msg_lvl, msg); \
+    ::np::log::ScopedMessage sm(logger, __FILE__, __LINE__, current_version, msg_lvl, msg); \
     const auto msg_level = msg_lvl; \
     (void) __VA_ARGS__; \
-  }
+  } \
+} while (false)
 
 #define NP_LOG(...) NP_MSVC_EXPAND_INDIRECT(NP_LOG_IMPL, (__VA_ARGS__, (void) nullptr))
 

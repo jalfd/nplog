@@ -114,7 +114,7 @@ TEST_CASE("Messages include the loggers logparams") {
   cfg.sink = [&](const np::log::MessageInfo& mi) { out = mi.message; };
   np::log::applyConfig(cfg);
   np::Logger log(nullptr, nullptr, {{"foo", 42}});
-  { np::log::ScopedMessage msg(log, "", 0, 0, ""); }
+  { np::log::ScopedMessage msg(log, "", 0, -1, 0, ""); }
   auto msg = parseMessage(out);
   REQUIRE(msg.at("static").get<pj::object>().at("foo") == pj::value(42.0));
 }

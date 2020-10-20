@@ -88,7 +88,7 @@ namespace np::log {
     , name_ptr(name)
     , name_len(name_ptr ? strlen(name_ptr) : 0)
     , depth(parent ? parent->depth + 1 : 0) {
-    refreshLevels(0);
+    refreshLevels(0, currentVersion());
   }
 
   Logger::Logger(const char* name) : Logger(nullptr, name) {}
@@ -105,14 +105,14 @@ namespace np::log {
     if (!(parent && parent->logger_params == logger_params)) { delete logger_params; }
   }
 
-  LevelSpec Logger::refreshLevels(unsigned version_, bool exclude_depth) {
-    if (!isCurrent(version_)) {
+  LevelSpec Logger::refreshLevels(unsigned version_, unsigned global_version, bool exclude_depth) {
+    if (!isCurrent(version_, global_version)) {
       auto result = getLevels(std::string_view(name_ptr, name_len), depth);
       levels_by_name_only = result.levels_by_name_only;
       effective_levels = result.effective_levels;
 
       if (parent) {
-        auto parent_levels = parent->refreshLevels(result.version, true);
+        auto parent_levels = parent->refreshLevels(result.version, global_version, true);
         effective_levels = merge(effective_levels, parent_levels);
         levels_by_name_only = merge(levels_by_name_only, parent_levels);
       }
@@ -121,7 +121,7 @@ namespace np::log {
     return exclude_depth ? levels_by_name_only : effective_levels;
   }
 
-  void Logger::submitMessage(level_type level, buffer_type& buffer) {
-    ::np::log::sendToSink(level, buffer.contents());
+  void Logger::submitMessage(level_type level, buffer_type& buffer, unsigned global_version) {
+    ::np::log::sendToSink(level, buffer.contents(), global_version);
   }
 } // namespace np::log

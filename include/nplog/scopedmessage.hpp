@@ -9,6 +9,7 @@ namespace np::log {
   struct NPLOG_EXPORT ScopedMessageBase {
     ScopedMessageBase(const char* file,
       int line,
+      Config::Fields enabled_fields,
       level_type level,
       const char* m,
       MessageBuffer buffer,
@@ -40,7 +41,7 @@ namespace np::log {
   };
 
   struct NPLOG_EXPORT ScopedMessage : private ScopedMessageBase {
-    ScopedMessage(Logger& log, const char* file, int line, level_type level, const char* m);
+    ScopedMessage(Logger& log, const char* file, int line, unsigned global_version, level_type level, const char* m);
 
     ~ScopedMessage();
 
@@ -48,6 +49,7 @@ namespace np::log {
 
   private:
     Logger& log;
+    unsigned global_version;
   };
 } // namespace np::log
 #endif

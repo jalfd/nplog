@@ -4,6 +4,7 @@
 #include <nplog/common.hpp>
 #include <nplog/export.hpp>
 #include <nplog/messagebuffer.hpp>
+#include <nplog/config.hpp>
 #include <string_view>
 
 namespace np::log {
@@ -42,6 +43,7 @@ namespace np::log {
 
     void prologue(std::string_view file,
       int line,
+      Config::Fields enabled_fields,
       level_type level,
       std::string_view log_name,
       std::string_view msg);

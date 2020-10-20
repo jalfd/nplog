@@ -4,13 +4,14 @@
 namespace np::log {
   ScopedMessageBase::ScopedMessageBase(const char* file,
     int line,
+    Config::Fields enabled_fields,
     level_type level,
     const char* m,
     MessageBuffer buffer,
     std::string_view log_name,
     std::string_view logger_params_data)
     : message_buffer(std::move(buffer)), serializer(&message_buffer), message_level(level) {
-    serializer.prologue(file, line, level, log_name, m);
+    serializer.prologue(file, line, enabled_fields, level, log_name, m);
     if (!logger_params_data.empty()) {
       serializer.startObject("static");
       serializer.valueSerializer().writeLiteral(logger_params_data);
@@ -25,20 +26,22 @@ namespace np::log {
   ScopedMessage::ScopedMessage(Logger& log,
     const char* file,
     int line,
+    unsigned global_version,
     level_type level,
     const char* m)
     : ScopedMessageBase(file,
       line,
+      enabledFields(global_version),
       level,
       m,
       acquireBuffer(),
       log.name(),
       log.loggerParams() ? log.loggerParams()->data.contents() : std::string_view())
-    , log(log) {}
+    , log(log), global_version(global_version) {}
 
   ScopedMessage::~ScopedMessage() {
     endMessage();
-    log.submitMessage(message_level, message_buffer);
+    log.submitMessage(message_level, message_buffer, global_version);
     releaseBuffer(std::move(message_buffer));
   }
 } // namespace np::log

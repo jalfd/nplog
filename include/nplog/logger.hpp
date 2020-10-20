@@ -45,9 +45,9 @@ namespace np::log {
 
     ~Logger();
 
-    void submitMessage(level_type level, buffer_type& buffer);
+    void submitMessage(level_type level, buffer_type& buffer, unsigned global_version);
 
-    LevelSpec refreshLevels(unsigned version, bool exclude_depth = false);
+    LevelSpec refreshLevels(unsigned version, unsigned global_version, bool exclude_depth = false);
 
     unsigned knownVersion() const { return version; }
 

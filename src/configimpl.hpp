@@ -27,8 +27,9 @@ namespace np::log {
 
   void applyConfig(LogConfig cfg);
 
-  // I am logger N, I am nested at depth D, and my most recent configuration is from version V
-  bool isCurrent(unsigned v);
+  inline bool isCurrent(unsigned my_version, unsigned global_version) {
+    return my_version == global_version;
+  }
 
   struct LevelsResult {
     unsigned version = 0;
@@ -42,8 +43,8 @@ namespace np::log {
       static_cast<level_type>(lhs.param | rhs.param)};
   }
 
-  Config::Fields enabledFields();
+  Config::Fields enabledFields(unsigned global_version);
 
-  void sendToSink(level_type level, std::string_view buffer);
+  void sendToSink(level_type level, std::string_view buffer, unsigned global_version);
 } // namespace np::log
 #endif

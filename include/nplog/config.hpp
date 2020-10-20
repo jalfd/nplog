@@ -86,5 +86,7 @@ namespace np::log {
       &level_rules[0],
       &level_rules[level_rules.size()]);
   }
+
+  NPLOG_EXPORT unsigned currentVersion();
 } // namespace np::log
 #endif

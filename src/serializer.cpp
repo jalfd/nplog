@@ -147,6 +147,7 @@ namespace np::log {
 
   void Serializer::prologue(std::string_view file,
     int line,
+    Config::Fields enabled_fields,
     level_type level,
     std::string_view log_name,
     std::string_view msg) {
@@ -157,7 +158,6 @@ namespace np::log {
 
     HeaderFields hf(*this);
 
-    Config::Fields enabled_fields = enabledFields();
     if (enabled_fields & Config::File) { hf.file(file, line, level, log_name); }
     if (enabled_fields & Config::Line) { hf.line(file, line, level, log_name); }
     if (enabled_fields & Config::Time) { hf.time(file, line, level, log_name); }
