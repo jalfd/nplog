@@ -63,7 +63,16 @@ namespace np::log {
     return {version, lvls, levels_by_name};
   }
 
-  Config::Fields enabledFields() { return getConfig()->fields; }
+  Config::Fields enabledFields() {
+    thread_local unsigned cached_version = 0;
+    thread_local Config::Fields cached_fields;
+
+    if (!isCurrent(cached_version)) {
+      cached_fields = getConfig()->fields;
+      cached_version = std::atomic_load_explicit(&config_timestamp, std::memory_order_acquire);
+    }
+    return cached_fields;
+  }
 
   void sendToSink(level_type level, std::string_view buffer) {
     std::lock_guard<std::mutex> lock(sink_mutex);
