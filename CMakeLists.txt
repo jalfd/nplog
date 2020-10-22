@@ -67,6 +67,7 @@ PRIVATE
 set_target_properties(nplog PROPERTIES
     EXPORT_NAME log
     DEBUG_POSTFIX d
+    INTERPROCEDURAL_OPTIMIZATION TRUE
 )
 
 include(GenerateExportHeader)
@@ -81,9 +82,9 @@ endif()
 
 target_compile_options(nplog PRIVATE
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
-    -Werror -pedantic-errors -Wall -Wextra -Wconversion>
+    -Werror -pedantic-errors -Wall -Wextra -Wconversion -O3>
     $<$<CXX_COMPILER_ID:MSVC>:
-    /W4 /WX>)
+    /W4 /WX /Ob2 /Zo>)
 
 add_subdirectory(tests)
 
