@@ -7,19 +7,19 @@
 
 namespace np::log {
   struct NPLOG_EXPORT ScopedMessageBase {
-    ScopedMessageBase(const char* file,
+    ScopedMessageBase(std::string_view file,
       int line,
       Config::Fields enabled_fields,
       level_type level,
-      const char* m,
-      MessageBuffer buffer,
+      std::string_view m,
+      MessageBuffer rbuffer,
       std::string_view log_name,
       std::string_view logger_params_data);
 
     void endMessage();
 
     template <typename T>
-    bool addParam(const char* name, T&& expr) {
+    bool addParam(std::string_view name, T&& expr) {
       if (!has_params) {
         has_params = true;
         serializer.startObject("params");
@@ -41,7 +41,7 @@ namespace np::log {
   };
 
   struct NPLOG_EXPORT ScopedMessage : private ScopedMessageBase {
-    ScopedMessage(Logger& log, const char* file, int line, unsigned global_version, level_type level, const char* m);
+    ScopedMessage(Logger& log, std::string_view file, int line, unsigned global_version, level_type level, std::string_view m);
 
     ~ScopedMessage();
 

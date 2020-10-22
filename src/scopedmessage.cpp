@@ -2,11 +2,11 @@
 #include "configimpl.hpp"
 
 namespace np::log {
-  ScopedMessageBase::ScopedMessageBase(const char* file,
+  ScopedMessageBase::ScopedMessageBase(std::string_view file,
     int line,
     Config::Fields enabled_fields,
     level_type level,
-    const char* m,
+    std::string_view m,
     MessageBuffer buffer,
     std::string_view log_name,
     std::string_view logger_params_data)
@@ -24,11 +24,11 @@ namespace np::log {
     serializer.epilogue();
   }
   ScopedMessage::ScopedMessage(Logger& log,
-    const char* file,
+    std::string_view file,
     int line,
     unsigned global_version,
     level_type level,
-    const char* m)
+    std::string_view m)
     : ScopedMessageBase(file,
       line,
       enabledFields(global_version),
