@@ -81,18 +81,18 @@ TEST_CASE("MessageBuffer") {
 TEST_CASE("MessageBuffer management") {
   SECTION("Buffers are acquired and reused") {
     auto buf = acquireBuffer();
-    buf.append('x');
-    const auto size = buf.bufferSize();
+    buf->append('x');
+    const auto size = buf->bufferSize();
     releaseBuffer(std::move(buf));
     auto b2 = acquireBuffer();
-    CHECK(b2.bufferSize() == size);
+    CHECK(b2->bufferSize() == size);
   }
 
   SECTION("Buffers are cleared on reuse") {
     auto buf = acquireBuffer();
-    buf.append('x');
+    buf->append('x');
     releaseBuffer(std::move(buf));
     auto b2 = acquireBuffer();
-    CHECK(b2.messageSize() == 0);
+    CHECK(b2->messageSize() == 0);
   }
 }

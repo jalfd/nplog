@@ -18,9 +18,9 @@ TEST_CASE("Log") {
     np::log::applyConfig(cfg);
 
     auto buf = np::log::acquireBuffer();
-    buf.append('x');
-    log.submitMessage(3, buf, np::log::currentVersion());
-    CHECK(msg_start == buf.contents().data());
+    buf->append('x');
+    log.submitMessage(3, *buf, np::log::currentVersion());
+    CHECK(msg_start == buf->contents().data());
     np::log::releaseBuffer(std::move(buf));
     CHECK(msg_len == 1);
     CHECK(level == 3);

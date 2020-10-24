@@ -12,7 +12,7 @@ namespace np::log {
       Config::Fields enabled_fields,
       level_type level,
       std::string_view m,
-      MessageBuffer rbuffer,
+      MessageBuffer* buffer,
       std::string_view log_name,
       std::string_view logger_params_data);
 
@@ -30,10 +30,10 @@ namespace np::log {
       return true;
     }
 
-    const MessageBuffer& buffer() { return message_buffer; }
+    const MessageBuffer& buffer() { return *message_buffer; }
 
   protected:
-    MessageBuffer message_buffer;
+    MessageBuffer* message_buffer;
     Serializer serializer;
 
     level_type message_level;
