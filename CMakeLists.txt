@@ -30,6 +30,10 @@ if (NP_LIBRARY_DEV)
     endif()
 endif()
 
+if (NOT WIN32) #FIXME
+add_definitions(-gdwarf-4)
+endif()
+
 add_library(nplog
     src/logger.cpp
     src/serializer.cpp
