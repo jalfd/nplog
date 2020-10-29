@@ -7,7 +7,7 @@
 #include <string_view>
 
 namespace np::log {
-  struct NPLOG_EXPORT MessageBuffer {
+  struct MessageBuffer {
     MessageBuffer() noexcept = default;
     ~MessageBuffer() noexcept { delete[] buf_begin; }
     MessageBuffer(MessageBuffer&& other) noexcept
