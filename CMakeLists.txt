@@ -35,7 +35,7 @@ add_definitions(-gdwarf-4)
 endif()
 
 add_library(nplog
-    src/logger.cpp
+    src/loggroup.cpp
     src/serializer.cpp
     src/scopedmessage.cpp
     src/formatter.cpp
@@ -47,7 +47,7 @@ add_library(nplog
     src/platform.hpp
     src/platform.cpp
     include/nplog/formatter.hpp
-    include/nplog/logger.hpp
+    include/nplog/loggroup.hpp
     include/nplog/serializer.hpp
     include/nplog/scopedmessage.hpp
     include/nplog/macros.hpp

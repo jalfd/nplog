@@ -10,7 +10,7 @@ add_executable(tests
     scopedmessage.cpp
     formatter.cpp
     serializer.cpp
-    log.cpp
+    loggroup.cpp
     config.cpp
     messagebuffer.cpp
     logparams.cpp

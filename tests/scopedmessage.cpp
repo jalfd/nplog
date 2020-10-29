@@ -100,7 +100,7 @@ TEST_CASE("ScopedMessage") {
     cfg.sink = [&](const np::log::MessageInfo& mi) { out.push_back(parseMessage(mi.message)); };
     np::log::applyConfig(cfg);
 
-    np::log::Logger logger;
+    np::log::LogGroup logger;
     {
       np::log::ScopedMessage msg(logger, "", 0, -1, 0, "outer message");
       msg.addParam("name", [&]() {

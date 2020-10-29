@@ -8,7 +8,7 @@ namespace pj = picojson;
 
 int msg_count = 0;
 
-bool isLogged(np::log::Logger& log, int level) {
+bool isLogged(np::log::LogGroup& log, int level) {
   msg_count = 0;
   NP_LOG(log, level, "message text");
   return msg_count != 0;
@@ -71,8 +71,8 @@ TEST_CASE("Configuring Log Levels by depth") {
   CHECK(np::log::getLevels("", 4).effective_levels.param == 1);
 
   SECTION("Level based on depth is not inherited") {
-    np::log::Logger log0; // depth 0 -> log level 9
-    np::log::Logger log1(&log0); // depth 1 -> log level 5
+    np::log::LogGroup log0; // depth 0 -> log level 9
+    np::log::LogGroup log1(&log0); // depth 1 -> log level 5
 
     CHECK(!isLogged(log1, 6));
   }
@@ -94,10 +94,10 @@ TEST_CASE("Configuring Log Levels by log name") {
   CHECK(np::log::getLevels("foo", 0).effective_levels.param == 9);
 
   SECTION("Level based on name is inherited") {
-    np::log::Logger log0("foo"); // name 'foo' -> log level 9
-    np::log::Logger log1(&log0, "x"); // inherits level 9 from ancestor
-    np::log::Logger log2(&log1, "y"); // inherits level 9 transitively as well
-    np::log::Logger log3(
+    np::log::LogGroup log0("foo"); // name 'foo' -> log level 9
+    np::log::LogGroup log1(&log0, "x"); // inherits level 9 from ancestor
+    np::log::LogGroup log2(&log1, "y"); // inherits level 9 transitively as well
+    np::log::LogGroup log3(
       &log0, "bar"); // inherits level 9 from ancestor, gets level 5 from own name
     CHECK(isLogged(log1, 9));
     CHECK(isLogged(log2, 9));
@@ -117,15 +117,15 @@ TEST_CASE("Prioritizing log levels when both level and name rules apply") {
   np::log::applyConfig(cfg);
 
   // matches both lvl0 -> 7 and name -> 9
-  np::log::Logger log0("foo");
+  np::log::LogGroup log0("foo");
   CHECK(isLogged(log0, 9));
 
   // matches both lvl0 -> 7 and name -> 5
-  np::log::Logger log1("bar");
+  np::log::LogGroup log1("bar");
   CHECK(isLogged(log1, 7));
 
   // matches both lvl0 -> 7 and name -> 5 and inherited name -> 9
-  np::log::Logger log2(&log0, "bar");
+  np::log::LogGroup log2(&log0, "bar");
   CHECK(isLogged(log0, 9));
 }
 
@@ -141,7 +141,7 @@ TEST_CASE("Header fields can be toggled on and off") {
     REQUIRE(err.empty());
   };
 
-  np::log::Logger log("myname");
+  np::log::LogGroup log("myname");
   ;
 
   SECTION("If all fields are disabled, only message is logged") {

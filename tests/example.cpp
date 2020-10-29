@@ -1,7 +1,7 @@
 #include <iostream>
 #include <nplog.hpp>
 
-np::Logger mylog;
+np::LogGroup mylog;
 
 int main() {
   // Configure logger to include messages of level 3 and down, and parameters of level 3 and down
@@ -16,7 +16,7 @@ int main() {
   LOG(mylog, np::log::DebugLow, "logging a message", WITH(np::log::Trace, fortytwo));
   LOG(mylog, np::log::DebugLow, "logging a message", WITH("myval", fortytwo));
 
-  np::Logger otherlog(
+  np::LogGroup otherlog(
     nullptr, nullptr, {{"name", std::string_view("yoyo")}, {"loggerparam1", 1.234}});
   LOG(otherlog, np::log::Status, "Wooosh", WITH("myval", fortytwo));
   LOG(otherlog, np::log::Status, "Wooosh2");

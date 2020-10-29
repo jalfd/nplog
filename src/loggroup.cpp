@@ -1,4 +1,4 @@
-#include <nplog/logger.hpp>
+#include <nplog/loggroup.hpp>
 #include "configimpl.hpp"
 
 #include <algorithm>
@@ -10,7 +10,7 @@
 #include <string>
 
 namespace np::log {
-  LoggerParams::LoggerParams(LoggerParams* parent, std::initializer_list<LogParam> params) {
+  LogGroupProps::LogGroupProps(LogGroupProps* parent, std::initializer_list<LogParam> params) {
     Serializer s(&data);
     std::vector<const LogParam*> param_ptrs; // FIXME: should reserve
     std::transform(
@@ -34,10 +34,10 @@ namespace np::log {
       auto self_it = offsets.begin();
 
       // ok, so we need a new buffer
-      LoggerParams dest; // should reserve member size
+      LogGroupProps dest; // should reserve member size
 
       const auto copy_to_dest
-        = [&dest](const LoggerParams& src, size_t first, size_t name_last, size_t last) {
+        = [&dest](const LogGroupProps& src, size_t first, size_t name_last, size_t last) {
             const auto new_first = dest.data.messageSize();
             const auto span
               = src.data.contents().substr(first, last - first); // the span of characters to copy
@@ -82,30 +82,30 @@ namespace np::log {
     }
   }
 
-  Logger::Logger(Logger* parent, const char* name)
+  LogGroup::LogGroup(LogGroup* parent, const char* name)
     : parent(parent)
-    , logger_params(parent ? parent->logger_params : nullptr)
+    , group_props(parent ? parent->group_props : nullptr)
     , name_ptr(name)
     , name_len(name_ptr ? strlen(name_ptr) : 0)
     , depth(parent ? parent->depth + 1 : 0) {
     refreshLevels(0, currentVersion());
   }
 
-  Logger::Logger(const char* name) : Logger(nullptr, name) {}
+  LogGroup::LogGroup(const char* name) : LogGroup(nullptr, name) {}
 
-  Logger::Logger(Logger* parent, const char* name, std::initializer_list<LogParam> params)
-    : Logger(parent, name) {
+  LogGroup::LogGroup(LogGroup* parent, const char* name, std::initializer_list<LogParam> params)
+    : LogGroup(parent, name) {
     if (params.size() != 0) {
-      logger_params = new LoggerParams(parent ? parent->logger_params : nullptr, params);
+      group_props = new LogGroupProps(parent ? parent->group_props : nullptr, params);
     }
   }
 
-  Logger::~Logger() {
+  LogGroup::~LogGroup() {
     // Delete, unless we're pointing at our parent's params
-    if (!(parent && parent->logger_params == logger_params)) { delete logger_params; }
+    if (!(parent && parent->group_props == group_props)) { delete group_props; }
   }
 
-  LevelSpec Logger::refreshLevels(unsigned version_, unsigned global_version, bool exclude_depth) {
+  LevelSpec LogGroup::refreshLevels(unsigned version_, unsigned global_version, bool exclude_depth) {
     if (!isCurrent(version_, global_version)) {
       auto result = getLevels(std::string_view(name_ptr, name_len), depth);
       levels_by_name_only = result.levels_by_name_only;

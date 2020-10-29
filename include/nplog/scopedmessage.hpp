@@ -2,7 +2,7 @@
 #define NP_LOG_SCOPEDMESSAGE_HPP
 
 #include <nplog/formatter.hpp>
-#include <nplog/logger.hpp>
+#include <nplog/loggroup.hpp>
 #include <string_view>
 
 namespace np::log {
@@ -14,7 +14,7 @@ namespace np::log {
       std::string_view m,
       MessageBuffer* buffer,
       std::string_view log_name,
-      std::string_view logger_params_data);
+      std::string_view group_props_data);
 
     void endMessage();
 
@@ -41,14 +41,13 @@ namespace np::log {
   };
 
   struct NPLOG_EXPORT ScopedMessage : private ScopedMessageBase {
-    ScopedMessage(Logger& log, std::string_view file, int line, unsigned global_version, level_type level, std::string_view m);
+    ScopedMessage(LogGroup& group, std::string_view file, int line, unsigned global_version, level_type level, std::string_view m);
 
     ~ScopedMessage();
 
     using ScopedMessageBase::addParam;
 
   private:
-    Logger& log;
     unsigned global_version;
   };
 } // namespace np::log

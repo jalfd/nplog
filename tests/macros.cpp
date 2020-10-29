@@ -1,5 +1,5 @@
 #include <nplog/config.hpp>
-#include <nplog/logger.hpp>
+#include <nplog/loggroup.hpp>
 #include <nplog/macros.hpp>
 #include <nplog/scopedmessage.hpp>
 #include <picojson/picojson.h>
@@ -64,7 +64,7 @@ TEST_CASE("macros") {
   };
   np::log::applyConfig(cfg);
 
-  np::log::Logger logger;
+  np::log::LogGroup logger;
 
   num_calls = 0;
 
