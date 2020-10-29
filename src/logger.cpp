@@ -120,8 +120,4 @@ namespace np::log {
     }
     return exclude_depth ? levels_by_name_only : effective_levels;
   }
-
-  void Logger::submitMessage(level_type level, buffer_type& buffer, unsigned global_version) {
-    ::np::log::sendToSink(level, buffer.contents(), global_version);
-  }
 } // namespace np::log

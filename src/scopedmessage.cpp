@@ -41,7 +41,7 @@ namespace np::log {
 
   ScopedMessage::~ScopedMessage() {
     endMessage();
-    log.submitMessage(message_level, *message_buffer, global_version);
+    ::np::log::sendToSink(message_level, message_buffer->contents(), global_version);
     releaseBuffer(message_buffer);
   }
 } // namespace np::log

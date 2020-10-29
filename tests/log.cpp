@@ -2,6 +2,7 @@
 #include <nplog/scopedmessage.hpp>
 #include <catch/catch.hpp>
 
+/*
 TEST_CASE("Log") {
   SECTION("Submitting a buffer sends it to the sink function") {
     np::log::Logger log;
@@ -26,3 +27,5 @@ TEST_CASE("Log") {
     CHECK(level == 3);
   }
 }
+*/
+TEST_CASE("Log") { REQUIRE(false); }
