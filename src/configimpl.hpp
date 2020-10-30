@@ -12,7 +12,7 @@ namespace np::log {
     LogConfig& operator=(LogConfig&& other) = default;
 
     using Sink = Config::Sink;
-    using Fields = Config::Fields;
+    using Fields = np::log::Fields;
 
     struct Levels {
       std::vector<char> name_data;
@@ -22,7 +22,7 @@ namespace np::log {
     };
     Levels levels;
     Sink sink;
-    Fields fields = static_cast<Config::Fields>(Config::File | Config::Line | Config::Time);
+    Fields fields = static_cast<Fields>(File | Line | Time);
   };
 
   void applyConfig(LogConfig cfg);
@@ -43,7 +43,7 @@ namespace np::log {
       static_cast<level_type>(lhs.param | rhs.param)};
   }
 
-  Config::Fields enabledFields(unsigned global_version);
+  Fields enabledFields(unsigned global_version);
 
   void sendToSink(level_type level, std::string_view buffer, unsigned global_version);
 } // namespace np::log

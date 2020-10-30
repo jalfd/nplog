@@ -33,6 +33,7 @@ do { \
       np::log::testLevel(msg_lvl, lvl_threshold.message)) { \
     ::np::log::ScopedMessage sm(logger, __FILE__, __LINE__, current_version, msg_lvl, msg); \
     const auto msg_level = msg_lvl; \
+    (void)msg_level; \
     (void) __VA_ARGS__; \
   } \
 } while (false)

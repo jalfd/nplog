@@ -133,7 +133,7 @@ TEST_CASE("Header fields can be toggled on and off") {
   np::log::Config cfg;
   std::string err;
   pj::object result;
-  cfg.fields = static_cast<np::log::Config::Fields>(0);
+  cfg.fields = static_cast<np::log::Fields>(0);
   cfg.sink = [&](auto msg) mutable {
     pj::value val;
     pj::parse(val, msg.message.begin(), msg.message.end(), &err);
@@ -153,7 +153,7 @@ TEST_CASE("Header fields can be toggled on and off") {
   }
 
   SECTION("Add File field") {
-    cfg.fields = np::log::Config::File;
+    cfg.fields = np::log::File;
     np::log::applyConfig(cfg);
     NP_LOG(log, 0, "dummy message");
     CAPTURE(result);
@@ -162,7 +162,7 @@ TEST_CASE("Header fields can be toggled on and off") {
   }
 
   SECTION("Add Line field") {
-    cfg.fields = np::log::Config::Line;
+    cfg.fields = np::log::Line;
     np::log::applyConfig(cfg);
     NP_LOG(log, 0, "dummy message");
     CAPTURE(result);
@@ -170,7 +170,7 @@ TEST_CASE("Header fields can be toggled on and off") {
     REQUIRE(result.find("line") != result.end());
   }
   SECTION("Add Time field") {
-    cfg.fields = np::log::Config::Time;
+    cfg.fields = np::log::Time;
     np::log::applyConfig(cfg);
     NP_LOG(log, 0, "dummy message");
     CAPTURE(result);
@@ -178,7 +178,7 @@ TEST_CASE("Header fields can be toggled on and off") {
     REQUIRE(result.find("time") != result.end());
   }
   SECTION("Add Level field") {
-    cfg.fields = np::log::Config::Level;
+    cfg.fields = np::log::Level;
     np::log::applyConfig(cfg);
     NP_LOG(log, 0, "dummy message");
     CAPTURE(result);
@@ -186,7 +186,7 @@ TEST_CASE("Header fields can be toggled on and off") {
     REQUIRE(result.find("level") != result.end());
   }
   SECTION("Add LevelName field") {
-    cfg.fields = np::log::Config::LevelName;
+    cfg.fields = np::log::LevelName;
     np::log::applyConfig(cfg);
     NP_LOG(log, 0, "dummy message");
     CAPTURE(result);
@@ -194,7 +194,7 @@ TEST_CASE("Header fields can be toggled on and off") {
     REQUIRE(result.find("levelString") != result.end());
   }
   SECTION("Add LogName field") {
-    cfg.fields = np::log::Config::LogName;
+    cfg.fields = np::log::LogName;
     np::log::applyConfig(cfg);
     NP_LOG(log, 0, "dummy message");
     CAPTURE(result);
@@ -202,7 +202,7 @@ TEST_CASE("Header fields can be toggled on and off") {
     REQUIRE(result.find("log") != result.end());
   }
   SECTION("Add ProcessName field") {
-    cfg.fields = np::log::Config::ProcessName;
+    cfg.fields = np::log::ProcessName;
     np::log::applyConfig(cfg);
     NP_LOG(log, 0, "dummy message");
     CAPTURE(result);
@@ -210,7 +210,7 @@ TEST_CASE("Header fields can be toggled on and off") {
     REQUIRE(result.find("process") != result.end());
   }
   SECTION("Add ProcessId field") {
-    cfg.fields = np::log::Config::ProcessId;
+    cfg.fields = np::log::ProcessId;
     np::log::applyConfig(cfg);
     NP_LOG(log, 0, "dummy message");
     CAPTURE(result);
@@ -218,7 +218,7 @@ TEST_CASE("Header fields can be toggled on and off") {
     REQUIRE(result.find("pid") != result.end());
   }
   SECTION("Add ThreadId field") {
-    cfg.fields = np::log::Config::ThreadId;
+    cfg.fields = np::log::ThreadId;
     np::log::applyConfig(cfg);
     NP_LOG(log, 0, "dummy message");
     CAPTURE(result);
@@ -226,7 +226,7 @@ TEST_CASE("Header fields can be toggled on and off") {
     REQUIRE(result.find("tid") != result.end());
   }
   SECTION("Add Hostname field") {
-    cfg.fields = np::log::Config::Hostname;
+    cfg.fields = np::log::Hostname;
     np::log::applyConfig(cfg);
     NP_LOG(log, 0, "dummy message");
     CAPTURE(result);

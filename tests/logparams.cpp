@@ -1,5 +1,7 @@
 #include <nplog/loggroup.hpp>
+#include <nplog/config.hpp>
 #include <nplog/scopedmessage.hpp>
+#include "../src/loggroupprops.hpp"
 #include <picojson/picojson.h>
 #include <catch/catch.hpp>
 
@@ -110,7 +112,7 @@ TEST_CASE("LogParams") {
 TEST_CASE("Messages include the loggers logparams") {
   std::string out;
   np::log::Config cfg;
-  cfg.fields = static_cast<np::log::Config::Fields>(0);
+  cfg.fields = static_cast<np::log::Fields>(0);
   cfg.sink = [&](const np::log::MessageInfo& mi) { out = mi.message; };
   np::log::applyConfig(cfg);
   np::LogGroup log(nullptr, nullptr, {{"foo", 42}});

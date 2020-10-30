@@ -9,7 +9,7 @@ namespace np::log {
   struct NPLOG_EXPORT ScopedMessageBase {
     ScopedMessageBase(std::string_view file,
       int line,
-      Config::Fields enabled_fields,
+      Fields enabled_fields,
       level_type level,
       std::string_view m,
       MessageBuffer* buffer,

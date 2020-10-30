@@ -1,6 +1,7 @@
 #include <date/date.h>
 #include <nplog/config.hpp>
 #include <nplog/serializer.hpp>
+#include <nplog/messagebuffer.hpp>
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -139,15 +140,15 @@ namespace np::log {
     }
 
   private:
-    Serializer::buffer_type* buffer = nullptr;
+    MessageBuffer* buffer = nullptr;
     ValueSerializer vs;
   };
 
-  Serializer::Serializer(buffer_type* buffer) : buffer(buffer) {}
+  Serializer::Serializer(MessageBuffer* buffer) : buffer(buffer) {}
 
   void Serializer::prologue(std::string_view file,
     int line,
-    Config::Fields enabled_fields,
+    Fields enabled_fields,
     level_type level,
     std::string_view log_name,
     std::string_view msg) {
@@ -158,16 +159,16 @@ namespace np::log {
 
     HeaderFields hf(*this);
 
-    if (enabled_fields & Config::File) { hf.file(file, line, level, log_name); }
-    if (enabled_fields & Config::Line) { hf.line(file, line, level, log_name); }
-    if (enabled_fields & Config::Time) { hf.time(file, line, level, log_name); }
-    if (enabled_fields & Config::Level) { hf.level(file, line, level, log_name); }
-    if (enabled_fields & Config::LevelName) { hf.levelName(file, line, level, log_name); }
-    if (enabled_fields & Config::LogName) { hf.logName(file, line, level, log_name); }
-    if (enabled_fields & Config::ProcessName) { hf.processName(file, line, level, log_name); }
-    if (enabled_fields & Config::ProcessId) { hf.processId(file, line, level, log_name); }
-    if (enabled_fields & Config::ThreadId) { hf.threadId(file, line, level, log_name); }
-    if (enabled_fields & Config::Hostname) { hf.hostname(file, line, level, log_name); }
+    if (enabled_fields & File) { hf.file(file, line, level, log_name); }
+    if (enabled_fields & Line) { hf.line(file, line, level, log_name); }
+    if (enabled_fields & Time) { hf.time(file, line, level, log_name); }
+    if (enabled_fields & Level) { hf.level(file, line, level, log_name); }
+    if (enabled_fields & LevelName) { hf.levelName(file, line, level, log_name); }
+    if (enabled_fields & LogName) { hf.logName(file, line, level, log_name); }
+    if (enabled_fields & ProcessName) { hf.processName(file, line, level, log_name); }
+    if (enabled_fields & ProcessId) { hf.processId(file, line, level, log_name); }
+    if (enabled_fields & ThreadId) { hf.threadId(file, line, level, log_name); }
+    if (enabled_fields & Hostname) { hf.hostname(file, line, level, log_name); }
   }
 
   void Serializer::epilogue() { buffer->append('}'); }
@@ -195,7 +196,7 @@ namespace np::log {
     is_empty = false;
   }
 
-  ValueSerializer::ValueSerializer(buffer_type* buffer) : buffer(buffer) {}
+  ValueSerializer::ValueSerializer(MessageBuffer* buffer) : buffer(buffer) {}
 
   void ValueSerializer::write(double val) { writeFloatingPoint(val, "%.12g"); }
 

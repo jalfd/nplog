@@ -1,5 +1,7 @@
 #include <nplog/loggroup.hpp>
+#include <nplog/messagebuffer.hpp>
 #include "configimpl.hpp"
+#include "loggroupprops.hpp"
 
 #include <algorithm>
 #include <atomic>
@@ -10,6 +12,20 @@
 #include <string>
 
 namespace np::log {
+  uint32_t LogParam::serialize(Serializer& serializer,
+    MessageBuffer& buffer,
+    const char* name,
+    const void* value,
+    void (*format_func)(const void*, ValueSerializer&)) {
+    serializer.writeKey(name);
+    const auto name_end = buffer.messageSize(); // FIXME: do we really want to depend on buffer? No.
+                                                // We don't. Absolutely not.
+    // It's still a bit iffy and magical that we just return a weird middle-of-the-string pointer
+    auto vs = serializer.valueSerializer();
+    format_func(value, vs);
+    return static_cast<uint32_t>(name_end);
+  }
+
   LogGroupProps::LogGroupProps(LogGroupProps* parent, std::initializer_list<LogParam> params) {
     Serializer s(&data);
     std::vector<const LogParam*> param_ptrs; // FIXME: should reserve
@@ -22,8 +38,7 @@ namespace np::log {
     });
     for (const auto& param_ptr : param_ptrs) {
       const auto start = static_cast<uint32_t>(data.messageSize());
-      const auto name_end = static_cast<uint32_t>(
-        param_ptr->func(s, data)); // func really shouldn't add a comma, should it?
+      const auto name_end = param_ptr->serialize(s, data, param_ptr->name, param_ptr->value, param_ptr->format_func);
       const auto end = static_cast<uint32_t>(data.messageSize());
       offsets.emplace_back(start == 0 ? start : start + 1, name_end, end);
     }

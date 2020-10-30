@@ -1,5 +1,6 @@
 #include <iostream>
 #include <nplog.hpp>
+#include <nplog/config.hpp>
 
 np::LogGroup mylog;
 

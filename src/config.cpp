@@ -13,7 +13,7 @@
 namespace np::log {
   namespace internal {
     void applyConfig(Config::Sink sink,
-      Config::Fields fields,
+      Fields fields,
       LevelSpec default_level,
       LevelRule* first,
       LevelRule* last) {

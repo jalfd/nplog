@@ -1,10 +1,12 @@
 #include <nplog/scopedmessage.hpp>
+#include <nplog/messagebuffer.hpp>
 #include "configimpl.hpp"
+#include "loggroupprops.hpp"
 
 namespace np::log {
   ScopedMessageBase::ScopedMessageBase(std::string_view file,
     int line,
-    Config::Fields enabled_fields,
+    Fields enabled_fields,
     level_type level,
     std::string_view m,
     MessageBuffer* buffer,

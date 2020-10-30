@@ -63,9 +63,9 @@ namespace np::log {
     return {version, lvls, levels_by_name};
   }
 
-  Config::Fields enabledFields(unsigned global_version) {
+  Fields enabledFields(unsigned global_version) {
     thread_local unsigned cached_version = 0;
-    thread_local Config::Fields cached_fields;
+    thread_local Fields cached_fields;
 
     if (!isCurrent(cached_version, global_version)) {
       cached_fields = getConfig(global_version)->fields;

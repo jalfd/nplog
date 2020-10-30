@@ -1,4 +1,4 @@
-#include <nplog/config.hpp>
+//#include <nplog/config.hpp>
 #include <nplog/formatter.hpp>
 #include <nplog/loggroup.hpp>
 #include <nplog/macros.hpp>

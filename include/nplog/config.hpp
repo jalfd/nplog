@@ -26,19 +26,6 @@ namespace np::log {
   struct NPLOG_EXPORT Config {
     using Sink = std::function<void(MessageInfo)>;
 
-    enum Fields : uint32_t {
-      File = 1,
-      Line = 2,
-      Time = 4,
-      Level = 8,
-      LevelName = 16,
-      LogName = 32,
-      ProcessName = 64,
-      ProcessId = 128,
-      ThreadId = 256,
-      Hostname = 512,
-    };
-
     struct Levels {
       LevelSpec default_level = {threshold(Status), threshold(Status)};
       std::map<int, LevelSpec> levels_by_depth;
@@ -57,7 +44,7 @@ namespace np::log {
     };
 
     NPLOG_EXPORT void applyConfig(Config::Sink sink,
-      Config::Fields fields,
+      Fields fields,
       LevelSpec default_level,
       LevelRule* first,
       LevelRule* last);
@@ -86,7 +73,5 @@ namespace np::log {
       &level_rules[0],
       &level_rules[level_rules.size()]);
   }
-
-  NPLOG_EXPORT unsigned currentVersion();
 } // namespace np::log
 #endif

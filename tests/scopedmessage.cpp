@@ -1,8 +1,10 @@
 #include <nplog/messagebuffer.hpp>
+#include <nplog/config.hpp>
 #include <nplog/scopedmessage.hpp>
 #include <picojson/picojson.h>
 #include <vector>
 #include <catch/catch.hpp>
+#include "../src/loggroupprops.hpp" // FIXME: better access from tests
 
 namespace pj = picojson;
 
@@ -41,7 +43,7 @@ bool operator==(const std::vector<char>& result, const std::string& expected) {
 TEST_CASE("ScopedMessageBase") {
   np::log::MessageBuffer buf;
   SECTION("ScopedMessage writes message to the buffer") {
-    np::log::ScopedMessageBase msg("file", 3, static_cast<np::log::Config::Fields>(0), 1, "hello", &buf, "name", {});
+    np::log::ScopedMessageBase msg("file", 3, static_cast<np::log::Fields>(0), 1, "hello", &buf, "name", {});
     msg.endMessage();
     const auto& buffer = msg.buffer();
     const auto obj = parseLogMessage(buffer);
@@ -51,7 +53,7 @@ TEST_CASE("ScopedMessageBase") {
   }
 
   SECTION("ScopedMessage writes header fields to the buffer") {
-    np::log::ScopedMessageBase msg("file", 3, static_cast<np::log::Config::Fields>(-1), 1, "hello", &buf, "name", {});
+    np::log::ScopedMessageBase msg("file", 3, static_cast<np::log::Fields>(-1), 1, "hello", &buf, "name", {});
     msg.endMessage();
     const auto& buffer = msg.buffer();
     const auto obj = parseLogMessage(buffer);
@@ -96,7 +98,7 @@ TEST_CASE("ScopedMessage") {
     std::vector<pj::object> out;
 
     np::log::Config cfg;
-    cfg.fields = static_cast<np::log::Config::Fields>(0);
+    cfg.fields = static_cast<np::log::Fields>(0);
     cfg.sink = [&](const np::log::MessageInfo& mi) { out.push_back(parseMessage(mi.message)); };
     np::log::applyConfig(cfg);
 

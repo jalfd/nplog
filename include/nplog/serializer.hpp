@@ -3,14 +3,12 @@
 
 #include <nplog/common.hpp>
 #include <nplog/export.hpp>
-#include <nplog/messagebuffer.hpp>
-#include <nplog/config.hpp>
 #include <string_view>
 
 namespace np::log {
+  struct MessageBuffer;
   struct NPLOG_EXPORT ValueSerializer {
-    using buffer_type = MessageBuffer;
-    explicit ValueSerializer(buffer_type* buffer);
+    explicit ValueSerializer(MessageBuffer* buffer);
     ~ValueSerializer() = default;
 
     void write(double val);
@@ -33,17 +31,16 @@ namespace np::log {
     template <typename T>
     void writeFloatingPoint(T val, const char* format) noexcept;
 
-    buffer_type* buffer;
+    MessageBuffer* buffer;
   };
 
   struct NPLOG_EXPORT Serializer {
-    using buffer_type = MessageBuffer;
-    explicit Serializer(buffer_type* buffer);
+    explicit Serializer(MessageBuffer* buffer);
     ~Serializer() = default;
 
     void prologue(std::string_view file,
       int line,
-      Config::Fields enabled_fields,
+      Fields enabled_fields,
       level_type level,
       std::string_view log_name,
       std::string_view msg);
@@ -56,7 +53,7 @@ namespace np::log {
     void endObject();
 
   private:
-    buffer_type* buffer = nullptr;
+    MessageBuffer* buffer = nullptr;
     bool is_empty = true;
 
     friend struct HeaderFields;

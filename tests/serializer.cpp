@@ -1,5 +1,6 @@
 #include <nplog/config.hpp>
 #include <nplog/serializer.hpp>
+#include <nplog/messagebuffer.hpp>
 #include <picojson/picojson.h>
 #include <regex>
 #include <sstream>
@@ -204,7 +205,7 @@ TEST_CASE("Serializer") {
   SECTION("Log with no parameters") {
     np::log::MessageBuffer buf;
     np::log::Serializer s(&buf);
-    s.prologue("file.cc", 1, static_cast<np::log::Config::Fields>(-1), 2, {}, "msg");
+    s.prologue("file.cc", 1, static_cast<np::log::Fields>(-1), 2, {}, "msg");
     s.epilogue();
 
     std::string msg = buf.contents().data();
@@ -219,7 +220,7 @@ TEST_CASE("Serializer") {
   SECTION("Log prologue is correctly encoded") {
     np::log::MessageBuffer buf;
     np::log::Serializer s(&buf);
-    s.prologue("file\".cc", 1, static_cast<np::log::Config::Fields>(-1), 2, {}, "msg\\");
+    s.prologue("file\".cc", 1, static_cast<np::log::Fields>(-1), 2, {}, "msg\\");
     s.epilogue();
 
     auto result = parseLogMessage(std::move(buf));
@@ -229,7 +230,7 @@ TEST_CASE("Serializer") {
   SECTION("Log with one parameter") {
     np::log::MessageBuffer buf;
     np::log::Serializer s(&buf);
-    s.prologue("file.cc", 1, static_cast<np::log::Config::Fields>(-1), 2, {}, "msg");
+    s.prologue("file.cc", 1, static_cast<np::log::Fields>(-1), 2, {}, "msg");
     s.startObject("params");
     s.writeKey("a");
     s.valueSerializer().write(3);
@@ -248,7 +249,7 @@ TEST_CASE("Serializer") {
   SECTION("Log with multiple parameters") {
     np::log::MessageBuffer buf;
     np::log::Serializer s(&buf);
-    s.prologue("file", 1, static_cast<np::log::Config::Fields>(-1), 2, {}, "msg");
+    s.prologue("file", 1, static_cast<np::log::Fields>(-1), 2, {}, "msg");
     s.startObject("params");
     s.writeKey("a");
     s.valueSerializer().write(3);
@@ -266,7 +267,7 @@ TEST_CASE("Serializer") {
   SECTION("Parameter keys are correctly encoded") {
     np::log::MessageBuffer buf;
     np::log::Serializer s(&buf);
-    s.prologue("file", 1, static_cast<np::log::Config::Fields>(-1), 2, {}, "msg");
+    s.prologue("file", 1, static_cast<np::log::Fields>(-1), 2, {}, "msg");
     s.startObject("params");
     s.writeKey("\"");
     s.valueSerializer().write(3);
@@ -282,7 +283,7 @@ TEST_CASE("Serializer") {
     SECTION("forward slashes") {
       np::log::MessageBuffer buf;
       np::log::Serializer s(&buf);
-      s.prologue("foo/bar/file.cc", 1, static_cast<np::log::Config::Fields>(-1), 2, {}, "msg");
+      s.prologue("foo/bar/file.cc", 1, static_cast<np::log::Fields>(-1), 2, {}, "msg");
       s.epilogue();
 
       auto result = parseLogMessage(std::move(buf));
@@ -291,7 +292,7 @@ TEST_CASE("Serializer") {
     SECTION("backslashes") {
       np::log::MessageBuffer buf;
       np::log::Serializer s(&buf);
-      s.prologue("foo\\bar\\file.cc", 1, static_cast<np::log::Config::Fields>(-1), 2, {}, "msg");
+      s.prologue("foo\\bar\\file.cc", 1, static_cast<np::log::Fields>(-1), 2, {}, "msg");
       s.epilogue();
 
       auto result = parseLogMessage(std::move(buf));
