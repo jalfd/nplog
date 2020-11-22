@@ -3,13 +3,14 @@
 
 #include <nplog/export.hpp>
 #include <nplog/formatter.hpp>
-#include <nplog/serializer.hpp>
-
+#include <nplog/common.hpp>
 #include <string_view>
 
 namespace np::log {
   struct MessageBuffer;
   struct LogGroupProps;
+  struct Serializer;
+  struct ValueSerializer;
 
   struct LogParam { // FIXME: move to detail
     template <typename T>

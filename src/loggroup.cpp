@@ -1,5 +1,6 @@
 #include <nplog/loggroup.hpp>
 #include <nplog/messagebuffer.hpp>
+#include <nplog/serializer.hpp>
 #include "configimpl.hpp"
 #include "loggroupprops.hpp"
 
