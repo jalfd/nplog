@@ -1,4 +1,4 @@
-#include <nplog/messagebuffer.hpp>
+#include "../src/messagebuffer.hpp"
 #include <nplog/config.hpp>
 #include <nplog/scopedmessage.hpp>
 #include <picojson/picojson.h>

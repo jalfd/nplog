@@ -1,4 +1,4 @@
-#include <nplog/messagebuffer.hpp>
+#include "messagebuffer.hpp"
 #include <mutex>
 #include <vector>
 

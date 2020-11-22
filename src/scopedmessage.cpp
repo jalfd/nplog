@@ -1,5 +1,5 @@
 #include <nplog/scopedmessage.hpp>
-#include <nplog/messagebuffer.hpp>
+#include "messagebuffer.hpp"
 #include "configimpl.hpp"
 #include "loggroupprops.hpp"
 

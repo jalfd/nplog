@@ -1,4 +1,4 @@
-#include <nplog/messagebuffer.hpp>
+#include "../src/messagebuffer.hpp"
 #include <catch/catch.hpp>
 
 using namespace np::log;

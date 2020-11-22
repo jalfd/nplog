@@ -2,7 +2,7 @@
 #define NP_LOGGROUPPROPS_HPP
 
 #include <nplog/loggroup.hpp>
-#include <nplog/messagebuffer.hpp>
+#include "messagebuffer.hpp"
 namespace np::log {
   struct LogGroupProps {
     LogGroupProps() = default;

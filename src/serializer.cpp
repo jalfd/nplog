@@ -1,7 +1,7 @@
 #include <date/date.h>
 #include <nplog/config.hpp>
 #include <nplog/serializer.hpp>
-#include <nplog/messagebuffer.hpp>
+#include "messagebuffer.hpp"
 #include <algorithm>
 #include <chrono>
 #include <cmath>

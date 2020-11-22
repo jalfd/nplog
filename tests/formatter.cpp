@@ -1,5 +1,5 @@
 #include <nplog/formatter.hpp>
-#include <nplog/messagebuffer.hpp>
+#include "../src/messagebuffer.hpp"
 #include <nplog/serializer.hpp>
 #include <numeric>
 #include <catch/catch.hpp>

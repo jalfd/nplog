@@ -1,6 +1,6 @@
 #include <nplog/config.hpp>
 #include <nplog/serializer.hpp>
-#include <nplog/messagebuffer.hpp>
+#include "../src/messagebuffer.hpp"
 #include <picojson/picojson.h>
 #include <regex>
 #include <sstream>
