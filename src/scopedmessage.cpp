@@ -25,6 +25,15 @@ namespace np::log {
     if (has_params) { serializer.endObject(); }
     serializer.epilogue();
   }
+
+  ValueSerializer ScopedMessageBase::startParam(std::string_view name) {
+    if (!has_params) {
+      has_params = true;
+      serializer.startObject("params");
+    }
+    serializer.writeKey(name);
+    return serializer.valueSerializer();
+  }
   ScopedMessage::ScopedMessage(LogGroup& group,
     std::string_view file,
     int line,

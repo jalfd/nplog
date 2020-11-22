@@ -21,15 +21,12 @@ namespace np::log {
 
     template <typename T>
     bool addParam(std::string_view name, T&& expr) {
-      if (!has_params) {
-        has_params = true;
-        serializer.startObject("params");
-      }
-      serializer.writeKey(name);
-      auto vs = serializer.valueSerializer();
+      auto vs = startParam(name);
       np::log::format(expr, vs);
-      return true;
+      return {};
     }
+
+    ValueSerializer startParam(std::string_view name);
 
   protected:
     MessageBuffer* message_buffer;
