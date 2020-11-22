@@ -3,7 +3,6 @@
 
 #include <nplog/export.hpp>
 #include <string_view>
-#include <type_traits>
 
 namespace np::log {
   struct ValueSerializer;
