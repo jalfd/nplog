@@ -3,6 +3,7 @@
 
 #include <nplog/formatter.hpp>
 #include <nplog/loggroup.hpp>
+#include <nplog/serializer.hpp>
 #include <string_view>
 
 namespace np::log {
@@ -29,8 +30,6 @@ namespace np::log {
       np::log::format(expr, vs);
       return true;
     }
-
-    const MessageBuffer& buffer() { return *message_buffer; }
 
   protected:
     MessageBuffer* message_buffer;

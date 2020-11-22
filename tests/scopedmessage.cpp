@@ -45,8 +45,7 @@ TEST_CASE("ScopedMessageBase") {
   SECTION("ScopedMessage writes message to the buffer") {
     np::log::ScopedMessageBase msg("file", 3, static_cast<np::log::Fields>(0), 1, "hello", &buf, "name", {});
     msg.endMessage();
-    const auto& buffer = msg.buffer();
-    const auto obj = parseLogMessage(buffer);
+    const auto obj = parseLogMessage(buf);
 
     CHECK(obj.size() == 1);
     CHECK(obj.at("message") == pj::value("hello"));
@@ -55,8 +54,7 @@ TEST_CASE("ScopedMessageBase") {
   SECTION("ScopedMessage writes header fields to the buffer") {
     np::log::ScopedMessageBase msg("file", 3, static_cast<np::log::Fields>(-1), 1, "hello", &buf, "name", {});
     msg.endMessage();
-    const auto& buffer = msg.buffer();
-    const auto obj = parseLogMessage(buffer);
+    const auto obj = parseLogMessage(buf);
 
     CHECK(obj.at("file") == pj::value("file"));
     CHECK(obj.at("level") == pj::value(1.0));
@@ -69,8 +67,7 @@ TEST_CASE("ScopedMessageBase") {
     msg.addParam("number", 42);
     msg.addParam("string", std::string_view("42"));
     msg.endMessage();
-    const auto& buffer = msg.buffer();
-    const auto obj = parseLogMessage(buffer);
+    const auto obj = parseLogMessage(buf);
 
     CHECK(obj.at("params").is<pj::object>());
     const auto params = obj.at("params").get<pj::object>();
@@ -84,8 +81,7 @@ TEST_CASE("ScopedMessageBase") {
     np::log::ScopedMessageBase msg("", 0, {}, 0, "", &buf,"", {});
     msg.addParam("p", p);
     msg.endMessage();
-    const auto& buffer = msg.buffer();
-    const auto obj = parseLogMessage(buffer);
+    const auto obj = parseLogMessage(buf);
 
     CHECK(obj.at("params").is<pj::object>());
     const auto params = obj.at("params").get<pj::object>();
