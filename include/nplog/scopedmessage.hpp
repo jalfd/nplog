@@ -33,7 +33,7 @@ namespace np::log {
     Serializer serializer;
 
     level_type message_level;
-    bool has_params = false;
+    bool has_props = false;
   };
 
   struct NPLOG_EXPORT ScopedMessage : private ScopedMessageBase {

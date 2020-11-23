@@ -69,11 +69,11 @@ TEST_CASE("ScopedMessageBase") {
     msg.endMessage();
     const auto obj = parseLogMessage(buf);
 
-    CHECK(obj.at("params").is<pj::object>());
-    const auto params = obj.at("params").get<pj::object>();
-    CHECK(params.size() == 2);
-    CHECK(params.at("number") == pj::value(42.0));
-    CHECK(params.at("string") == pj::value("42"));
+    CHECK(obj.at("props").is<pj::object>());
+    const auto props = obj.at("props").get<pj::object>();
+    CHECK(props.size() == 2);
+    CHECK(props.at("number") == pj::value(42.0));
+    CHECK(props.at("string") == pj::value("42"));
   }
 
   SECTION("ScopedMessage writes parameters with custom types to the buffer") {
@@ -83,10 +83,10 @@ TEST_CASE("ScopedMessageBase") {
     msg.endMessage();
     const auto obj = parseLogMessage(buf);
 
-    CHECK(obj.at("params").is<pj::object>());
-    const auto params = obj.at("params").get<pj::object>();
-    CHECK(params.size() == 1);
-    CHECK(params.at("p") == pj::value("a custom value"));
+    CHECK(obj.at("props").is<pj::object>());
+    const auto props = obj.at("props").get<pj::object>();
+    CHECK(props.size() == 1);
+    CHECK(props.at("p") == pj::value("a custom value"));
   }
 }
 TEST_CASE("ScopedMessage") {
@@ -109,8 +109,8 @@ TEST_CASE("ScopedMessage") {
     }
     REQUIRE(out.size() == 2);
     REQUIRE(out[0].at("message") == pj::value("inner message"));
-    REQUIRE(out[0].at("params").get<pj::object>().at("name") == pj::value("inner"));
+    REQUIRE(out[0].at("props").get<pj::object>().at("name") == pj::value("inner"));
     REQUIRE(out[1].at("message") == pj::value("outer message"));
-    REQUIRE(out[1].at("params").get<pj::object>().at("name") == pj::value("outer"));
+    REQUIRE(out[1].at("props").get<pj::object>().at("name") == pj::value("outer"));
   }
 }

@@ -202,7 +202,7 @@ TEST_CASE("ValueSerializer") {
 }
 
 TEST_CASE("Serializer") {
-  SECTION("Log with no parameters") {
+  SECTION("Log with no properties") {
     np::log::MessageBuffer buf;
     np::log::Serializer s(&buf);
     s.prologue("file.cc", 1, static_cast<np::log::Fields>(-1), 2, {}, "msg");
@@ -215,7 +215,7 @@ TEST_CASE("Serializer") {
     CHECK(result["line"].get<double>() == 1.0);
     CHECK(result["level"].get<double>() == 2.0);
     CHECK(result["message"].get<std::string>() == "msg");
-    CHECK(result.find("params") == result.end());
+    CHECK(result.find("props") == result.end());
   }
   SECTION("Log prologue is correctly encoded") {
     np::log::MessageBuffer buf;
@@ -227,11 +227,11 @@ TEST_CASE("Serializer") {
     CHECK(result["file"].get<std::string>() == "file\".cc");
     CHECK(result["message"].get<std::string>() == "msg\\");
   }
-  SECTION("Log with one parameter") {
+  SECTION("Log with one property") {
     np::log::MessageBuffer buf;
     np::log::Serializer s(&buf);
     s.prologue("file.cc", 1, static_cast<np::log::Fields>(-1), 2, {}, "msg");
-    s.startObject("params");
+    s.startObject("props");
     s.writeKey("a");
     s.valueSerializer().write(3);
     s.endObject();
@@ -242,15 +242,15 @@ TEST_CASE("Serializer") {
     CHECK(result["line"].get<double>() == 1.0);
     CHECK(result["level"].get<double>() == 2.0);
     CHECK(result["message"].get<std::string>() == "msg");
-    auto params = result["params"].get<pj::object>();
-    CHECK(params.size() == 1);
-    CHECK(params["a"].get<double>() == 3.0);
+    auto props = result["props"].get<pj::object>();
+    CHECK(props.size() == 1);
+    CHECK(props["a"].get<double>() == 3.0);
   }
-  SECTION("Log with multiple parameters") {
+  SECTION("Log with multiple properties") {
     np::log::MessageBuffer buf;
     np::log::Serializer s(&buf);
     s.prologue("file", 1, static_cast<np::log::Fields>(-1), 2, {}, "msg");
-    s.startObject("params");
+    s.startObject("props");
     s.writeKey("a");
     s.valueSerializer().write(3);
     s.writeKey("b");
@@ -259,25 +259,25 @@ TEST_CASE("Serializer") {
     s.epilogue();
 
     auto result = parseLogMessage(std::move(buf));
-    auto params = result["params"].get<pj::object>();
-    CHECK(params.size() == 2);
-    CHECK(params["a"].get<double>() == 3.0);
-    CHECK(params["b"].get<double>() == 4.0);
+    auto props = result["props"].get<pj::object>();
+    CHECK(props.size() == 2);
+    CHECK(props["a"].get<double>() == 3.0);
+    CHECK(props["b"].get<double>() == 4.0);
   }
-  SECTION("Parameter keys are correctly encoded") {
+  SECTION("property keys are correctly encoded") {
     np::log::MessageBuffer buf;
     np::log::Serializer s(&buf);
     s.prologue("file", 1, static_cast<np::log::Fields>(-1), 2, {}, "msg");
-    s.startObject("params");
+    s.startObject("props");
     s.writeKey("\"");
     s.valueSerializer().write(3);
     s.endObject();
     s.epilogue();
 
     auto result = parseLogMessage(std::move(buf));
-    auto params = result["params"].get<pj::object>();
-    CHECK(params.size() == 1);
-    CHECK(params["\""].get<double>() == 3.0);
+    auto props = result["props"].get<pj::object>();
+    CHECK(props.size() == 1);
+    CHECK(props["\""].get<double>() == 3.0);
   }
   SECTION("Serializer removes path from file") {
     SECTION("forward slashes") {

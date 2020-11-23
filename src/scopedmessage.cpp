@@ -22,14 +22,14 @@ namespace np::log {
   }
 
   void ScopedMessageBase::endMessage() {
-    if (has_params) { serializer.endObject(); }
+    if (has_props) { serializer.endObject(); }
     serializer.epilogue();
   }
 
   ValueSerializer ScopedMessageBase::startParam(std::string_view name) {
-    if (!has_params) {
-      has_params = true;
-      serializer.startObject("params");
+    if (!has_props) {
+      has_props = true;
+      serializer.startObject("props");
     }
     serializer.writeKey(name);
     return serializer.valueSerializer();

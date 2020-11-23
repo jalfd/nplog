@@ -68,7 +68,7 @@ TEST_CASE("macros") {
 
   num_calls = 0;
 
-  SECTION("Log a message with no params") {
+  SECTION("Log a message with no props") {
     LOG(logger, np::log::Status, "this is a message");
 
     REQUIRE(*logged_level == np::log::Status);
@@ -79,24 +79,24 @@ TEST_CASE("macros") {
     LOG(logger, np::log::Status, "this is a message", NP_WITH(sum(1, 2)));
 
     REQUIRE(*logged_level == np::log::Status);
-    const auto params = logged_message->at("params").get<pj::object>();
-    REQUIRE(params.at("sum(1, 2)") == pj::value(3.0));
+    const auto props = logged_message->at("props").get<pj::object>();
+    REQUIRE(props.at("sum(1, 2)") == pj::value(3.0));
   }
 
   SECTION("Log a message with a param with implicit level and explict name") {
     LOG(logger, np::log::Status, "this is a message", NP_WITH("sum of 1 and 2", sum(1, 2)));
 
     REQUIRE(*logged_level == np::log::Status);
-    const auto params = logged_message->at("params").get<pj::object>();
-    REQUIRE(params.at("sum of 1 and 2") == pj::value(3.0));
+    const auto props = logged_message->at("props").get<pj::object>();
+    REQUIRE(props.at("sum of 1 and 2") == pj::value(3.0));
   }
 
   SECTION("Log a message with a param with explicit level and implicit name") {
     LOG(logger, np::log::Status, "this is a message", NP_WITH(np::log::Error, sum(1, 2)));
 
     REQUIRE(*logged_level == np::log::Status);
-    const auto params = logged_message->at("params").get<pj::object>();
-    REQUIRE(params.at("sum(1, 2)") == pj::value(3.0));
+    const auto props = logged_message->at("props").get<pj::object>();
+    REQUIRE(props.at("sum(1, 2)") == pj::value(3.0));
   }
 
   SECTION("Log a message with a param with explicit level and name") {
@@ -106,17 +106,17 @@ TEST_CASE("macros") {
       NP_WITH(np::log::Error, "sum of 1 and 2", sum(1, 2)));
 
     REQUIRE(*logged_level == np::log::Status);
-    const auto params = logged_message->at("params").get<pj::object>();
-    REQUIRE(params.at("sum of 1 and 2") == pj::value(3.0));
+    const auto props = logged_message->at("props").get<pj::object>();
+    REQUIRE(props.at("sum of 1 and 2") == pj::value(3.0));
   }
 
-  SECTION("Log a message with multiple params") {
+  SECTION("Log a message with multiple props") {
     LOG(logger, np::log::Status, "this is a message", NP_WITH(sum(1, 2)), NP_WITH(concat(1, 2)));
 
     REQUIRE(*logged_level == np::log::Status);
-    const auto params = logged_message->at("params").get<pj::object>();
-    REQUIRE(params.at("sum(1, 2)") == pj::value(3.0));
-    REQUIRE(params.at("concat(1, 2)") == pj::value("12"));
+    const auto props = logged_message->at("props").get<pj::object>();
+    REQUIRE(props.at("sum(1, 2)") == pj::value(3.0));
+    REQUIRE(props.at("concat(1, 2)") == pj::value("12"));
   }
 
   SECTION("Don't evaluate a message if its level causes it to be skipped") {
@@ -132,11 +132,11 @@ TEST_CASE("macros") {
 
     REQUIRE(logged_level.has_value());
     REQUIRE(logged_message.has_value());
-    REQUIRE(logged_message->find("params") == logged_message->end());
+    REQUIRE(logged_message->find("props") == logged_message->end());
     REQUIRE(num_calls == 0);
   }
 
-  SECTION("Params are never copied or moved") {
+  SECTION("Props are never copied or moved") {
     LOG(logger, np::log::Status, "this is a message", NP_WITH(Chatty<0>()));
     CHECK(Chatty<0>::ctor == 1);
     CHECK(Chatty<0>::dtor == 1);
