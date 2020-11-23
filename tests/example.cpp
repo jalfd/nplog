@@ -7,7 +7,7 @@ np::LogGroup mylog;
 int main() {
   // Configure logger to include messages of level 3 and down, and parameters of level 3 and down
   np::log::Config cfg;
-  cfg.levels.default_level = {threshold(np::log::DebugLow), threshold(np::log::Status)};
+  cfg.levels.default_level = {threshold(np::log::Status), threshold(np::log::DebugLow)};
   cfg.sink = [](auto msg) { std::cout << msg.message << '\n'; };
   np::log::applyConfig(cfg);
 
