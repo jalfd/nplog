@@ -49,7 +49,7 @@ namespace {
   }
 
   struct ScopedWinSockInit {
-    ScopedWinSockInit() { WSAStartup(MAKEWORD(2, 2), &data); }
+    ScopedWinSockInit() { (void)WSAStartup(MAKEWORD(2, 2), &data); }
     ~ScopedWinSockInit() { WSACleanup(); }
 
   private:
