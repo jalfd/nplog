@@ -67,11 +67,12 @@ namespace np::log {
         return internal::LevelRule{rule.first, 0, rule.second};
       });
 
+    const auto has_rules = !level_rules.empty();
     internal::applyConfig(config.sink,
       config.fields,
       config.levels.default_level,
-      &level_rules[0],
-      &level_rules[level_rules.size()]);
+      has_rules ? &level_rules[0] : nullptr,
+      has_rules ? &level_rules[0] + level_rules.size() : nullptr);
   }
 } // namespace np::log
 #endif

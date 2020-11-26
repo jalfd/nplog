@@ -13,7 +13,6 @@ TEST_CASE("MessageBuffer") {
     REQUIRE(buf.messageSize() == 0);
     REQUIRE(buf.bufferSize() == 0);
     REQUIRE(buf.contents().empty());
-    REQUIRE(*buf.contents().begin() == '\0');
   }
 
   SECTION("Moving") {
@@ -36,6 +35,7 @@ TEST_CASE("MessageBuffer") {
     REQUIRE(buf.messageSize() == 1);
     REQUIRE(buf.bufferSize() >= 1);
     REQUIRE(buf.contents() == "x");
+    REQUIRE(*(&buf.contents()[0] + 1) == '\0');
 
     buf.append('y');
     REQUIRE(buf.messageSize() == 2);
