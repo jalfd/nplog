@@ -1,31 +1,63 @@
 #include "../src/messagebuffer.hpp"
 #include <nplog/scopedmessage.hpp>
 #include <catch/catch.hpp>
+#include <nplog/config.hpp>
+#include <nplog/macros.hpp>
+#include <optional>
+#include <picojson/picojson.h>
 
-/*
-TEST_CASE("Log") {
-  SECTION("Submitting a buffer sends it to the sink function") {
-    np::log::Logger log;
-    np::log::level_type level = 0;
-    const char* msg_start = nullptr;
-    size_t msg_len = 0;
+namespace pj = picojson;
+
+static pj::object parseMessage(std::string_view contents) {
+  pj::value val;
+  std::string err;
+  picojson::parse(val, contents.begin(), contents.end(), &err);
+  CAPTURE(contents);
+  REQUIRE(err == "");
+  REQUIRE(val.is<pj::object>());
+  return val.get<pj::object>();
+}
+TEST_CASE("LogGroup") {
+  SECTION("Messages include the loggroup name when appropriate") {
     np::log::Config cfg;
-    cfg.levels.default_level = {9, 9};
-    cfg.sink = [&](auto msg) {
-      level = msg.level;
-      msg_start = msg.message.data();
-      msg_len = msg.message.size();
-    };
+    cfg.fields = np::log::LogName;
+    cfg.levels.default_level = {np::log::Status};
+
+    std::optional<std::string> logged;
+    cfg.sink = [&](const auto& msg) { logged = msg.message; };
     np::log::applyConfig(cfg);
 
-    auto buf = np::log::acquireBuffer();
-    buf->append('x');
-    log.submitMessage(3, *buf, np::log::currentVersion());
-    CHECK(msg_start == buf->contents().data());
-    np::log::releaseBuffer(std::move(buf));
-    CHECK(msg_len == 1);
-    CHECK(level == 3);
+    SECTION("LogGroup has no name") {
+      np::log::LogGroup lg;
+      LOG(lg, np::log::Status, "");
+      REQUIRE(logged);
+      const auto parsed = parseMessage(*logged);
+      REQUIRE(parsed.find("log") == parsed.end());
+    }
+
+    SECTION("LogGroup is named") {
+      np::log::LogGroup lg("somename");
+      LOG(lg, np::log::Status, "");
+      REQUIRE(logged);
+      const auto parsed = parseMessage(*logged);
+      REQUIRE(parsed.at("log").get<std::string>() == "somename");
+    }
+
+    SECTION("LogGroup is named, but the name field is disabled") {
+      cfg.fields = {};
+      np::log::applyConfig(cfg);
+      np::log::LogGroup lg("somename");
+      LOG(lg, np::log::Status, "");
+      REQUIRE(logged);
+      const auto parsed = parseMessage(*logged);
+      REQUIRE(parsed.find("log") == parsed.end());
+    }
+  }
+
+  SECTION("Something about levels") {
+      // If I call refreshLevels, it should tell me the appropriate level considering depth, name and other config
+    np::LogGroup base("base");
+    np::LogGroup derived(&base, "derived");
   }
 }
-*/
-TEST_CASE("Log") { REQUIRE(false); }
+
