@@ -21,8 +21,6 @@ namespace np::log {
 template class NPLOG_EXPORT std::function<void(np::log::MessageInfo msg)>;
 
 namespace np::log {
-  inline level_type threshold(level_type input) { return static_cast<level_type>(input * 2 - 1); }
-
   struct NPLOG_EXPORT Config {
     using Sink = std::function<void(MessageInfo)>;
 

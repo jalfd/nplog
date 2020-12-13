@@ -21,7 +21,7 @@ TEST_CASE("LogGroup") {
   SECTION("Messages include the loggroup name when appropriate") {
     np::log::Config cfg;
     cfg.fields = np::log::LogName;
-    cfg.levels.default_level = {np::log::Status};
+    cfg.levels.default_level = {threshold(np::log::Status)};
 
     std::optional<std::string> logged;
     cfg.sink = [&](const auto& msg) { logged = msg.message; };
@@ -52,12 +52,6 @@ TEST_CASE("LogGroup") {
       const auto parsed = parseMessage(*logged);
       REQUIRE(parsed.find("log") == parsed.end());
     }
-  }
-
-  SECTION("Something about levels") {
-      // If I call refreshLevels, it should tell me the appropriate level considering depth, name and other config
-    np::LogGroup base("base");
-    np::LogGroup derived(&base, "derived");
   }
 }
 

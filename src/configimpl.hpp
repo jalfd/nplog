@@ -39,8 +39,8 @@ namespace np::log {
   NPLOG_EXPORT LevelsResult getLevels(std::string_view n, unsigned d);
 
   inline LevelSpec merge(LevelSpec lhs, LevelSpec rhs) {
-    return {static_cast<level_type>(lhs.message | rhs.message),
-      static_cast<level_type>(lhs.param | rhs.param)};
+    return {LevelWrapper(static_cast<level_type>(lhs.message | rhs.message)),
+      LevelWrapper(static_cast<level_type>(lhs.param | rhs.param))};
   }
 
   Fields enabledFields(unsigned global_version);

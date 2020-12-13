@@ -40,6 +40,7 @@ add_library(nplog
     src/scopedmessage.cpp
     src/formatter.cpp
     src/messagebuffer.cpp
+    src/common.cpp
     src/config.cpp
     src/configimpl.hpp
     src/configimpl.cpp

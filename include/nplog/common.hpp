@@ -7,10 +7,19 @@
 namespace np::log {
   using level_type = uint16_t;
 
-  struct LevelSpec {
+  // TODO: Bad name
+  struct NPLOG_EXPORT LevelWrapper {
+    explicit LevelWrapper(level_type l);
+    level_type l;
+  };
+
+  NPLOG_EXPORT LevelWrapper mask(level_type);
+  NPLOG_EXPORT LevelWrapper threshold(level_type);// make this the default? Or explicit?
+
+  struct NPLOG_EXPORT LevelSpec {
     LevelSpec() = default;
-    LevelSpec(level_type message, level_type param): message(message), param(param) {}
-    LevelSpec(level_type message): LevelSpec(message, message) {}
+    LevelSpec(LevelWrapper message, LevelWrapper param);
+    LevelSpec(LevelWrapper message);
     level_type message = {};
     level_type param = {};
   };
