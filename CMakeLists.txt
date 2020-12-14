@@ -93,6 +93,33 @@ target_compile_options(nplog PRIVATE
 
 add_subdirectory(tests)
 
+if ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang") AND NPLOG_LLVM_COVERAGE)
+    find_program(LLVM_PROFDATA
+        "llvm-profdata"
+        PATHS ${NPLOG_LLVM_BIN_DIR}
+    )
+    find_program(LLVM_COV
+        "llvm-cov"
+        PATHS ${NPLOG_LLVM_BIN_DIR}
+    )
+
+    target_compile_options(nplog PRIVATE -fprofile-instr-generate -fcoverage-mapping)
+    target_link_options(nplog PRIVATE -fprofile-instr-generate -fcoverage-mapping)
+    target_compile_options(tests PRIVATE -fprofile-instr-generate -fcoverage-mapping)
+    target_link_options(tests PRIVATE -fprofile-instr-generate -fcoverage-mapping)
+    target_compile_options(example PRIVATE -fprofile-instr-generate -fcoverage-mapping)
+    target_link_options(example PRIVATE -fprofile-instr-generate -fcoverage-mapping)
+
+    add_custom_target(coverage
+        COMMAND ${CMAKE_COMMAND} -E env LLVM_PROFILE_FILE=tests.profraw $<TARGET_FILE:tests>
+        COMMAND ${LLVM_PROFDATA} merge -sparse tests.profraw -o tests.profdata
+        COMMAND ${LLVM_COV} show -format=html -output-dir=coverage -instr-profile tests.profdata $<TARGET_FILE:nplog>
+        COMMAND ${CMAKE_COMMAND} -E echo Coverage report available in file://${CMAKE_BINARY_DIR}/coverage/index.html
+        DEPENDS tests
+        COMMENT "Generating coverage report"
+        VERBATIM)
+endif()
+
 install(TARGETS nplog
     EXPORT nplog-targets
     RUNTIME DESTINATION bin
