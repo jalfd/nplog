@@ -16,7 +16,7 @@ namespace np::log {
       Fields fields,
       LevelSpec default_level,
       LevelRule* first,
-      LevelRule* last) {
+      LevelRule* last) noexcept {
       LogConfig cfg;
       cfg.sink = sink;
       cfg.fields = fields;

@@ -11,7 +11,7 @@ namespace np::log {
 
     static LogState state;
   } // namespace
-  MessageBuffer* acquireBuffer() {
+  MessageBuffer* acquireBuffer() noexcept {
     std::lock_guard lock(state.buffer_mutex);
     if (state.buffers.empty()) { state.buffers.emplace_back(new MessageBuffer()); }
     auto buf = state.buffers.back();
@@ -19,7 +19,7 @@ namespace np::log {
     return buf;
   }
 
-  void releaseBuffer(MessageBuffer* buf) {
+  void releaseBuffer(MessageBuffer* buf) noexcept {
     buf->clear();
     std::lock_guard lock(state.buffer_mutex);
     state.buffers.push_back(buf);

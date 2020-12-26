@@ -5,10 +5,10 @@
 #include <string>
 
 namespace np::log::platform {
-  uint64_t processId();
-  uint64_t threadId();
-  std::string hostname();
-  std::string executableName();
+  uint64_t processId() noexcept;
+  uint64_t threadId() noexcept;
+  std::string hostname() noexcept;
+  std::string executableName() noexcept;
 } // namespace np::log::platform
 
 #endif

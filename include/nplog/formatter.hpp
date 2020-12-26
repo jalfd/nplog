@@ -10,23 +10,23 @@ namespace np::log {
   struct Formatter {};
 
   template <typename T>
-  inline void format(const T& val, ValueSerializer& srl) {
+  inline void format(const T& val, ValueSerializer& srl) noexcept {
     Formatter<T>()(val, srl);
   }
-  NPLOG_EXPORT void format(bool val, ValueSerializer& srl);
-  NPLOG_EXPORT void format(short val, ValueSerializer& srl);
-  NPLOG_EXPORT void format(unsigned short val, ValueSerializer& srl);
-  NPLOG_EXPORT void format(int val, ValueSerializer& srl);
-  NPLOG_EXPORT void format(unsigned int val, ValueSerializer& srl);
-  NPLOG_EXPORT void format(long val, ValueSerializer& srl);
-  NPLOG_EXPORT void format(unsigned long val, ValueSerializer& srl);
-  NPLOG_EXPORT void format(long long val, ValueSerializer& srl);
-  NPLOG_EXPORT void format(unsigned long long val, ValueSerializer& srl);
-  NPLOG_EXPORT void format(float val, ValueSerializer& srl);
-  NPLOG_EXPORT void format(double val, ValueSerializer& srl);
-  NPLOG_EXPORT void format(long double val, ValueSerializer& srl);
-  NPLOG_EXPORT void format(std::string_view val, ValueSerializer& srl);
-  NPLOG_EXPORT void format(const std::string& val, ValueSerializer& srl);
+  NPLOG_EXPORT void format(bool val, ValueSerializer& srl) noexcept;
+  NPLOG_EXPORT void format(short val, ValueSerializer& srl) noexcept;
+  NPLOG_EXPORT void format(unsigned short val, ValueSerializer& srl) noexcept;
+  NPLOG_EXPORT void format(int val, ValueSerializer& srl) noexcept;
+  NPLOG_EXPORT void format(unsigned int val, ValueSerializer& srl) noexcept;
+  NPLOG_EXPORT void format(long val, ValueSerializer& srl) noexcept;
+  NPLOG_EXPORT void format(unsigned long val, ValueSerializer& srl) noexcept;
+  NPLOG_EXPORT void format(long long val, ValueSerializer& srl) noexcept;
+  NPLOG_EXPORT void format(unsigned long long val, ValueSerializer& srl) noexcept;
+  NPLOG_EXPORT void format(float val, ValueSerializer& srl) noexcept;
+  NPLOG_EXPORT void format(double val, ValueSerializer& srl) noexcept;
+  NPLOG_EXPORT void format(long double val, ValueSerializer& srl) noexcept;
+  NPLOG_EXPORT void format(std::string_view val, ValueSerializer& srl) noexcept;
+  NPLOG_EXPORT void format(const std::string& val, ValueSerializer& srl) noexcept;
 
 } // namespace np::log
 

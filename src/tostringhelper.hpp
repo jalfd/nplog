@@ -7,7 +7,7 @@
 namespace np::log {
   // will return a pointer to the first non-zero digit
   template <typename T>
-  inline char* fixed_unsigned_to_decimal(T number, char* buffer, size_t len) {
+  inline char* fixed_unsigned_to_decimal(T number, char* buffer, size_t len) noexcept {
     char* ptr = buffer + len - 1;
     if (number == 0) {
       *ptr-- = '0';
@@ -23,7 +23,7 @@ namespace np::log {
   // will return a pointer to the first non-zero digit
   // prior digits will be set to pad
   template <typename T>
-  inline char* pad_unsigned_to_decimal(T number, char* buffer, size_t len, char pad) {
+  inline char* pad_unsigned_to_decimal(T number, char* buffer, size_t len, char pad) noexcept {
     const auto actual_begin = fixed_unsigned_to_decimal(number, buffer, len);
     std::fill(buffer, actual_begin, pad);
     return actual_begin;
@@ -31,7 +31,7 @@ namespace np::log {
 
   // will return a pointer past the end of the number
   template <typename T>
-  inline char* unsigned_to_decimal(T number, char* buffer, size_t len) {
+  inline char* unsigned_to_decimal(T number, char* buffer, size_t len) noexcept {
     const auto actual_begin = fixed_unsigned_to_decimal(number, buffer, len);
     const auto actual_len = buffer + len - actual_begin;
     std::copy(actual_begin, buffer + len, buffer);
@@ -39,7 +39,7 @@ namespace np::log {
   }
 
   template <typename T>
-  auto to_unsigned(T number) {
+  auto to_unsigned(T number) noexcept {
     using UT = typename std::make_unsigned<T>::type;
     auto unum = static_cast<UT>(number);
     unum = 0 - unum;
@@ -49,7 +49,7 @@ namespace np::log {
   /// Returns a string_view spanning the written number
   /// Unused bytes at the end of the buffer
   template <typename T>
-  inline std::string_view decimal_from(T number, char* first, char* last) {
+  inline std::string_view decimal_from(T number, char* first, char* last) noexcept {
     if constexpr (std::is_signed_v<T>) {
       if (number < 0) {
         auto n = to_unsigned(number);
@@ -66,7 +66,7 @@ namespace np::log {
   /// Returns a string_view spanning the written number
   /// Unused bytes at the beginning of the buffer
   template <typename T>
-  inline std::string_view fixed_decimal_from(T number, char* first, char* last) {
+  inline std::string_view fixed_decimal_from(T number, char* first, char* last) noexcept {
     if constexpr (std::is_signed_v<T>) {
       if (number < 0) {
         auto n = to_unsigned(number);
@@ -83,7 +83,7 @@ namespace np::log {
   /// Returns a string_view spanning the written number
   /// Unused bytes at the beginning of the buffer, initialized to pad
   template <typename T>
-  inline std::string_view padded_decimal_from(T number, char* first, char* last, char pad) {
+  inline std::string_view padded_decimal_from(T number, char* first, char* last, char pad) noexcept {
     if constexpr (std::is_signed_v<T>) {
       if (number < 0) {
         auto n = to_unsigned(number);

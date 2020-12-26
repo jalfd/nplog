@@ -13,7 +13,7 @@ namespace np::log {
 
     auto config = std::make_shared<LogConfig>();
 
-    std::shared_ptr<LogConfig> getConfig(unsigned known_global_version) {
+    std::shared_ptr<LogConfig> getConfig(unsigned known_global_version) noexcept {
       thread_local unsigned cached_version = 0;
       thread_local std::shared_ptr<LogConfig> cached_ptr;
 
@@ -26,18 +26,18 @@ namespace np::log {
     }
   } // namespace
 
-  unsigned currentVersion() {
+  unsigned currentVersion() noexcept {
     return std::atomic_load_explicit(&config_timestamp, std::memory_order_acquire);
   }
 
-  void applyConfig(LogConfig cfg) {
+  void applyConfig(LogConfig cfg) noexcept {
     const auto new_cfg = std::make_shared<LogConfig>(std::move(cfg));
     if (!cfg.sink) { cfg.sink = stderr_log_sink; }
     std::atomic_store_explicit(&config, new_cfg, std::memory_order_release);
     std::atomic_fetch_add_explicit(&config_timestamp, 1u, std::memory_order_release);
   }
 
-  LevelsResult getLevels(std::string_view n, unsigned d) {
+  LevelsResult getLevels(std::string_view n, unsigned d) noexcept {
     auto version = currentVersion();
 
     const auto cfg_ptr = getConfig(version);
@@ -63,7 +63,7 @@ namespace np::log {
     return {version, lvls, levels_by_name};
   }
 
-  Fields enabledFields(unsigned global_version) {
+  Fields enabledFields(unsigned global_version) noexcept {
     thread_local unsigned cached_version = 0;
     thread_local Fields cached_fields;
 
@@ -74,7 +74,7 @@ namespace np::log {
     return cached_fields;
   }
 
-  void sendToSink(level_type level, std::string_view buffer, unsigned global_version) {
+  void sendToSink(level_type level, std::string_view buffer, unsigned global_version) noexcept {
     std::lock_guard<std::mutex> lock(sink_mutex);
     getConfig(global_version)->sink(MessageInfo{level, buffer});
   }

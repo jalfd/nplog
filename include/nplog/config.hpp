@@ -45,10 +45,10 @@ namespace np::log {
       Fields fields,
       LevelSpec default_level,
       LevelRule* first,
-      LevelRule* last);
+      LevelRule* last) noexcept;
   } // namespace internal
 
-  inline void applyConfig(Config config) {
+  inline void applyConfig(Config config) noexcept {
     std::vector<internal::LevelRule> level_rules;
 
     std::transform(config.levels.levels_by_depth.begin(),

@@ -11,7 +11,7 @@ namespace np::log {
     std::string_view m,
     MessageBuffer* buffer,
     std::string_view log_name,
-    std::string_view group_props_data)
+    std::string_view group_props_data) noexcept
     : message_buffer(buffer), serializer(buffer), message_level(level) {
     serializer.prologue(file, line, enabled_fields, level, log_name, m);
     if (!group_props_data.empty()) {
@@ -21,12 +21,12 @@ namespace np::log {
     }
   }
 
-  void ScopedMessageBase::endMessage() {
+  void ScopedMessageBase::endMessage() noexcept {
     if (has_props) { serializer.endObject(); }
     serializer.epilogue();
   }
 
-  ValueSerializer ScopedMessageBase::startParam(std::string_view name) {
+  ValueSerializer ScopedMessageBase::startParam(std::string_view name) noexcept {
     if (!has_props) {
       has_props = true;
       serializer.startObject("props");
@@ -39,7 +39,7 @@ namespace np::log {
     int line,
     unsigned global_version,
     level_type level,
-    std::string_view m)
+    std::string_view m) noexcept
     : ScopedMessageBase(file,
       line,
       enabledFields(global_version),
@@ -50,7 +50,7 @@ namespace np::log {
       group.props() ? group.props()->data.contents() : std::string_view())
     , global_version(global_version) {}
 
-  ScopedMessage::~ScopedMessage() {
+  ScopedMessage::~ScopedMessage() noexcept {
     endMessage();
     ::np::log::sendToSink(message_level, message_buffer->contents(), global_version);
     releaseBuffer(message_buffer);

@@ -9,17 +9,17 @@ namespace np::log {
 
   // TODO: Bad name
   struct NPLOG_EXPORT LevelWrapper {
-    explicit LevelWrapper(level_type l);
+    explicit LevelWrapper(level_type l) noexcept;
     level_type l;
   };
 
-  NPLOG_EXPORT LevelWrapper mask(level_type);
-  NPLOG_EXPORT LevelWrapper threshold(level_type);// make this the default? Or explicit?
+  NPLOG_EXPORT LevelWrapper mask(level_type) noexcept;
+  NPLOG_EXPORT LevelWrapper threshold(level_type) noexcept;// make this the default? Or explicit?
 
   struct NPLOG_EXPORT LevelSpec {
-    LevelSpec() = default;
-    LevelSpec(LevelWrapper message, LevelWrapper param);
-    LevelSpec(LevelWrapper message);
+    LevelSpec() noexcept = default;
+    LevelSpec(LevelWrapper message, LevelWrapper param) noexcept;
+    LevelSpec(LevelWrapper message) noexcept;
     level_type message = {};
     level_type param = {};
   };
@@ -49,14 +49,14 @@ namespace np::log {
       Hostname = 512,
     };
 
-  NPLOG_EXPORT unsigned currentVersion();
+  NPLOG_EXPORT unsigned currentVersion() noexcept;
 
-  inline bool testLevel(level_type level, level_type mask) { return (level & mask) == level; }
+  inline bool testLevel(level_type level, level_type mask) noexcept { return (level & mask) == level; }
 
-  inline bool suppressParam(LevelSpec level, level_type, level_type param_level) {
+  inline bool suppressParam(LevelSpec level, level_type, level_type param_level) noexcept {
     return !testLevel(param_level, static_cast<level_type>(level.param));
   }
-  inline bool suppressParam(LevelSpec level, level_type msg_level, const char* = nullptr) {
+  inline bool suppressParam(LevelSpec level, level_type msg_level, const char* = nullptr) noexcept {
     return suppressParam(level, msg_level, msg_level);
   }
 

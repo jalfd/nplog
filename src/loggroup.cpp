@@ -17,7 +17,7 @@ namespace np::log {
     MessageBuffer& buffer,
     const char* name,
     const void* value,
-    void (*format_func)(const void*, ValueSerializer&)) {
+    void (*format_func)(const void*, ValueSerializer&)) noexcept {
     serializer.writeKey(name);
     const auto name_end = buffer.messageSize(); // FIXME: do we really want to depend on buffer? No.
                                                 // We don't. Absolutely not.
@@ -27,7 +27,7 @@ namespace np::log {
     return static_cast<uint32_t>(name_end);
   }
 
-  LogGroupProps::LogGroupProps(LogGroupProps* parent, std::initializer_list<LogParam> params) {
+  LogGroupProps::LogGroupProps(LogGroupProps* parent, std::initializer_list<LogParam> params) noexcept {
     Serializer s(&data);
     std::vector<const LogParam*> param_ptrs; // FIXME: should reserve
     std::transform(
@@ -98,7 +98,7 @@ namespace np::log {
     }
   }
 
-  LogGroup::LogGroup(LogGroup* parent, const char* name)
+  LogGroup::LogGroup(LogGroup* parent, const char* name) noexcept
     : parent(parent)
     , group_props(parent ? parent->group_props : nullptr)
     , name_ptr(name)
@@ -107,21 +107,21 @@ namespace np::log {
     refreshLevels(0, currentVersion());
   }
 
-  LogGroup::LogGroup(const char* name) : LogGroup(nullptr, name) {}
+  LogGroup::LogGroup(const char* name) noexcept : LogGroup(nullptr, name) {}
 
-  LogGroup::LogGroup(LogGroup* parent, const char* name, std::initializer_list<LogParam> params)
+  LogGroup::LogGroup(LogGroup* parent, const char* name, std::initializer_list<LogParam> params) noexcept
     : LogGroup(parent, name) {
     if (params.size() != 0) {
       group_props = new LogGroupProps(parent ? parent->group_props : nullptr, params);
     }
   }
 
-  LogGroup::~LogGroup() {
+  LogGroup::~LogGroup() noexcept {
     // Delete, unless we're pointing at our parent's params
     if (!(parent && parent->group_props == group_props)) { delete group_props; }
   }
 
-  LevelSpec LogGroup::refreshLevels(unsigned version_, unsigned global_version, bool exclude_depth) {
+  LevelSpec LogGroup::refreshLevels(unsigned version_, unsigned global_version, bool exclude_depth) noexcept {
     if (!isCurrent(version_, global_version)) {
       auto result = getLevels(std::string_view(name_ptr, name_len), depth);
       levels_by_name_only = result.levels_by_name_only;

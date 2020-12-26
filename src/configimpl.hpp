@@ -7,9 +7,9 @@
 
 namespace np::log {
   struct LogConfig {
-    LogConfig() = default;
-    LogConfig(LogConfig&& other) = default;
-    LogConfig& operator=(LogConfig&& other) = default;
+    LogConfig() noexcept = default;
+    LogConfig(LogConfig&& other) noexcept = default;
+    LogConfig& operator=(LogConfig&& other) noexcept = default;
 
     using Sink = Config::Sink;
     using Fields = np::log::Fields;
@@ -25,9 +25,9 @@ namespace np::log {
     Fields fields = static_cast<Fields>(File | Line | Time);
   };
 
-  void applyConfig(LogConfig cfg);
+  void applyConfig(LogConfig cfg) noexcept;
 
-  inline bool isCurrent(unsigned my_version, unsigned global_version) {
+  inline bool isCurrent(unsigned my_version, unsigned global_version) noexcept {
     return my_version == global_version;
   }
 
@@ -36,15 +36,15 @@ namespace np::log {
     LevelSpec effective_levels;
     LevelSpec levels_by_name_only;
   };
-  NPLOG_EXPORT LevelsResult getLevels(std::string_view n, unsigned d);
+  NPLOG_EXPORT LevelsResult getLevels(std::string_view n, unsigned d) noexcept;
 
-  inline LevelSpec merge(LevelSpec lhs, LevelSpec rhs) {
+  inline LevelSpec merge(LevelSpec lhs, LevelSpec rhs) noexcept {
     return {LevelWrapper(static_cast<level_type>(lhs.message | rhs.message)),
       LevelWrapper(static_cast<level_type>(lhs.param | rhs.param))};
   }
 
-  Fields enabledFields(unsigned global_version);
+  Fields enabledFields(unsigned global_version) noexcept;
 
-  void sendToSink(level_type level, std::string_view buffer, unsigned global_version);
+  void sendToSink(level_type level, std::string_view buffer, unsigned global_version) noexcept;
 } // namespace np::log
 #endif

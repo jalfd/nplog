@@ -4,8 +4,8 @@
 #include <nplog/common.hpp>
 
 namespace np::log::internal {
-  inline const char* getParamName(const char* name, const char*) { return name; }
-  inline const char* getParamName(level_type, const char* name) { return name; }
+  inline const char* getParamName(const char* name, const char*) noexcept { return name; }
+  inline const char* getParamName(level_type, const char* name) noexcept { return name; }
 } // namespace np::log::internal
 
 #define NP_MSVC_EXPAND_INDIRECT(m, args) m args

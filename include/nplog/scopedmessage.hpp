@@ -15,18 +15,18 @@ namespace np::log {
       std::string_view m,
       MessageBuffer* buffer,
       std::string_view log_name,
-      std::string_view group_props_data);
+      std::string_view group_props_data) noexcept;
 
-    void endMessage();
+    void endMessage() noexcept;
 
     template <typename T>
-    bool addParam(std::string_view name, T&& expr) {
+    bool addParam(std::string_view name, T&& expr) noexcept {
       auto vs = startParam(name);
       np::log::format(expr, vs);
       return {};
     }
 
-    ValueSerializer startParam(std::string_view name);
+    ValueSerializer startParam(std::string_view name) noexcept;
 
   protected:
     MessageBuffer* message_buffer;
@@ -37,9 +37,9 @@ namespace np::log {
   };
 
   struct NPLOG_EXPORT ScopedMessage : private ScopedMessageBase {
-    ScopedMessage(LogGroup& group, std::string_view file, int line, unsigned global_version, level_type level, std::string_view m);
+    ScopedMessage(LogGroup& group, std::string_view file, int line, unsigned global_version, level_type level, std::string_view m) noexcept;
 
-    ~ScopedMessage();
+    ~ScopedMessage() noexcept;
 
     using ScopedMessageBase::addParam;
 

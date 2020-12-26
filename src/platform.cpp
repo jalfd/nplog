@@ -31,7 +31,7 @@
 
 namespace {
 #if NP_PLATFORM_WINDOWS
-  std::string utf16ToUtf8(std::wstring_view str) {
+  std::string utf16ToUtf8(std::wstring_view str) noexcept {
     // Worst case, each 16 bit code unit becomes a 3-byte UTF-8 sequence
     const auto max_len = str.size() * 3;
     std::string result(max_len, '\0');
@@ -49,8 +49,8 @@ namespace {
   }
 
   struct ScopedWinSockInit {
-    ScopedWinSockInit() { (void)WSAStartup(MAKEWORD(2, 2), &data); }
-    ~ScopedWinSockInit() { WSACleanup(); }
+    ScopedWinSockInit() noexcept { (void)WSAStartup(MAKEWORD(2, 2), &data); }
+    ~ScopedWinSockInit() noexcept { WSACleanup(); }
 
   private:
     WSADATA data;
@@ -61,7 +61,7 @@ namespace {
 
 namespace np::log {
   namespace internal {
-    uint64_t processId() {
+    uint64_t processId() noexcept {
 #if NP_PLATFORM_WINDOWS
       return GetCurrentProcessId();
 #else
@@ -69,7 +69,7 @@ namespace np::log {
 #endif
     }
 
-    uint64_t threadId() {
+    uint64_t threadId() noexcept {
 #if NP_PLATFORM_WINDOWS
       return GetCurrentThreadId();
 #elif NP_PLATFORM_LINUX
@@ -81,13 +81,13 @@ namespace np::log {
 #endif
     }
 
-    std::string hostname() {
+    std::string hostname() noexcept {
       char buf[256];
       if (gethostname(buf, 256) == 0) { return std::string(buf); }
       return "<error>";
     }
 
-    std::string executableName() {
+    std::string executableName() noexcept {
 #if NP_PLATFORM_WINDOWS
       std::vector<wchar_t> buf(512);
       for (;;) {
@@ -114,7 +114,7 @@ namespace np::log {
     }
 
     struct CachedFields {
-      CachedFields()
+      CachedFields() noexcept
         : hostname(hostnameFromFqdn(internal::hostname()))
         , executable(filenameFromPath(internal::executableName())) {}
 
@@ -127,9 +127,9 @@ namespace np::log {
   } // namespace internal
 
   namespace platform {
-    uint64_t processId() { return internal::processId(); }
-    uint64_t threadId() { return internal::threadId(); }
-    std::string hostname() {
+    uint64_t processId() noexcept { return internal::processId(); }
+    uint64_t threadId() noexcept { return internal::threadId(); }
+    std::string hostname() noexcept {
       {
         std::shared_lock<std::shared_mutex> lock(internal::mtx);
         if (internal::cached) { return internal::cached->hostname; }
@@ -138,7 +138,7 @@ namespace np::log {
       internal::cached = std::make_unique<internal::CachedFields>();
       return internal::cached->hostname;
     }
-    std::string executableName() {
+    std::string executableName() noexcept {
       {
         std::shared_lock<std::shared_mutex> lock(internal::mtx);
         if (internal::cached) { return internal::cached->executable; }

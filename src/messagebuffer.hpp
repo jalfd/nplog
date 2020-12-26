@@ -86,9 +86,9 @@ namespace np::log {
     char* msg_end = nullptr;
   };
 
-  NPLOG_EXPORT MessageBuffer* acquireBuffer();
+  NPLOG_EXPORT MessageBuffer* acquireBuffer() noexcept;
 
-  NPLOG_EXPORT void releaseBuffer(MessageBuffer* buf);
+  NPLOG_EXPORT void releaseBuffer(MessageBuffer* buf) noexcept;
 } // namespace np::log
 
 #endif

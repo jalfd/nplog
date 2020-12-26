@@ -25,7 +25,7 @@
 namespace np::log {
   namespace {
     template <typename BufType>
-    char* offset(BufType* ptr, size_t idx) {
+    char* offset(BufType* ptr, size_t idx) noexcept {
       auto& buf = *ptr;
       return &buf[0] + idx;
     }
@@ -51,20 +51,20 @@ namespace np::log {
   } // namespace
 
   struct HeaderFields {
-    HeaderFields(Serializer& srl) : buffer(srl.buffer), vs(srl.valueSerializer()) {}
+    HeaderFields(Serializer& srl) noexcept : buffer(srl.buffer), vs(srl.valueSerializer()) {}
 
     using sv = std::string_view;
-    void file(sv filename, int, level_type, sv) {
+    void file(sv filename, int, level_type, sv) noexcept {
       vs.writeLiteral(",\"file\":");
       vs.write(filenameFromPath(filename));
     }
 
-    void line(sv, int line, level_type, sv) {
+    void line(sv, int line, level_type, sv) noexcept {
       vs.writeLiteral(",\"line\":");
       vs.write(line);
     }
 
-    void time(sv, int, level_type, sv) {
+    void time(sv, int, level_type, sv) noexcept {
       vs.writeLiteral(",\"time\":");
       auto now = std::chrono::system_clock::now();
       auto date = date::floor<date::days>(now);
@@ -98,12 +98,12 @@ namespace np::log {
       *ptr++ = '"';
     }
 
-    void level(sv, int, level_type level, sv) {
+    void level(sv, int, level_type level, sv) noexcept {
       vs.writeLiteral(",\"level\":");
       vs.write(level & 0xff);
     }
 
-    void levelName(sv, int, level_type level, sv) {
+    void levelName(sv, int, level_type level, sv) noexcept {
       vs.writeLiteral(",\"levelString\":");
 #ifdef _WIN32
       unsigned long index = 0;
@@ -116,25 +116,25 @@ namespace np::log {
 #endif
       vs.write(level_names[index]);
     }
-    void logName(sv, int, level_type, sv log_name) {
+    void logName(sv, int, level_type, sv log_name) noexcept {
       if (!log_name.empty()) {
         vs.writeLiteral(",\"log\":");
         vs.write(log_name);
       }
     }
-    void processName(sv, int, level_type, sv) {
+    void processName(sv, int, level_type, sv) noexcept {
       vs.writeLiteral(",\"process\":");
       vs.write(np::log::platform::executableName());
     }
-    void processId(sv, int, level_type, sv) {
+    void processId(sv, int, level_type, sv) noexcept {
       vs.writeLiteral(",\"pid\":");
       vs.write(np::log::platform::processId());
     }
-    void threadId(sv, int, level_type, sv) {
+    void threadId(sv, int, level_type, sv) noexcept {
       vs.writeLiteral(",\"tid\":");
       vs.write(np::log::platform::threadId());
     }
-    void hostname(sv, int, level_type, sv) {
+    void hostname(sv, int, level_type, sv) noexcept {
       vs.writeLiteral(",\"host\":");
       vs.write(np::log::platform::hostname());
     }
@@ -144,14 +144,14 @@ namespace np::log {
     ValueSerializer vs;
   };
 
-  Serializer::Serializer(MessageBuffer* buffer) : buffer(buffer) {}
+  Serializer::Serializer(MessageBuffer* buffer) noexcept : buffer(buffer) {}
 
   void Serializer::prologue(std::string_view file,
     int line,
     Fields enabled_fields,
     level_type level,
     std::string_view log_name,
-    std::string_view msg) {
+    std::string_view msg) noexcept {
     auto vs = valueSerializer();
 
     vs.writeLiteral("{\"message\":");
@@ -171,9 +171,9 @@ namespace np::log {
     if (enabled_fields & Hostname) { hf.hostname(file, line, level, log_name); }
   }
 
-  void Serializer::epilogue() { buffer->append('}'); }
+  void Serializer::epilogue() noexcept { buffer->append('}'); }
 
-  void Serializer::writeKey(std::string_view name) {
+  void Serializer::writeKey(std::string_view name) noexcept {
     auto vs = valueSerializer();
     if (!is_empty) { vs.writeLiteral(","); }
     is_empty = false;
@@ -181,9 +181,9 @@ namespace np::log {
     buffer->append(':');
   }
 
-  ValueSerializer Serializer::valueSerializer() { return ValueSerializer(buffer); }
+  ValueSerializer Serializer::valueSerializer() noexcept { return ValueSerializer(buffer); }
 
-  void Serializer::startObject(std::string_view name) {
+  void Serializer::startObject(std::string_view name) noexcept {
     auto vs = valueSerializer();
     vs.writeLiteral(",\"");
     vs.writeLiteral(name);
@@ -191,36 +191,36 @@ namespace np::log {
     is_empty = true;
   }
 
-  void Serializer::endObject() {
+  void Serializer::endObject() noexcept {
     buffer->append('}');
     is_empty = false;
   }
 
-  ValueSerializer::ValueSerializer(MessageBuffer* buffer) : buffer(buffer) {}
+  ValueSerializer::ValueSerializer(MessageBuffer* buffer) noexcept : buffer(buffer) {}
 
-  void ValueSerializer::write(double val) { writeFloatingPoint(val, "%.12g"); }
+  void ValueSerializer::write(double val) noexcept { writeFloatingPoint(val, "%.12g"); }
 
-  void ValueSerializer::write(long double val) { writeFloatingPoint(val, "%.12Lg"); }
+  void ValueSerializer::write(long double val) noexcept { writeFloatingPoint(val, "%.12Lg"); }
 
-  void ValueSerializer::write(int val) { writeInteger(val); }
+  void ValueSerializer::write(int val) noexcept { writeInteger(val); }
 
-  void ValueSerializer::write(unsigned int val) { writeInteger(val); }
+  void ValueSerializer::write(unsigned int val) noexcept { writeInteger(val); }
 
-  void ValueSerializer::write(long long val) { writeInteger(val); }
+  void ValueSerializer::write(long long val) noexcept { writeInteger(val); }
 
-  void ValueSerializer::write(unsigned long long val) { writeInteger(val); }
+  void ValueSerializer::write(unsigned long long val) noexcept { writeInteger(val); }
 
-  void ValueSerializer::write(long val) { writeInteger(val); }
+  void ValueSerializer::write(long val) noexcept { writeInteger(val); }
 
-  void ValueSerializer::write(unsigned long val) { writeInteger(val); }
+  void ValueSerializer::write(unsigned long val) noexcept { writeInteger(val); }
 
-  void ValueSerializer::write(std::string_view val) { writeString(val); }
+  void ValueSerializer::write(std::string_view val) noexcept { writeString(val); }
 
-  void ValueSerializer::write(const char* val) { write(std::string_view(val)); }
+  void ValueSerializer::write(const char* val) noexcept { write(std::string_view(val)); }
 
-  void ValueSerializer::write(bool val) { writeLiteral(val ? "true" : "false"); }
+  void ValueSerializer::write(bool val) noexcept { writeLiteral(val ? "true" : "false"); }
 
-  void ValueSerializer::writeString(std::string_view val) {
+  void ValueSerializer::writeString(std::string_view val) noexcept {
     buffer->append('"');
     std::for_each(val.begin(), val.end(), [this](char c) {
       switch (c) {
@@ -262,7 +262,7 @@ namespace np::log {
     buffer->append('"');
   }
 
-  void ValueSerializer::writeLiteral(std::string_view val) {
+  void ValueSerializer::writeLiteral(std::string_view val) noexcept {
     char* at = buffer->insertAt(val.size());
     std::copy(val.begin(), val.end(), at);
   }
