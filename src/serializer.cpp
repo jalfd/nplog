@@ -11,7 +11,11 @@
 #include "configimpl.hpp"
 #include "platform.hpp"
 #include "utility.hpp"
+#if __has_include(<charconv>)
+#include <charconv>
+#else
 #include <locale.h>
+#endif
 
 #ifdef _WIN32
 #include <intrin.h>
@@ -20,7 +24,23 @@
 #include <strings.h>
 #endif
 
+#ifndef __cpp_lib_to_chars
 #include "tostringhelper.hpp"
+#else
+  inline void padded_decimal_from(int number, char* first, char* last, char) noexcept {
+    char buf[4];
+    auto result = std::to_chars(buf, buf + 4, number);
+    const auto len = result.ptr - buf;
+    std::memcpy(first, "0000", last - first);
+    std::memcpy(last - len, buf, len);
+  }
+
+  template <typename T>
+  inline std::string_view decimal_from(T number, char* first, char* last) noexcept {
+    return std::string_view(first, std::to_chars(first, last, number).ptr - first);
+  }
+
+#endif
 
 namespace np::log {
   namespace {
@@ -29,7 +49,7 @@ namespace np::log {
       auto& buf = *ptr;
       return &buf[0] + idx;
     }
-#ifndef has_to_chars
+#ifndef __cpp_lib_to_chars
     static struct ScopedLocale {
 #ifdef _WIN32
       using locale_t = _locale_t;
@@ -74,7 +94,7 @@ namespace np::log {
       // make sure the buffer has enough capacity
       auto* ptr = buffer->insertAt(26);
       *ptr++ = '"';
-      padded_decimal_from(static_cast<int>(ymd.year()), ptr, ptr + 4, '0');
+      padded_decimal_from(static_cast<unsigned int>(static_cast<int>(ymd.year())), ptr, ptr + 4, '0');
       ptr += 4;
       *ptr++ = '-';
       padded_decimal_from(static_cast<unsigned int>(ymd.month()), ptr, ptr + 2, '0');
@@ -83,16 +103,16 @@ namespace np::log {
       padded_decimal_from(static_cast<unsigned int>(ymd.day()), ptr, ptr + 2, '0');
       ptr += 2;
       *ptr++ = 'T';
-      padded_decimal_from(time.hours().count(), ptr, ptr + 2, '0');
+      padded_decimal_from(static_cast<unsigned int>(time.hours().count()), ptr, ptr + 2, '0');
       ptr += 2;
       *ptr++ = ':';
-      padded_decimal_from(time.minutes().count(), ptr, ptr + 2, '0');
+      padded_decimal_from(static_cast<unsigned int>(time.minutes().count()), ptr, ptr + 2, '0');
       ptr += 2;
       *ptr++ = ':';
-      padded_decimal_from(static_cast<unsigned long>(time.seconds().count()), ptr, ptr + 2, '0');
+      padded_decimal_from(static_cast<unsigned int>(time.seconds().count()), ptr, ptr + 2, '0');
       ptr += 2;
       *ptr++ = '.';
-      padded_decimal_from(static_cast<unsigned long>(time.subseconds().count()), ptr, ptr + 3, '0');
+      padded_decimal_from(static_cast<unsigned int>(time.subseconds().count()), ptr, ptr + 3, '0');
       ptr += 3;
       *ptr++ = 'Z';
       *ptr++ = '"';
@@ -287,7 +307,7 @@ namespace np::log {
 
     static constexpr int bufsize = 1024;
     char buf[bufsize];
-#ifndef has_to_chars
+#ifndef __cpp_lib_to_chars
 #ifdef __linux
     auto old_loc = uselocale(c_locale.loc);
     const auto len = snprintf(buf, bufsize, format, val);
@@ -300,8 +320,9 @@ namespace np::log {
 #endif
     if (len > bufsize) { std::abort(); }
 #else
-    const auto result = std::to_chars(buf, buf + bufsize, val);
-    if (result.ec) { std::abort(); }
+    (void) format;
+    const auto result = std::to_chars(buf, buf + bufsize, val, std::chars_format::general, 12);
+    if (result.ec != std::errc()) { std::abort(); }
     const auto len = result.ptr - buf;
 #endif
 
