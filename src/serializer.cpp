@@ -27,19 +27,17 @@
 #ifndef __cpp_lib_to_chars
 #include "tostringhelper.hpp"
 #else
-  inline void padded_decimal_from(int number, char* first, char* last, char) noexcept {
+  inline void padded_decimal_from(unsigned int number, char* first, size_t width) noexcept {
     char buf[4];
     auto result = std::to_chars(buf, buf + 4, number);
     const auto len = result.ptr - buf;
-    uint32_t bufi;
-    memcpy(&bufi, buf, 4);
-    bufi = bufi >> (4 - len);
-    std::memcpy(first, &bufi, 4);
+    std::memcpy(first, "0000", width);
+    std::memcpy(last - len, buf, len);
   }
 
   template <typename T>
   inline std::string_view decimal_from(T number, char* first, char* last) noexcept {
-    return std::string_view(first, std::to_chars(first, last, number).ptr);
+    return std::string_view(first, std::to_chars(first, last, number).ptr - first);
   }
 
 #endif
@@ -89,7 +87,7 @@ namespace np::log {
     void time(sv, int, level_type, sv) noexcept {
       vs.writeLiteral(",\"time\":");
       auto now = std::chrono::system_clock::now();
-      
+
       using seconds = std::chrono::duration<int, std::chrono::seconds::period>;
 
       thread_local char cached_prefix[21];
@@ -103,22 +101,22 @@ namespace np::log {
       if (now >= cache_expiry) {
         auto ptr = cached_prefix;
         *ptr++ = '"';
-        padded_decimal_from(static_cast<unsigned int>(static_cast<int>(ymd.year())), ptr, ptr + 4, '0');
+        padded_decimal_from(static_cast<unsigned int>(static_cast<int>(ymd.year())), ptr, 4);
         ptr += 4;
         *ptr++ = '-';
-        padded_decimal_from(static_cast<unsigned int>(ymd.month()), ptr, ptr + 2, '0');
+        padded_decimal_from(static_cast<unsigned int>(ymd.month()), ptr, 2);
         ptr += 2;
         *ptr++ = '-';
-        padded_decimal_from(static_cast<unsigned int>(ymd.day()), ptr, ptr + 2, '0');
+        padded_decimal_from(static_cast<unsigned int>(ymd.day()), ptr, 2);
         ptr += 2;
         *ptr++ = 'T';
-        padded_decimal_from(static_cast<unsigned int>(time.hours().count()), ptr, ptr + 2, '0');
+        padded_decimal_from(static_cast<unsigned int>(time.hours().count()), ptr, 2);
         ptr += 2;
         *ptr++ = ':';
-        padded_decimal_from(static_cast<unsigned int>(time.minutes().count()), ptr, ptr + 2, '0');
+        padded_decimal_from(static_cast<unsigned int>(time.minutes().count()), ptr, 2);
         ptr += 2;
         *ptr++ = ':';
-        padded_decimal_from(static_cast<unsigned int>(time.seconds().count()), ptr, ptr + 2, '0');
+        padded_decimal_from(static_cast<unsigned int>(time.seconds().count()), ptr, 2);
         ptr += 2;
         *ptr++ = '.';
         cache_expiry = date::ceil<seconds>(now);
@@ -128,7 +126,7 @@ namespace np::log {
       std::copy_n(cached_prefix, 21, ptr);
       ptr += 21;
 
-      padded_decimal_from(static_cast<unsigned int>(time.subseconds().count()), ptr, ptr + 3, '0');
+      padded_decimal_from(static_cast<unsigned int>(time.subseconds().count()), ptr, 3);
       ptr += 3;
       *ptr++ = 'Z';
       *ptr++ = '"';
@@ -257,45 +255,70 @@ namespace np::log {
   void ValueSerializer::write(bool val) noexcept { writeLiteral(val ? "true" : "false"); }
 
   void ValueSerializer::writeString(std::string_view val) noexcept {
-    buffer->append('"');
-    std::for_each(val.begin(), val.end(), [this](char c) {
+   auto ptr = buffer->insertAt(val.size() + 2);
+    // ok, we now have enough space for the string if no escaping is needed
+    *ptr++ = '"';
+
+    // now loop through the string. If we get to something that needs escaping,
+    // we have to extend the buffer and then reset  our write pointer as the
+    // buffer might have been reallocated
+    for (size_t i = 0; i < val.size(); ++i) {
+      const char c = val[i];
       switch (c) {
-      case '"':
-        buffer->append('\\');
-        buffer->append('"');
-        return;
-      case '\\':
-        buffer->append('\\');
-        buffer->append('\\');
-        return;
-      case '\n':
-        buffer->append('\\');
-        buffer->append('n');
-        return;
-      case '\r':
-        buffer->append('\\');
-        buffer->append('r');
-        return;
-      case '\t':
-        buffer->append('\\');
-        buffer->append('t');
-        return;
+      case '"': {
+        const auto unused = val.size() - i + 1;
+        ptr = buffer->insertAt(1) - unused;
+        *ptr++ = '\\';
+        *ptr++ = '"';
+        break;
+      }
+      case '\\': {
+        const auto unused = val.size() - i + 1;
+        ptr = buffer->insertAt(1) - unused;
+        *ptr++ = '\\';
+        *ptr++ = '\\';
+        break;
+      }
+      case '\n': {
+        const auto unused = val.size() - i + 1;
+        ptr = buffer->insertAt(1) - unused;
+        *ptr++ = '\\';
+        *ptr++ = 'n';
+        break;
+      }
+      case '\r': {
+        const auto unused = val.size() - i + 1;
+        ptr = buffer->insertAt(1) - unused;
+        *ptr++ = '\\';
+        *ptr++ = 'r';
+        break;
+      }
+      case '\t': {
+        const auto unused = val.size() - i + 1;
+        ptr = buffer->insertAt(1) - unused;
+        *ptr++ = '\\';
+        *ptr++ = 't';
+        break;
+      }
       default:
         if (static_cast<unsigned char>(c) < 0x20) {
-          buffer->append('\\');
-          buffer->append('u');
-          buffer->append('0');
-          buffer->append('0');
-          buffer->append(c < 0x10 ? '0' : '1');
+          const auto unused = val.size() - i + 1;
+          ptr = buffer->insertAt(5) - unused;
+
+          *ptr++ = '\\';
+          *ptr++ = 'u';
+          *ptr++ = '0';
+          *ptr++ = '0';
+          *ptr++ = c < 0x10 ? '0' : '1';
           char b[2];
           snprintf(b, 2, "%x", (c & 0xf));
-          buffer->append(b[0]);
+          *ptr++ = b[0];
         } else {
-          buffer->append(c);
+          *ptr++ = c;
         }
       }
-    });
-    buffer->append('"');
+    }
+    *ptr++ = '"';
   }
 
   void ValueSerializer::writeLiteral(std::string_view val) noexcept {

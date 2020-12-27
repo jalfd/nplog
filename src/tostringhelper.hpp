@@ -20,15 +20,6 @@ namespace np::log {
     return ptr + 1;
   }
 
-  // will return a pointer to the first non-zero digit
-  // prior digits will be set to pad
-  template <typename T>
-  inline char* pad_unsigned_to_decimal(T number, char* buffer, size_t len, char pad) noexcept {
-    const auto actual_begin = fixed_unsigned_to_decimal(number, buffer, len);
-    std::fill(buffer, actual_begin, pad);
-    return actual_begin;
-  }
-
   // will return a pointer past the end of the number
   template <typename T>
   inline char* unsigned_to_decimal(T number, char* buffer, size_t len) noexcept {
@@ -64,38 +55,10 @@ namespace np::log {
 
   /// Takes a view spanning the available buffer
   /// Returns a string_view spanning the written number
-  /// Unused bytes at the beginning of the buffer
-  template <typename T>
-  inline std::string_view fixed_decimal_from(T number, char* first, char* last) noexcept {
-    if constexpr (std::is_signed_v<T>) {
-      if (number < 0) {
-        auto n = to_unsigned(number);
-        char* start = fixed_unsigned_to_decimal(n, first + 1, to_size_t_checked(last - first - 1));
-        *--start = '-';
-        return std::string_view(start, to_size_t_checked(last - start));
-      }
-    }
-    const auto start = fixed_unsigned_to_decimal(number, first, to_size_t_checked(last - first));
-    return std::string_view(start, to_size_t_checked(last - start));
-  }
-
-  /// Takes a view spanning the available buffer
-  /// Returns a string_view spanning the written number
   /// Unused bytes at the beginning of the buffer, initialized to pad
-  template <typename T>
-  inline std::string_view padded_decimal_from(T number, char* first, char* last, char pad) noexcept {
-    if constexpr (std::is_signed_v<T>) {
-      if (number < 0) {
-        auto n = to_unsigned(number);
-        char* start = fixed_unsigned_to_decimal(n, first + 1, to_size_t_checked(last - first - 1));
-        *--start = '-';
-        std::fill(first, start, pad);
-        return std::string_view(start, to_size_t_checked(last - start));
-      }
-    }
-    const auto start = fixed_unsigned_to_decimal(number, first, to_size_t_checked(last - first));
-    std::fill(first, start, pad);
-    return std::string_view(start, to_size_t_checked(last - start));
+  inline void padded_decimal_from(unsigned int number, char* first, size_t width) noexcept {
+    const auto start = fixed_unsigned_to_decimal(number, first, width);
+    std::fill(first, start, '0');
   }
 } // namespace np::log
 
