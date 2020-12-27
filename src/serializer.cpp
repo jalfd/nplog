@@ -27,12 +27,12 @@
 #ifndef __cpp_lib_to_chars
 #include "tostringhelper.hpp"
 #else
-  inline void padded_decimal_from(int number, char* first, char* last, char) noexcept {
+  inline void padded_decimal_from(unsigned int number, char* first, size_t width) noexcept {
     char buf[4];
     auto result = std::to_chars(buf, buf + 4, number);
     const auto len = result.ptr - buf;
-    std::memcpy(first, "0000", last - first);
-    std::memcpy(last - len, buf, len);
+    std::memcpy(first, "0000", width);
+    std::memcpy(first + width - len, buf, len);
   }
 
   template <typename T>
@@ -94,25 +94,25 @@ namespace np::log {
       // make sure the buffer has enough capacity
       auto* ptr = buffer->insertAt(26);
       *ptr++ = '"';
-      padded_decimal_from(static_cast<unsigned int>(static_cast<int>(ymd.year())), ptr, ptr + 4, '0');
+      padded_decimal_from(static_cast<unsigned int>(static_cast<int>(ymd.year())), ptr, 4);
       ptr += 4;
       *ptr++ = '-';
-      padded_decimal_from(static_cast<unsigned int>(ymd.month()), ptr, ptr + 2, '0');
+      padded_decimal_from(static_cast<unsigned int>(ymd.month()), ptr, 2);
       ptr += 2;
       *ptr++ = '-';
-      padded_decimal_from(static_cast<unsigned int>(ymd.day()), ptr, ptr + 2, '0');
+      padded_decimal_from(static_cast<unsigned int>(ymd.day()), ptr, 2);
       ptr += 2;
       *ptr++ = 'T';
-      padded_decimal_from(static_cast<unsigned int>(time.hours().count()), ptr, ptr + 2, '0');
+      padded_decimal_from(static_cast<unsigned int>(time.hours().count()), ptr, 2);
       ptr += 2;
       *ptr++ = ':';
-      padded_decimal_from(static_cast<unsigned int>(time.minutes().count()), ptr, ptr + 2, '0');
+      padded_decimal_from(static_cast<unsigned int>(time.minutes().count()), ptr, 2);
       ptr += 2;
       *ptr++ = ':';
-      padded_decimal_from(static_cast<unsigned int>(time.seconds().count()), ptr, ptr + 2, '0');
+      padded_decimal_from(static_cast<unsigned int>(time.seconds().count()), ptr, 2);
       ptr += 2;
       *ptr++ = '.';
-      padded_decimal_from(static_cast<unsigned int>(time.subseconds().count()), ptr, ptr + 3, '0');
+      padded_decimal_from(static_cast<unsigned int>(time.subseconds().count()), ptr, 3);
       ptr += 3;
       *ptr++ = 'Z';
       *ptr++ = '"';
