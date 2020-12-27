@@ -241,45 +241,70 @@ namespace np::log {
   void ValueSerializer::write(bool val) noexcept { writeLiteral(val ? "true" : "false"); }
 
   void ValueSerializer::writeString(std::string_view val) noexcept {
-    buffer->append('"');
-    std::for_each(val.begin(), val.end(), [this](char c) {
+   auto ptr = buffer->insertAt(val.size() + 2);
+    // ok, we now have enough space for the string if no escaping is needed
+    *ptr++ = '"';
+
+    // now loop through the string. If we get to something that needs escaping,
+    // we have to extend the buffer and then reset  our write pointer as the
+    // buffer might have been reallocated
+    for (size_t i = 0; i < val.size(); ++i) {
+      const char c = val[i];
       switch (c) {
-      case '"':
-        buffer->append('\\');
-        buffer->append('"');
-        return;
-      case '\\':
-        buffer->append('\\');
-        buffer->append('\\');
-        return;
-      case '\n':
-        buffer->append('\\');
-        buffer->append('n');
-        return;
-      case '\r':
-        buffer->append('\\');
-        buffer->append('r');
-        return;
-      case '\t':
-        buffer->append('\\');
-        buffer->append('t');
-        return;
+      case '"': {
+        const auto unused = val.size() - i + 1;
+        ptr = buffer->insertAt(1) - unused;
+        *ptr++ = '\\';
+        *ptr++ = '"';
+        break;
+      }
+      case '\\': {
+        const auto unused = val.size() - i + 1;
+        ptr = buffer->insertAt(1) - unused;
+        *ptr++ = '\\';
+        *ptr++ = '\\';
+        break;
+      }
+      case '\n': {
+        const auto unused = val.size() - i + 1;
+        ptr = buffer->insertAt(1) - unused;
+        *ptr++ = '\\';
+        *ptr++ = 'n';
+        break;
+      }
+      case '\r': {
+        const auto unused = val.size() - i + 1;
+        ptr = buffer->insertAt(1) - unused;
+        *ptr++ = '\\';
+        *ptr++ = 'r';
+        break;
+      }
+      case '\t': {
+        const auto unused = val.size() - i + 1;
+        ptr = buffer->insertAt(1) - unused;
+        *ptr++ = '\\';
+        *ptr++ = 't';
+        break;
+      }
       default:
         if (static_cast<unsigned char>(c) < 0x20) {
-          buffer->append('\\');
-          buffer->append('u');
-          buffer->append('0');
-          buffer->append('0');
-          buffer->append(c < 0x10 ? '0' : '1');
+          const auto unused = val.size() - i + 1;
+          ptr = buffer->insertAt(5) - unused;
+
+          *ptr++ = '\\';
+          *ptr++ = 'u';
+          *ptr++ = '0';
+          *ptr++ = '0';
+          *ptr++ = c < 0x10 ? '0' : '1';
           char b[2];
           snprintf(b, 2, "%x", (c & 0xf));
-          buffer->append(b[0]);
+          *ptr++ = b[0];
         } else {
-          buffer->append(c);
+          *ptr++ = c;
         }
       }
-    });
-    buffer->append('"');
+    }
+    *ptr++ = '"';
   }
 
   void ValueSerializer::writeLiteral(std::string_view val) noexcept {
