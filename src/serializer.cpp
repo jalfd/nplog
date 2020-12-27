@@ -87,31 +87,45 @@ namespace np::log {
     void time(sv, int, level_type, sv) noexcept {
       vs.writeLiteral(",\"time\":");
       auto now = std::chrono::system_clock::now();
+
+      using seconds = std::chrono::duration<int, std::chrono::seconds::period>;
+
+      thread_local char cached_prefix[21];
+      thread_local std::chrono::time_point<std::chrono::system_clock, seconds> cache_expiry;
+
       auto date = date::floor<date::days>(now);
       auto time
         = date::make_time(std::chrono::duration_cast<std::chrono::milliseconds>(now - date));
       auto ymd = date::year_month_day{date};
-      // make sure the buffer has enough capacity
+
+      if (now >= cache_expiry) {
+        auto ptr = cached_prefix;
+        *ptr++ = '"';
+        padded_decimal_from(static_cast<unsigned int>(static_cast<int>(ymd.year())), ptr, 4);
+        ptr += 4;
+        *ptr++ = '-';
+        padded_decimal_from(static_cast<unsigned int>(ymd.month()), ptr, 2);
+        ptr += 2;
+        *ptr++ = '-';
+        padded_decimal_from(static_cast<unsigned int>(ymd.day()), ptr, 2);
+        ptr += 2;
+        *ptr++ = 'T';
+        padded_decimal_from(static_cast<unsigned int>(time.hours().count()), ptr, 2);
+        ptr += 2;
+        *ptr++ = ':';
+        padded_decimal_from(static_cast<unsigned int>(time.minutes().count()), ptr, 2);
+        ptr += 2;
+        *ptr++ = ':';
+        padded_decimal_from(static_cast<unsigned int>(time.seconds().count()), ptr, 2);
+        ptr += 2;
+        *ptr++ = '.';
+        cache_expiry = date::ceil<seconds>(now);
+      }
+
       auto* ptr = buffer->insertAt(26);
-      *ptr++ = '"';
-      padded_decimal_from(static_cast<unsigned int>(static_cast<int>(ymd.year())), ptr, 4);
-      ptr += 4;
-      *ptr++ = '-';
-      padded_decimal_from(static_cast<unsigned int>(ymd.month()), ptr, 2);
-      ptr += 2;
-      *ptr++ = '-';
-      padded_decimal_from(static_cast<unsigned int>(ymd.day()), ptr, 2);
-      ptr += 2;
-      *ptr++ = 'T';
-      padded_decimal_from(static_cast<unsigned int>(time.hours().count()), ptr, 2);
-      ptr += 2;
-      *ptr++ = ':';
-      padded_decimal_from(static_cast<unsigned int>(time.minutes().count()), ptr, 2);
-      ptr += 2;
-      *ptr++ = ':';
-      padded_decimal_from(static_cast<unsigned int>(time.seconds().count()), ptr, 2);
-      ptr += 2;
-      *ptr++ = '.';
+      std::copy_n(cached_prefix, 21, ptr);
+      ptr += 21;
+
       padded_decimal_from(static_cast<unsigned int>(time.subseconds().count()), ptr, 3);
       ptr += 3;
       *ptr++ = 'Z';
