@@ -13,7 +13,7 @@ add_executable(tests
     loggroup.cpp
     config.cpp
     messagebuffer.cpp
-    logparams.cpp
+    loggroupprops.cpp
 )
 target_link_libraries(tests PRIVATE Catch picojson nplog)
 
