@@ -1,4 +1,8 @@
-[![Build Status](https://dev.azure.com/jalfd/jalfd/_apis/build/status/jalfd.nplog?branchName=master)](https://dev.azure.com/jalfd/jalfd/_build/latest?definitionId=1&branchName=master)
+* [Getting Started guide](GettingStarted.md)
+* [Advanced Usage](AdvancedUsage.md)
+* [API Reference](ApiReference.md)
 
-# nplog
-Experimental Logging Library for C++17
+## Todo
+- get rid of threshold() function. It should be the default.
+- document PHI/sensitive stuff
+- rename level -> severity?
