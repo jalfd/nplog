@@ -40,7 +40,7 @@ namespace np::log {
 
   inline LevelSpec merge(LevelSpec lhs, LevelSpec rhs) noexcept {
     return {LevelWrapper(static_cast<level_type>(lhs.message | rhs.message)),
-      LevelWrapper(static_cast<level_type>(lhs.param | rhs.param))};
+      LevelWrapper(static_cast<level_type>(lhs.props | rhs.props))};
   }
 
   Fields enabledFields(unsigned global_version) noexcept;

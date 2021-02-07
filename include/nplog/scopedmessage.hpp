@@ -20,13 +20,13 @@ namespace np::log {
     void endMessage() noexcept;
 
     template <typename T>
-    bool addParam(std::string_view name, T&& expr) noexcept {
-      auto vs = startParam(name);
+    bool addProp(std::string_view name, T&& expr) noexcept {
+      auto vs = startProp(name);
       np::log::format(expr, vs);
       return {};
     }
 
-    ValueSerializer startParam(std::string_view name) noexcept;
+    ValueSerializer startProp(std::string_view name) noexcept;
 
   protected:
     MessageBuffer* message_buffer;
@@ -41,7 +41,7 @@ namespace np::log {
 
     ~ScopedMessage() noexcept;
 
-    using ScopedMessageBase::addParam;
+    using ScopedMessageBase::addProp;
 
   private:
     unsigned global_version;

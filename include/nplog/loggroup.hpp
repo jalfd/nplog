@@ -12,9 +12,9 @@ namespace np::log {
   struct Serializer;
   struct ValueSerializer;
 
-  struct LogParam { // FIXME: move to detail
+  struct LogProp { // FIXME: move to detail
     template <typename T>
-    LogParam(const char* name, const T& value) noexcept
+    LogProp(const char* name, const T& value) noexcept
       : name(name), value(&value), format_func([](const void* value, ValueSerializer& vs) noexcept {
         np::log::format(*reinterpret_cast<const T*>(value), vs);
       }) {}
@@ -30,7 +30,7 @@ namespace np::log {
     explicit LogGroup(LogGroup* parent = nullptr, const char* name = nullptr) noexcept;
     explicit LogGroup(const char* name) noexcept;
 
-    explicit LogGroup(LogGroup* parent, const char* name, std::initializer_list<LogParam> params) noexcept;
+    explicit LogGroup(LogGroup* parent, const char* name, std::initializer_list<LogProp> props) noexcept;
 
     LogGroup(const LogGroup&) = delete;
 

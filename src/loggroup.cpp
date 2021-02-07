@@ -13,7 +13,7 @@
 #include <string>
 
 namespace np::log {
-  uint32_t LogParam::serialize(Serializer& serializer,
+  uint32_t LogProp::serialize(Serializer& serializer,
     MessageBuffer& buffer,
     const char* name,
     const void* value,
@@ -27,24 +27,24 @@ namespace np::log {
     return static_cast<uint32_t>(name_end);
   }
 
-  LogGroupProps::LogGroupProps(LogGroupProps* parent, std::initializer_list<LogParam> params) noexcept {
+  LogGroupProps::LogGroupProps(LogGroupProps* parent, std::initializer_list<LogProp> props) noexcept {
     Serializer s(&data);
-    std::vector<const LogParam*> param_ptrs; // FIXME: should reserve
+    std::vector<const LogProp*> prop_ptrs; // FIXME: should reserve
     std::transform(
-      params.begin(), params.end(), std::back_inserter(param_ptrs), [](const LogParam& p) {
+      props.begin(), props.end(), std::back_inserter(prop_ptrs), [](const LogProp& p) {
         return &p;
       });
-    std::sort(param_ptrs.begin(), param_ptrs.end(), [](const LogParam* lhs, const LogParam* rhs) {
+    std::sort(prop_ptrs.begin(), prop_ptrs.end(), [](const LogProp* lhs, const LogProp* rhs) {
       return strcmp(lhs->name, rhs->name) < 0;
     });
-    for (const auto& param_ptr : param_ptrs) {
+    for (const auto& prop_ptr : prop_ptrs) {
       const auto start = static_cast<uint32_t>(data.messageSize());
-      const auto name_end = param_ptr->serialize(s, data, param_ptr->name, param_ptr->value, param_ptr->format_func);
+      const auto name_end = prop_ptr->serialize(s, data, prop_ptr->name, prop_ptr->value, prop_ptr->format_func);
       const auto end = static_cast<uint32_t>(data.messageSize());
       offsets.emplace_back(start == 0 ? start : start + 1, name_end, end);
     }
 
-    // Merge with parent's params
+    // Merge with parent's props
     if (parent) {
       auto parent_it = parent->offsets.begin();
       auto self_it = offsets.begin();
@@ -109,15 +109,15 @@ namespace np::log {
 
   LogGroup::LogGroup(const char* name) noexcept : LogGroup(nullptr, name) {}
 
-  LogGroup::LogGroup(LogGroup* parent, const char* name, std::initializer_list<LogParam> params) noexcept
+  LogGroup::LogGroup(LogGroup* parent, const char* name, std::initializer_list<LogProp> props) noexcept
     : LogGroup(parent, name) {
-    if (params.size() != 0) {
-      group_props = new LogGroupProps(parent ? parent->group_props : nullptr, params);
+    if (props.size() != 0) {
+      group_props = new LogGroupProps(parent ? parent->group_props : nullptr, props);
     }
   }
 
   LogGroup::~LogGroup() noexcept {
-    // Delete, unless we're pointing at our parent's params
+    // Delete, unless we're pointing at our parent's props
     if (!(parent && parent->group_props == group_props)) { delete group_props; }
   }
 

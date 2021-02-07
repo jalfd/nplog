@@ -5,7 +5,7 @@
 np::LogGroup mylog;
 
 int main() {
-  // Configure logger to include messages of level 3 and down, and parameters of level 3 and down
+  // Configure logger to include messages of level 3 and down, and properties of level 3 and down
   np::log::Config cfg;
   cfg.levels.default_level = {threshold(np::log::Status), threshold(np::log::DebugLow)};
   cfg.sink = [](auto msg) { std::cout << msg.message << '\n'; };
@@ -18,7 +18,7 @@ int main() {
   LOG(mylog, np::log::DebugLow, "logging a message", WITH("myval", fortytwo));
 
   np::LogGroup otherlog(
-    nullptr, nullptr, {{"name", std::string_view("yoyo")}, {"loggerparam1", 1.234}});
+    nullptr, nullptr, {{"name", std::string_view("yoyo")}, {"loggerprop1", 1.234}});
   LOG(otherlog, np::log::Status, "Wooosh", WITH("myval", fortytwo));
   LOG(otherlog, np::log::Status, "Wooosh2");
 }

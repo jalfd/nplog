@@ -26,7 +26,7 @@ namespace np::log {
     serializer.epilogue();
   }
 
-  ValueSerializer ScopedMessageBase::startParam(std::string_view name) noexcept {
+  ValueSerializer ScopedMessageBase::startProp(std::string_view name) noexcept {
     if (!has_props) {
       has_props = true;
       serializer.startObject("props");

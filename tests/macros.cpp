@@ -75,7 +75,7 @@ TEST_CASE("macros") {
     REQUIRE(logged_message->at("message") == pj::value("this is a message"));
   }
 
-  SECTION("Log a message with a param with implicit level and name") {
+  SECTION("Log a message with a prop with implicit level and name") {
     LOG(logger, np::log::Status, "this is a message", NP_WITH(sum(1, 2)));
 
     REQUIRE(*logged_level == np::log::Status);
@@ -83,7 +83,7 @@ TEST_CASE("macros") {
     REQUIRE(props.at("sum(1, 2)") == pj::value(3.0));
   }
 
-  SECTION("Log a message with a param with implicit level and explict name") {
+  SECTION("Log a message with a prop with implicit level and explict name") {
     LOG(logger, np::log::Status, "this is a message", NP_WITH("sum of 1 and 2", sum(1, 2)));
 
     REQUIRE(*logged_level == np::log::Status);
@@ -91,7 +91,7 @@ TEST_CASE("macros") {
     REQUIRE(props.at("sum of 1 and 2") == pj::value(3.0));
   }
 
-  SECTION("Log a message with a param with explicit level and implicit name") {
+  SECTION("Log a message with a prop with explicit level and implicit name") {
     LOG(logger, np::log::Status, "this is a message", NP_WITH(np::log::Error, sum(1, 2)));
 
     REQUIRE(*logged_level == np::log::Status);
@@ -99,7 +99,7 @@ TEST_CASE("macros") {
     REQUIRE(props.at("sum(1, 2)") == pj::value(3.0));
   }
 
-  SECTION("Log a message with a param with explicit level and name") {
+  SECTION("Log a message with a prop with explicit level and name") {
     LOG(logger,
       np::log::Status,
       "this is a message",
@@ -127,7 +127,7 @@ TEST_CASE("macros") {
     REQUIRE(num_calls == 0);
   }
 
-  SECTION("Don't evaluate a param if its level causes it to be skipped") {
+  SECTION("Don't evaluate a prop if its level causes it to be skipped") {
     LOG(logger, np::log::Status, "this is a message", NP_WITH(np::log::DebugHigh, countCalls()));
 
     REQUIRE(logged_level.has_value());

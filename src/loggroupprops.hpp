@@ -6,7 +6,7 @@
 namespace np::log {
   struct LogGroupProps {
     LogGroupProps() noexcept = default;
-    LogGroupProps(LogGroupProps* parent, std::initializer_list<LogParam> params) noexcept;
+    LogGroupProps(LogGroupProps* parent, std::initializer_list<LogProp> props) noexcept;
 
     MessageBuffer data;
     std::vector<std::tuple<uint32_t, uint32_t, uint32_t>>

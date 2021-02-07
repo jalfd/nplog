@@ -18,10 +18,10 @@ namespace np::log {
 
   struct NPLOG_EXPORT LevelSpec {
     LevelSpec() noexcept = default;
-    LevelSpec(LevelWrapper message, LevelWrapper param) noexcept;
+    LevelSpec(LevelWrapper message, LevelWrapper props) noexcept;
     LevelSpec(LevelWrapper message) noexcept;
     level_type message = {};
-    level_type param = {};
+    level_type props = {};
   };
 
   enum Levels : uint16_t {
@@ -53,11 +53,11 @@ namespace np::log {
 
   inline bool testLevel(level_type level, level_type mask) noexcept { return (level & mask) == level; }
 
-  inline bool suppressParam(LevelSpec level, level_type, level_type param_level) noexcept {
-    return !testLevel(param_level, static_cast<level_type>(level.param));
+  inline bool suppressProp(LevelSpec level, level_type, level_type prop_level) noexcept {
+    return !testLevel(prop_level, static_cast<level_type>(level.props));
   }
-  inline bool suppressParam(LevelSpec level, level_type msg_level, const char* = nullptr) noexcept {
-    return suppressParam(level, msg_level, msg_level);
+  inline bool suppressProp(LevelSpec level, level_type msg_level, const char* = nullptr) noexcept {
+    return suppressProp(level, msg_level, msg_level);
   }
 
 } // namespace np::log

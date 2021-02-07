@@ -23,13 +23,13 @@ static pj::object parseLogMessage(const np::log::MessageBuffer& buf) {
 }
 
 namespace testns {
-  struct CustomParamType {};
+  struct CustomPropType {};
 } // namespace testns
 
 namespace np::log {
   template <>
-  struct Formatter<testns::CustomParamType> {
-    void operator()(const testns::CustomParamType& val, ValueSerializer& srl) {
+  struct Formatter<testns::CustomPropType> {
+    void operator()(const testns::CustomPropType& val, ValueSerializer& srl) {
       srl.write("a custom value");
     }
   };
@@ -62,10 +62,10 @@ TEST_CASE("ScopedMessageBase") {
     CHECK(obj.at("log") == pj::value("name"));
   }
 
-  SECTION("ScopedMessage writes parameters with standard types to the buffer") {
+  SECTION("ScopedMessage writes properties with standard types to the buffer") {
     np::log::ScopedMessageBase msg("", 0, {}, 0, "", &buf, "", {});
-    msg.addParam("number", 42);
-    msg.addParam("string", std::string_view("42"));
+    msg.addProp("number", 42);
+    msg.addProp("string", std::string_view("42"));
     msg.endMessage();
     const auto obj = parseLogMessage(buf);
 
@@ -76,10 +76,10 @@ TEST_CASE("ScopedMessageBase") {
     CHECK(props.at("string") == pj::value("42"));
   }
 
-  SECTION("ScopedMessage writes parameters with custom types to the buffer") {
-    testns::CustomParamType p;
+  SECTION("ScopedMessage writes properties with custom types to the buffer") {
+    testns::CustomPropType p;
     np::log::ScopedMessageBase msg("", 0, {}, 0, "", &buf,"", {});
-    msg.addParam("p", p);
+    msg.addProp("p", p);
     msg.endMessage();
     const auto obj = parseLogMessage(buf);
 
@@ -101,9 +101,9 @@ TEST_CASE("ScopedMessage") {
     np::log::LogGroup logger;
     {
       np::log::ScopedMessage msg(logger, "", 0, -1, 0, "outer message");
-      msg.addParam("name", [&]() {
+      msg.addProp("name", [&]() {
         np::log::ScopedMessage msg_inner(logger, "", 0, -1, 0, "inner message");
-        msg_inner.addParam("name", std::string_view("inner"));
+        msg_inner.addProp("name", std::string_view("inner"));
         return std::string("outer");
       }());
     }

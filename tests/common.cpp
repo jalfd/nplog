@@ -21,15 +21,15 @@ TEST_CASE("Testing log levels") {
   }
 }
 
-TEST_CASE("Suppressing message params") {
-  SECTION("When a param level is explicitly specified, it is used to filter the param") {
-    CHECK(!suppressParam({threshold(Status), threshold(Warning)}, Levels(), Error));
-    CHECK(!suppressParam({threshold(Status), threshold(Warning)}, Levels(), Warning));
-    CHECK(suppressParam({threshold(Status), threshold(Warning)}, Levels(), Status));
+TEST_CASE("Suppressing message props") {
+  SECTION("When a prop level is explicitly specified, it is used to filter the prop") {
+    CHECK(!suppressProp({threshold(Status), threshold(Warning)}, Levels(), Error));
+    CHECK(!suppressProp({threshold(Status), threshold(Warning)}, Levels(), Warning));
+    CHECK(suppressProp({threshold(Status), threshold(Warning)}, Levels(), Status));
   }
-  SECTION("When a param level is not specified, the level of the message is used instead") {
-    CHECK(!suppressParam({threshold(Status), threshold(Warning)}, Error, ""));
-    CHECK(!suppressParam({threshold(Status), threshold(Warning)}, Warning, ""));
-    CHECK(suppressParam({threshold(Status), threshold(Warning)}, Status, ""));
+  SECTION("When a prop level is not specified, the level of the message is used instead") {
+    CHECK(!suppressProp({threshold(Status), threshold(Warning)}, Error, ""));
+    CHECK(!suppressProp({threshold(Status), threshold(Warning)}, Warning, ""));
+    CHECK(suppressProp({threshold(Status), threshold(Warning)}, Status, ""));
   }
 }
