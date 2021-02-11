@@ -230,6 +230,10 @@ namespace np::log {
     is_empty = false;
   }
 
+  MessageBuffer* Serializer::getBuffer() const noexcept {
+      return buffer;
+  }
+
   ValueSerializer::ValueSerializer(MessageBuffer* buffer) noexcept : buffer(buffer) {}
 
   void ValueSerializer::write(double val) noexcept { writeFloatingPoint(val, "%.12g"); }

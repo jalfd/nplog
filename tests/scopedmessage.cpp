@@ -5,6 +5,7 @@
 #include <vector>
 #include <catch/catch.hpp>
 #include "../src/loggroupprops.hpp" // FIXME: better access from tests
+#include "../src/utility.hpp"
 
 namespace pj = picojson;
 
@@ -43,7 +44,8 @@ bool operator==(const std::vector<char>& result, const std::string& expected) {
 TEST_CASE("ScopedMessageBase") {
   np::log::MessageBuffer buf;
   SECTION("ScopedMessage writes message to the buffer") {
-    np::log::ScopedMessageBase msg("file", 3, static_cast<np::log::Fields>(0), 1, "hello", &buf, "name", {});
+    np::log::ScopedMessageBase msg;
+    msg.beginMessage(&buf, np::log::source_location{3, "file"}, 1, static_cast<np::log::Fields>(0), "hello", "name", {});
     msg.endMessage();
     const auto obj = parseLogMessage(buf);
 
@@ -52,7 +54,8 @@ TEST_CASE("ScopedMessageBase") {
   }
 
   SECTION("ScopedMessage writes header fields to the buffer") {
-    np::log::ScopedMessageBase msg("file", 3, static_cast<np::log::Fields>(-1), 1, "hello", &buf, "name", {});
+    np::log::ScopedMessageBase msg;
+    msg.beginMessage(&buf, np::log::source_location{3, "file"}, 1, static_cast<np::log::Fields>(-1), "hello", "name", {});
     msg.endMessage();
     const auto obj = parseLogMessage(buf);
 
@@ -63,12 +66,14 @@ TEST_CASE("ScopedMessageBase") {
   }
 
   SECTION("ScopedMessage writes properties with standard types to the buffer") {
-    np::log::ScopedMessageBase msg("", 0, {}, 0, "", &buf, "", {});
+    np::log::ScopedMessageBase msg;
+    msg.beginMessage(&buf, np::log::source_location{0, ""}, 0, static_cast<np::log::Fields>(0), "", "", {});
     msg.addProp("number", 42);
     msg.addProp("string", std::string_view("42"));
     msg.endMessage();
     const auto obj = parseLogMessage(buf);
 
+    CAPTURE(buf.contents());
     CHECK(obj.at("props").is<pj::object>());
     const auto props = obj.at("props").get<pj::object>();
     CHECK(props.size() == 2);
@@ -78,7 +83,8 @@ TEST_CASE("ScopedMessageBase") {
 
   SECTION("ScopedMessage writes properties with custom types to the buffer") {
     testns::CustomPropType p;
-    np::log::ScopedMessageBase msg("", 0, {}, 0, "", &buf,"", {});
+    np::log::ScopedMessageBase msg;
+    msg.beginMessage(&buf, np::log::source_location{0, ""}, 0, static_cast<np::log::Fields>(0), "", "", {});
     msg.addProp("p", p);
     msg.endMessage();
     const auto obj = parseLogMessage(buf);
@@ -92,25 +98,47 @@ TEST_CASE("ScopedMessageBase") {
 TEST_CASE("ScopedMessage") {
   SECTION("ScopedMessage can handle reentrancy") {
     std::vector<pj::object> out;
+    std::vector<std::string> outstr;
 
     np::log::Config cfg;
     cfg.fields = static_cast<np::log::Fields>(0);
-    cfg.sink = [&](const np::log::MessageInfo& mi) { out.push_back(parseMessage(mi.message)); };
+    cfg.sink = [&](const np::log::MessageInfo& mi) { out.push_back(parseMessage(mi.message)); outstr.push_back(std::string(mi.message)); };
     np::log::applyConfig(cfg);
 
     np::log::LogGroup logger;
     {
-      np::log::ScopedMessage msg(logger, "", 0, -1, 0, "outer message");
-      msg.addProp("name", [&]() {
-        np::log::ScopedMessage msg_inner(logger, "", 0, -1, 0, "inner message");
-        msg_inner.addProp("name", std::string_view("inner"));
-        return std::string("outer");
-      }());
+        np::log::ScopedMessage msg(logger, 0);
+        msg.write(np::log::source_location{0, ""}, "outer message");
+        msg.addProp("name", [&]() {
+          np::log::ScopedMessage msg_inner(logger, 0);
+          msg_inner.write(np::log::source_location{0, ""}, "inner message");
+          msg_inner.addProp("name", std::string_view("inner"));
+          return std::string("outer");
+        }());
     }
+    CAPTURE(outstr);
     REQUIRE(out.size() == 2);
     REQUIRE(out[0].at("message") == pj::value("inner message"));
     REQUIRE(out[0].at("props").get<pj::object>().at("name") == pj::value("inner"));
     REQUIRE(out[1].at("message") == pj::value("outer message"));
     REQUIRE(out[1].at("props").get<pj::object>().at("name") == pj::value("outer"));
+  }
+}
+
+TEST_CASE("Testing log levels") {
+  SECTION("Pass if level is exactly what is configured") {
+    CHECK(np::log::testLevel(np::log::Fatal, np::log::Fatal));
+  }
+  SECTION("Pass if the indicated level is among those configured") {
+    CHECK(np::log::testLevel(np::log::Error, np::log::Fatal | np::log::Error | np::log::Warning));
+  }
+  SECTION("Reject if level is not among those configured") {
+    CHECK(!np::log::testLevel(np::log::Status, np::log::Fatal | np::log::Error | np::log::Warning));
+  }
+  SECTION("Reject if not all levels are not among those configured") {
+    CHECK(!np::log::testLevel(np::log::Status | 1024, np::log::Fatal | np::log::Error | np::log::Warning | np::log::Status));
+  }
+  SECTION("Pass if all levels are not among those configured") {
+    CHECK(np::log::testLevel(np::log::Status | 1024, np::log::Fatal | np::log::Error | np::log::Warning | np::log::Status | 1024));
   }
 }

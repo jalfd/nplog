@@ -7,15 +7,25 @@
 #include <string_view>
 
 namespace np::log {
+    struct LogConfig;
+
+    // TODO: move to common?
+    struct source_location {
+        constexpr std::uint_least32_t line() const noexcept { return _line; }
+        constexpr const char* file_name() const noexcept { return _file.data(); }
+
+        const std::uint_least32_t _line;
+        const std::string_view _file;
+    };
+
   struct NPLOG_EXPORT ScopedMessageBase {
-    ScopedMessageBase(std::string_view file,
-      int line,
-      Fields enabled_fields,
+    void beginMessage(MessageBuffer* buffer,
+      source_location loc,
       level_type level,
-      std::string_view m,
-      MessageBuffer* buffer,
-      std::string_view log_name,
-      std::string_view group_props_data) noexcept;
+      Fields enabled_fields,
+      std::string_view message,
+      std::string_view group_name,
+      std::string_view group_props) noexcept;
 
     void endMessage() noexcept;
 
@@ -26,25 +36,34 @@ namespace np::log {
       return {};
     }
 
+  private:
     ValueSerializer startProp(std::string_view name) noexcept;
+    bool has_props = false;
 
   protected:
-    MessageBuffer* message_buffer;
-    Serializer serializer;
-
-    level_type message_level;
-    bool has_props = false;
+    Serializer serializer = Serializer(nullptr);
   };
 
   struct NPLOG_EXPORT ScopedMessage : private ScopedMessageBase {
-    ScopedMessage(LogGroup& group, std::string_view file, int line, unsigned global_version, level_type level, std::string_view m) noexcept;
+    ScopedMessage(LogGroup& group, level_type level) noexcept;
 
     ~ScopedMessage() noexcept;
+
+    // check if the message should be logged
+    explicit operator bool() const noexcept;
+
+    void write(source_location loc, std::string_view message) noexcept;
 
     using ScopedMessageBase::addProp;
 
   private:
+    std::shared_ptr<LogConfig> config_ptr;
+    LogGroup* log_group;
     unsigned global_version;
+    level_type message_level;
+    LevelSpec thresholds;
+
+    friend bool suppressProp(const ScopedMessage&, level_type, level_type) noexcept;
   };
 } // namespace np::log
 #endif

@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <string_view>
+#include <nplog/common.hpp>
 
 namespace np::log {
   template <typename T>
@@ -26,6 +27,12 @@ namespace np::log {
     if (it != path.end()) { path.remove_suffix(to_size_t_checked(path.end() - it)); }
     return path;
   }
+
+  namespace {
+    inline bool testLevel(level_type level, level_type mask) noexcept {
+      return (level & mask) == level;
+    }
+  } // namespace
 } // namespace np::log
 
 #endif

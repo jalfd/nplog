@@ -51,15 +51,8 @@ namespace np::log {
 
   NPLOG_EXPORT unsigned currentVersion() noexcept;
 
-  inline bool testLevel(level_type level, level_type mask) noexcept { return (level & mask) == level; }
-
-  inline bool suppressProp(LevelSpec level, level_type, level_type prop_level) noexcept {
-    return !testLevel(prop_level, static_cast<level_type>(level.props));
-  }
-  inline bool suppressProp(LevelSpec level, level_type msg_level, const char* = nullptr) noexcept {
-    return suppressProp(level, msg_level, msg_level);
-  }
-
+  struct ScopedMessage;
+  bool NPLOG_EXPORT suppressProp(const ::np::log::ScopedMessage& sm, level_type, level_type prop_level) noexcept;
 } // namespace np::log
 
 #endif

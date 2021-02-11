@@ -116,7 +116,10 @@ TEST_CASE("Messages include the loggers logprops") {
   cfg.sink = [&](const np::log::MessageInfo& mi) { out = mi.message; };
   np::log::applyConfig(cfg);
   np::LogGroup log(nullptr, nullptr, {{"foo", 42}});
-  { np::log::ScopedMessage msg(log, "", 0, -1, 0, ""); }
+  {
+      np::log::ScopedMessage msg(log, 0);
+      msg.write(np::log::source_location{0, ""}, "");
+  }
   auto msg = parseMessage(out);
   REQUIRE(msg.at("group").get<pj::object>().at("foo") == pj::value(42.0));
 }

@@ -13,6 +13,8 @@ namespace np::log {
 
     auto config = std::make_shared<LogConfig>();
 
+  } // namespace
+
     std::shared_ptr<LogConfig> getConfig(unsigned known_global_version) noexcept {
       thread_local unsigned cached_version = 0;
       thread_local std::shared_ptr<LogConfig> cached_ptr;
@@ -24,7 +26,6 @@ namespace np::log {
 
       return cached_ptr;
     }
-  } // namespace
 
   unsigned currentVersion() noexcept {
     return std::atomic_load_explicit(&config_timestamp, std::memory_order_acquire);
