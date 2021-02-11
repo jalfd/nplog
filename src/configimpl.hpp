@@ -45,6 +45,8 @@ namespace np::log {
 
   Fields enabledFields(unsigned global_version) noexcept;
 
+  std::shared_ptr<LogConfig> getConfig(unsigned known_global_version) noexcept;
+
   void sendToSink(level_type level, std::string_view buffer, unsigned global_version) noexcept;
 } // namespace np::log
 #endif

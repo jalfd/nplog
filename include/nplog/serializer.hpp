@@ -52,6 +52,8 @@ namespace np::log {
     void startObject(std::string_view group_name) noexcept;
     void endObject() noexcept;
 
+    MessageBuffer* getBuffer() const noexcept;
+
   private:
     MessageBuffer* buffer = nullptr;
     bool is_empty = true;

@@ -43,7 +43,8 @@ bool operator==(const std::vector<char>& result, const std::string& expected) {
 TEST_CASE("ScopedMessageBase") {
   np::log::MessageBuffer buf;
   SECTION("ScopedMessage writes message to the buffer") {
-    np::log::ScopedMessageBase msg("file", 3, static_cast<np::log::Fields>(0), 1, "hello", &buf, "name", {});
+    np::log::ScopedMessageBase msg;
+    msg.beginMessage(&buf, np::log::source_location{3, "file"}, 1, static_cast<np::log::Fields>(0), "hello", "name", {});
     msg.endMessage();
     const auto obj = parseLogMessage(buf);
 
@@ -52,7 +53,9 @@ TEST_CASE("ScopedMessageBase") {
   }
 
   SECTION("ScopedMessage writes header fields to the buffer") {
-    np::log::ScopedMessageBase msg("file", 3, static_cast<np::log::Fields>(-1), 1, "hello", &buf, "name", {});
+    np::log::ScopedMessageBase msg;
+    msg.beginMessage(&buf, np::log::source_location{3, "file"}, 1, static_cast<np::log::Fields>(-1), "hello", "name", {});
+    msg.endMessage();
     msg.endMessage();
     const auto obj = parseLogMessage(buf);
 
@@ -63,7 +66,9 @@ TEST_CASE("ScopedMessageBase") {
   }
 
   SECTION("ScopedMessage writes properties with standard types to the buffer") {
-    np::log::ScopedMessageBase msg("", 0, {}, 0, "", &buf, "", {});
+    np::log::ScopedMessageBase msg;
+    msg.beginMessage(&buf, np::log::source_location{0, ""}, 0, static_cast<np::log::Fields>(0), "", "", {});
+    msg.endMessage();
     msg.addProp("number", 42);
     msg.addProp("string", std::string_view("42"));
     msg.endMessage();
@@ -78,7 +83,9 @@ TEST_CASE("ScopedMessageBase") {
 
   SECTION("ScopedMessage writes properties with custom types to the buffer") {
     testns::CustomPropType p;
-    np::log::ScopedMessageBase msg("", 0, {}, 0, "", &buf,"", {});
+    np::log::ScopedMessageBase msg;
+    msg.beginMessage(&buf, np::log::source_location{0, ""}, 0, static_cast<np::log::Fields>(0), "", "", {});
+    msg.endMessage();
     msg.addProp("p", p);
     msg.endMessage();
     const auto obj = parseLogMessage(buf);
@@ -100,10 +107,11 @@ TEST_CASE("ScopedMessage") {
 
     np::log::LogGroup logger;
     {
-      np::log::ScopedMessage msg(logger, "", 0, -1, 0, "outer message");
-      msg.addProp("name", [&]() {
-        np::log::ScopedMessage msg_inner(logger, "", 0, -1, 0, "inner message");
-        msg_inner.addProp("name", std::string_view("inner"));
+        np::log::ScopedMessage msg(logger, 0);
+        msg.write(np::log::source_location{0, ""}, "outer message");
+        msg.addProp("name", [&]() {
+        np::log::ScopedMessage msg(logger, 0);
+        msg.write(np::log::source_location{0, ""}, "inner message");
         return std::string("outer");
       }());
     }
