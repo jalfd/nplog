@@ -5,9 +5,12 @@
 #include <nplog/loggroup.hpp>
 #include <nplog/serializer.hpp>
 #include <string_view>
+#include <memory>
 
 namespace np::log {
     struct LogConfig;
+
+    template class NPLOG_EXPORT std::shared_ptr<LogConfig>;
 
     // TODO: move to common?
     struct source_location {
