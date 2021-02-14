@@ -47,6 +47,6 @@ namespace np::log {
 
   std::shared_ptr<LogConfig> getConfig(unsigned known_global_version) noexcept;
 
-  void sendToSink(level_type level, std::string_view buffer, unsigned global_version) noexcept;
+  void sendToSink(LogConfig& config, level_type level, std::string_view buffer) noexcept;
 } // namespace np::log
 #endif

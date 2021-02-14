@@ -75,8 +75,8 @@ namespace np::log {
     return cached_fields;
   }
 
-  void sendToSink(level_type level, std::string_view buffer, unsigned global_version) noexcept {
+  void sendToSink(LogConfig& config_, level_type level, std::string_view buffer) noexcept {
     std::lock_guard<std::mutex> lock(sink_mutex);
-    getConfig(global_version)->sink(MessageInfo{level, buffer});
+    config_.sink(MessageInfo{level, buffer});
   }
 } // namespace np::log

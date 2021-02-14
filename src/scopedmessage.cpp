@@ -44,7 +44,7 @@ namespace np::log {
   ScopedMessage::~ScopedMessage() noexcept {
     if (config_ptr) {
       endMessage();
-      ::np::log::sendToSink(message_level, serializer.getBuffer()->contents(), global_version);
+      ::np::log::sendToSink(*config_ptr, message_level, serializer.getBuffer()->contents());
       releaseBuffer(serializer.getBuffer());
     }
   }
