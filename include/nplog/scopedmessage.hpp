@@ -10,8 +10,6 @@
 namespace np::log {
     struct LogConfig;
 
-    template class NPLOG_EXPORT std::shared_ptr<LogConfig>;
-
     // TODO: move to common?
     struct source_location {
         constexpr std::uint_least32_t line() const noexcept { return _line; }
