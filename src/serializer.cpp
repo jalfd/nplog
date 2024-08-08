@@ -67,7 +67,7 @@ namespace np::log {
 #endif
 
     const std::string level_names[]
-      = {"<invalid>", "Fatal", "Error", "Warning", "Status", "Debug", "Debug", "Debug", "Trace"};
+      = {"Fatal", "Error", "Warning", "Info", "Debug", "Trace"};
   } // namespace
 
   struct HeaderFields {
@@ -139,16 +139,9 @@ namespace np::log {
 
     void levelName(sv, int, level_type level, sv) noexcept {
       vs.writeLiteral(",\"levelString\":");
-#ifdef _WIN32
-      unsigned long index = 0;
-      unsigned long lvl = level & 0xff;
-      if (!_BitScanReverse(&index, lvl)) { index = 1; }
-#else
-      unsigned int lvl = level & 0xff;
-      unsigned int index = static_cast<unsigned int>(ffs(static_cast<int>(lvl)));
-      if (index == 0) { index = 1; }
-#endif
-      vs.write(level_names[index]);
+      constexpr level_type limit = std::size(level_names) - 1;
+      const level_type level_idx = level >> 4;
+      vs.write(level_names[std::min(level_idx, limit)]);
     }
     void logName(sv, int, level_type, sv log_name) noexcept {
       if (!log_name.empty()) {

@@ -206,7 +206,7 @@ TEST_CASE("Serializer") {
   SECTION("Log with no properties") {
     np::log::MessageBuffer buf;
     np::log::Serializer s(&buf);
-    s.prologue("file.cc", 1, static_cast<np::log::Fields>(-1), 2, {}, "msg");
+    s.prologue("file.cc", 1, static_cast<np::log::Fields>(-1), 20, {}, "msg");
     s.epilogue();
 
     std::string msg = buf.contents().data();
@@ -214,7 +214,8 @@ TEST_CASE("Serializer") {
     auto result = parseLogMessage(std::move(buf));
     CHECK(result["file"].get<std::string>() == "file.cc");
     CHECK(result["line"].get<double>() == 1.0);
-    CHECK(result["level"].get<double>() == 2.0);
+    CHECK(result["level"].get<double>() == 20.0);
+    CHECK(result["levelString"].get<std::string>() == "Error");
     CHECK(result["message"].get<std::string>() == "msg");
     CHECK(result.find("props") == result.end());
   }

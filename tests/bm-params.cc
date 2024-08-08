@@ -11,7 +11,7 @@ namespace
     void configureForField(np::log::Fields field_mask)
     {
         np::log::Config cfg;
-        cfg.levels.default_level = {threshold(np::log::Status), threshold(np::log::Status)};
+        cfg.levels.default_level = {np::log::Info, np::log::Info};
         cfg.sink = [](np::log::MessageInfo) {};
         cfg.fields = field_mask;
         np::log::applyConfig(cfg);
