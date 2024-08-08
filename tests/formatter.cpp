@@ -2,7 +2,8 @@
 #include "../src/messagebuffer.hpp"
 #include <nplog/serializer.hpp>
 #include <numeric>
-#include <catch/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_approx.hpp>
 
 TEST_CASE("Formatter works for built-in numeric types") {
   SECTION("short") {
@@ -58,13 +59,13 @@ TEST_CASE("Formatter works for built-in numeric types") {
     np::log::MessageBuffer b;
     np::log::ValueSerializer srl(&b);
     np::log::format(std::numeric_limits<float>::min(), srl);
-    REQUIRE(Approx(std::numeric_limits<float>::min()) == std::stof(std::string(b.contents())));
+    REQUIRE(Catch::Approx(std::numeric_limits<float>::min()) == std::stof(std::string(b.contents())));
   }
   SECTION("double") {
     np::log::MessageBuffer b;
     np::log::ValueSerializer srl(&b);
     np::log::format(std::numeric_limits<double>::min(), srl);
-    REQUIRE(Approx(std::numeric_limits<double>::min()) == std::stod(std::string(b.contents())));
+    REQUIRE(Catch::Approx(std::numeric_limits<double>::min()) == std::stod(std::string(b.contents())));
   }
   SECTION("long double") {
     np::log::MessageBuffer b;
@@ -72,7 +73,7 @@ TEST_CASE("Formatter works for built-in numeric types") {
     np::log::format(std::numeric_limits<long double>::min(), srl);
     CAPTURE(b.contents());
     long double ld = std::strtold(std::string(b.contents()).c_str(), nullptr);
-    REQUIRE(Approx(std::numeric_limits<long double>::min()) == ld);
+    REQUIRE(Catch::Approx(std::numeric_limits<long double>::min()) == ld);
   }
 }
 

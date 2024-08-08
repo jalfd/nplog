@@ -3,7 +3,7 @@
 #include <nplog/scopedmessage.hpp>
 #include "../src/loggroupprops.hpp"
 #include <picojson/picojson.h>
-#include <catch/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 namespace pj = picojson;
 

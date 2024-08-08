@@ -4,7 +4,8 @@
 #include <picojson/picojson.h>
 #include <regex>
 #include <sstream>
-#include <catch/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
+#include <catch2/catch_approx.hpp>
 
 namespace pj = picojson;
 
@@ -37,7 +38,7 @@ void checkFloatyValue(T val) {
   std::istringstream istr((std::string(contents)));
   T result;
   istr >> result;
-  REQUIRE(Approx(val) == result);
+  REQUIRE(Catch::Approx(val) == result);
 }
 
 template <typename T>
