@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.27)
 enable_testing()
 
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake"
@@ -19,13 +19,14 @@ option(BUILD_SHARED_LIBS "Build as shared library" ON)
 option(NP_CHECK_CONVERSIONS "Check for overflows in various internal conversions" OFF)
 option(NP_LIBRARY_DEV "Enable compiler flags useful to nplog project developers" OFF)
 
-add_library(Date INTERFACE IMPORTED)
-
-# Requires CMake 3.11, so use the more verbose option instead
-#target_include_directories(Date INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/src/external/include)
-set_property(TARGET Date APPEND PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_SOURCE_DIR}/src/external/include)
-
 find_package(Threads REQUIRED)
+find_package(Catch2 REQUIRED)
+find_package(date CONFIG REQUIRED)
+find_path(PICOJSON_INCLUDE_DIRS "picojson/picojson.h")
+
+# Wrap up picojson in an ad-hoc imported target
+add_library(picojson INTERFACE IMPORTED)
+target_include_directories(picojson INTERFACE ${PICOJSON_INCLUDE_DIRS})
 
 if (NP_LIBRARY_DEV)
     if (NOT WIN32)
@@ -60,7 +61,7 @@ add_library(nplog
 
 add_library(np::log ALIAS nplog)
 
-target_link_libraries(nplog PRIVATE Date PUBLIC Threads::Threads)
+target_link_libraries(nplog PRIVATE date::date PUBLIC Threads::Threads)
 if (WIN32)
     target_link_libraries(nplog PRIVATE ws2_32)
 endif()

@@ -4,7 +4,7 @@
 #include <nplog/scopedmessage.hpp>
 #include <picojson/picojson.h>
 #include <optional>
-#include <catch/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 namespace pj = picojson;
 

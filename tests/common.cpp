@@ -1,5 +1,5 @@
 #include <nplog/common.hpp>
-#include <catch/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 
 using namespace np::log;
 

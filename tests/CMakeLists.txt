@@ -1,5 +1,3 @@
-add_subdirectory(external)
-
 add_executable(example example.cpp)
 target_link_libraries(example PRIVATE nplog)
 
@@ -15,7 +13,7 @@ add_executable(tests
     messagebuffer.cpp
     loggroupprops.cpp
 )
-target_link_libraries(tests PRIVATE Catch picojson nplog)
+target_link_libraries(tests PRIVATE picojson Catch2::Catch2WithMain nplog)
 
 if (NPLOG_JUNIT_REPORTER)
     add_test(NAME tests COMMAND tests -r junit -o ${NPLOG_JUNIT_REPORTER})
