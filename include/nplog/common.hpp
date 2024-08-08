@@ -5,38 +5,28 @@
 #include <nplog/export.hpp>
 
 namespace np::log {
-  using level_type = uint16_t;
-
-  // TODO: Bad name
-  struct NPLOG_EXPORT LevelWrapper {
-    explicit LevelWrapper(level_type l) noexcept;
-    level_type l;
-  };
-
-  NPLOG_EXPORT LevelWrapper mask(level_type) noexcept;
-  NPLOG_EXPORT LevelWrapper threshold(level_type) noexcept;// make this the default? Or explicit?
+  using level_type = unsigned char;
 
   struct NPLOG_EXPORT LevelSpec {
     LevelSpec() noexcept = default;
-    LevelSpec(LevelWrapper message, LevelWrapper props) noexcept;
-    LevelSpec(LevelWrapper message) noexcept;
+    LevelSpec(level_type message, level_type props) noexcept;
+    LevelSpec(level_type message) noexcept;
     level_type message = {};
     level_type props = {};
   };
 
-  enum Levels : uint16_t {
-    Fatal = 1,
-    Error = 2,
-    Warning = 4,
-    Status = 8,
-    DebugHigh = 16,
-    DebugMid = 32,
-    DebugLow = 64,
-    Trace = 128
+  enum Levels : level_type {
+    Fatal = 0,
+    Error = 16,
+    Warning = 32,
+    Info = 48,
+    Debug = 64,
+    Trace = 80
   };
 
-  // FIXME: enum class, now that it's a free
-    enum Fields : uint32_t {
+  // FIXME: enum class, now that it's a free ? What?
+  // but also, why 32 bits?
+    enum Fields : uint16_t {
       File = 1,
       Line = 2,
       Time = 4,
@@ -51,13 +41,13 @@ namespace np::log {
 
   NPLOG_EXPORT unsigned currentVersion() noexcept;
 
-  inline bool testLevel(level_type level, level_type mask) noexcept { return (level & mask) == level; }
+  inline bool testLevel(level_type level, level_type threshold) noexcept { return level <= threshold; }
 
-  inline bool suppressProp(LevelSpec level, level_type, level_type prop_level) noexcept {
-    return !testLevel(prop_level, static_cast<level_type>(level.props));
+  inline bool suppressProp(LevelSpec threshold, level_type, level_type prop_level) noexcept {
+    return !testLevel(prop_level, static_cast<level_type>(threshold.props));
   }
-  inline bool suppressProp(LevelSpec level, level_type msg_level, const char* = nullptr) noexcept {
-    return suppressProp(level, msg_level, msg_level);
+  inline bool suppressProp(LevelSpec threshold, level_type msg_level, const char* = nullptr) noexcept {
+    return suppressProp(threshold, msg_level, msg_level);
   }
 
 } // namespace np::log

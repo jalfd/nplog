@@ -36,7 +36,7 @@ namespace
   np::log::Config root_cfg = []()
   {
     np::log::Config cfg;
-    cfg.levels.default_level = {threshold(np::log::Status), threshold(np::log::Status)};
+    cfg.levels.default_level = {np::log::Info, np::log::Info};
     cfg.sink = [](np::log::MessageInfo mi)
     { fwrite(mi.message.data(), sizeof(char), mi.message.size(), f); };
     cfg.fields = static_cast<np::log::Fields>(-1);

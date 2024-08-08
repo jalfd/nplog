@@ -49,7 +49,7 @@ struct np::log::Formatter<Chatty<N>> {
 TEST_CASE("macros") {
   np::log::Config cfg;
   cfg.levels.default_level
-    = {np::log::threshold(np::log::Status), np::log::threshold(np::log::Status)};
+    = {np::log::Info, np::log::Info};
   std::optional<np::log::level_type> logged_level;
   std::optional<pj::object> logged_message;
   cfg.sink = [&](np::log::MessageInfo mi) {
@@ -69,58 +69,58 @@ TEST_CASE("macros") {
   num_calls = 0;
 
   SECTION("Log a message with no props") {
-    LOG(logger, np::log::Status, "this is a message");
+    LOG(logger, np::log::Info, "this is a message");
 
-    REQUIRE(*logged_level == np::log::Status);
+    REQUIRE(*logged_level == np::log::Info);
     REQUIRE(logged_message->at("message") == pj::value("this is a message"));
   }
 
   SECTION("Log a message with a prop with implicit level and name") {
-    LOG(logger, np::log::Status, "this is a message", NP_WITH(sum(1, 2)));
+    LOG(logger, np::log::Info, "this is a message", NP_WITH(sum(1, 2)));
 
-    REQUIRE(*logged_level == np::log::Status);
+    REQUIRE(*logged_level == np::log::Info);
     const auto props = logged_message->at("props").get<pj::object>();
     REQUIRE(props.at("sum(1, 2)") == pj::value(3.0));
   }
 
   SECTION("Log a message with a prop with implicit level and explict name") {
-    LOG(logger, np::log::Status, "this is a message", NP_WITH("sum of 1 and 2", sum(1, 2)));
+    LOG(logger, np::log::Info, "this is a message", NP_WITH("sum of 1 and 2", sum(1, 2)));
 
-    REQUIRE(*logged_level == np::log::Status);
+    REQUIRE(*logged_level == np::log::Info);
     const auto props = logged_message->at("props").get<pj::object>();
     REQUIRE(props.at("sum of 1 and 2") == pj::value(3.0));
   }
 
   SECTION("Log a message with a prop with explicit level and implicit name") {
-    LOG(logger, np::log::Status, "this is a message", NP_WITH(np::log::Error, sum(1, 2)));
+    LOG(logger, np::log::Info, "this is a message", NP_WITH(np::log::Error, sum(1, 2)));
 
-    REQUIRE(*logged_level == np::log::Status);
+    REQUIRE(*logged_level == np::log::Info);
     const auto props = logged_message->at("props").get<pj::object>();
     REQUIRE(props.at("sum(1, 2)") == pj::value(3.0));
   }
 
   SECTION("Log a message with a prop with explicit level and name") {
     LOG(logger,
-      np::log::Status,
+      np::log::Info,
       "this is a message",
       NP_WITH(np::log::Error, "sum of 1 and 2", sum(1, 2)));
 
-    REQUIRE(*logged_level == np::log::Status);
+    REQUIRE(*logged_level == np::log::Info);
     const auto props = logged_message->at("props").get<pj::object>();
     REQUIRE(props.at("sum of 1 and 2") == pj::value(3.0));
   }
 
   SECTION("Log a message with multiple props") {
-    LOG(logger, np::log::Status, "this is a message", NP_WITH(sum(1, 2)), NP_WITH(concat(1, 2)));
+    LOG(logger, np::log::Info, "this is a message", NP_WITH(sum(1, 2)), NP_WITH(concat(1, 2)));
 
-    REQUIRE(*logged_level == np::log::Status);
+    REQUIRE(*logged_level == np::log::Info);
     const auto props = logged_message->at("props").get<pj::object>();
     REQUIRE(props.at("sum(1, 2)") == pj::value(3.0));
     REQUIRE(props.at("concat(1, 2)") == pj::value("12"));
   }
 
   SECTION("Don't evaluate a message if its level causes it to be skipped") {
-    LOG(logger, np::log::DebugHigh, "this is a message", NP_WITH(countCalls()));
+    LOG(logger, np::log::Debug, "this is a message", NP_WITH(countCalls()));
 
     REQUIRE(!logged_level.has_value());
     REQUIRE(!logged_message.has_value());
@@ -128,7 +128,7 @@ TEST_CASE("macros") {
   }
 
   SECTION("Don't evaluate a prop if its level causes it to be skipped") {
-    LOG(logger, np::log::Status, "this is a message", NP_WITH(np::log::DebugHigh, countCalls()));
+    LOG(logger, np::log::Info, "this is a message", NP_WITH(np::log::Debug, countCalls()));
 
     REQUIRE(logged_level.has_value());
     REQUIRE(logged_message.has_value());
@@ -137,7 +137,7 @@ TEST_CASE("macros") {
   }
 
   SECTION("Props are never copied or moved") {
-    LOG(logger, np::log::Status, "this is a message", NP_WITH(Chatty<0>()));
+    LOG(logger, np::log::Info, "this is a message", NP_WITH(Chatty<0>()));
     CHECK(Chatty<0>::ctor == 1);
     CHECK(Chatty<0>::dtor == 1);
     CHECK(Chatty<0>::copyctor == 0);

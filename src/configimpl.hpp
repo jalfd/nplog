@@ -39,8 +39,7 @@ namespace np::log {
   NPLOG_EXPORT LevelsResult getLevels(std::string_view n, unsigned d) noexcept;
 
   inline LevelSpec merge(LevelSpec lhs, LevelSpec rhs) noexcept {
-    return {LevelWrapper(static_cast<level_type>(lhs.message | rhs.message)),
-      LevelWrapper(static_cast<level_type>(lhs.props | rhs.props))};
+    return {std::max(lhs.message, rhs.message), std::max(lhs.props, rhs.props)};
   }
 
   Fields enabledFields(unsigned global_version) noexcept;

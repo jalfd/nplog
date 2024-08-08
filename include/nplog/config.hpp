@@ -25,7 +25,7 @@ namespace np::log {
     using Sink = std::function<void(MessageInfo)>;
 
     struct Levels {
-      LevelSpec default_level = {threshold(Status), threshold(Status)};
+      LevelSpec default_level = {Info, Info};
       std::map<int, LevelSpec> levels_by_depth;
       std::map<std::string, LevelSpec> levels_by_name;
     };

@@ -21,7 +21,7 @@ TEST_CASE("LogGroup") {
   SECTION("Messages include the loggroup name when appropriate") {
     np::log::Config cfg;
     cfg.fields = np::log::LogName;
-    cfg.levels.default_level = {threshold(np::log::Status)};
+    cfg.levels.default_level = {np::log::Info};
 
     std::optional<std::string> logged;
     cfg.sink = [&](const auto& msg) { logged = msg.message; };
@@ -29,7 +29,7 @@ TEST_CASE("LogGroup") {
 
     SECTION("LogGroup has no name") {
       np::log::LogGroup lg;
-      LOG(lg, np::log::Status, "");
+      LOG(lg, np::log::Info, "");
       REQUIRE(logged);
       const auto parsed = parseMessage(*logged);
       REQUIRE(parsed.find("log") == parsed.end());
@@ -37,7 +37,7 @@ TEST_CASE("LogGroup") {
 
     SECTION("LogGroup is named") {
       np::log::LogGroup lg("somename");
-      LOG(lg, np::log::Status, "");
+      LOG(lg, np::log::Info, "");
       REQUIRE(logged);
       const auto parsed = parseMessage(*logged);
       REQUIRE(parsed.at("log").get<std::string>() == "somename");
@@ -47,7 +47,7 @@ TEST_CASE("LogGroup") {
       cfg.fields = {};
       np::log::applyConfig(cfg);
       np::log::LogGroup lg("somename");
-      LOG(lg, np::log::Status, "");
+      LOG(lg, np::log::Info, "");
       REQUIRE(logged);
       const auto parsed = parseMessage(*logged);
       REQUIRE(parsed.find("log") == parsed.end());
