@@ -67,10 +67,9 @@ if (WIN32)
 endif()
 target_include_directories(nplog
 PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
-PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+    "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>"
+    "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>"
 )
 
 set_target_properties(nplog PROPERTIES
@@ -135,12 +134,6 @@ install(FILES ${CMAKE_BINARY_DIR}/include/nplog/export.hpp DESTINATION include/n
 
 install(DIRECTORY include/ DESTINATION include)
 
-install(EXPORT nplog-targets
-    FILE nplog-targets.cmake
-    NAMESPACE np::
-    DESTINATION lib/cmake/nplog
-    )
-
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
     ${CMAKE_CURRENT_BINARY_DIR}/nplog-config-version.cmake
@@ -150,14 +143,19 @@ write_basic_package_version_file(
 
 configure_package_config_file(${CMAKE_CURRENT_LIST_DIR}/cmake/nplog-config.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/nplog-config.cmake
-    INSTALL_DESTINATION lib/cmake/nplog
+    INSTALL_DESTINATION cmake
+    )
+
+export(EXPORT nplog-targets FILE ${CMAKE_CURRENT_BINARY_DIR}/nplog-targets.cmake NAMESPACE np::)
+
+install(EXPORT nplog-targets
+    FILE nplog-targets.cmake
+    NAMESPACE np::
+    DESTINATION cmake
     )
 
 install(FILES
     ${CMAKE_CURRENT_BINARY_DIR}/nplog-config.cmake
     ${CMAKE_CURRENT_BINARY_DIR}/nplog-config-version.cmake
-    DESTINATION lib/cmake/nplog
+    DESTINATION cmake
     )
-
-export(EXPORT nplog-targets FILE ${CMAKE_CURRENT_BINARY_DIR}/nplog-targets.cmake NAMESPACE np::)
-export(PACKAGE nplog)
