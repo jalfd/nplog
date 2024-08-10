@@ -2,7 +2,6 @@ add_executable(example example.cpp)
 target_link_libraries(example PRIVATE nplog)
 
 add_executable(tests
-    tests.cpp
     macros.cpp
     common.cpp
     scopedmessage.cpp
