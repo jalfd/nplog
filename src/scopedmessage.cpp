@@ -3,6 +3,7 @@
 #include "configimpl.hpp"
 #include "loggroupprops.hpp"
 #include "stringinterner.hpp"
+#include "contexttracker.hpp"
 
 namespace np::log {
   ScopedMessageBase::ScopedMessageBase(std::string_view file,
@@ -18,6 +19,12 @@ namespace np::log {
     if (!group_props_data.empty()) {
       serializer.startObject("group");
       serializer.valueSerializer().writeLiteral(group_props_data);
+      serializer.endObject();
+    }
+    const auto& context = contextTracker().context();
+    if (!context.contents().empty()) {
+      serializer.startObject("context");
+      serializer.valueSerializer().writeLiteral(context.contents());
       serializer.endObject();
     }
   }

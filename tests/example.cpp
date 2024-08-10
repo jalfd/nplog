@@ -21,4 +21,10 @@ int main() {
     nullptr, nullptr, {{"name", std::string_view("yoyo")}, {"loggerprop1", 1.234}});
   LOG(otherlog, np::log::Info, "Wooosh", WITH("myval", fortytwo));
   LOG(otherlog, np::log::Info, "Wooosh2");
+
+  np::log::ScopedContext scoped("hello", std::string_view("world"));
+  LOG(otherlog, np::log::Info, "with some context");
+
+  np::log::ScopedContext scoped2("hello hello", std::string_view("world again"));
+  LOG(otherlog, np::log::Info, "with more context");
 }

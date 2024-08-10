@@ -33,7 +33,8 @@ namespace np::log {
       // first, gather a list of new keys
       std::vector<std::pair<std::string_view, bool>> keys;
       keys.resize(new_entries);
-      std::transform(context_entries.begin() + static_cast<decltype(context_entries)::difference_type>(dirty_index),
+      std::transform(context_entries.begin()
+          + static_cast<decltype(context_entries)::difference_type>(dirty_index),
         context_entries.end(),
         std::back_inserter(keys),
         [](auto pair) { return std::pair{pair.first, false}; });
@@ -64,29 +65,34 @@ namespace np::log {
       }
 
       // finally, append new entries
-      std::for_each(context_entries.begin() + static_cast<decltype(context_entries)::difference_type>(dirty_index),
+      Serializer s(&buffer, dirty_index != 0);
+      std::for_each(context_entries.begin()
+          + static_cast<decltype(context_entries)::difference_type>(dirty_index),
         context_entries.end(),
-        [s = Serializer(&buffer)](const auto pair) mutable {
+        [&s](const auto pair) {
           s.writeJsonKey(pair.first);
           s.valueSerializer().writeLiteral(pair.second->contents());
         });
 
-        dirty_index = context_entries.size();
+      dirty_index = context_entries.size();
     }
 
     return buffer;
   }
 
-void ContextTracker::clearCachedContext() noexcept {
-  dirty_index = 0;
-  buffer.clear();
-  serialized_keys.clear();
-}
+  void ContextTracker::clearCachedContext() noexcept {
+    dirty_index = 0;
+    buffer.clear();
+    serialized_keys.clear();
+  }
 
-  thread_local ContextTracker context_tracker;
+  ContextTracker& contextTracker() {
+    thread_local ContextTracker context_tracker;
+    return context_tracker;
+  }
 
   ContextId allocateContext(const char* key, ValueSerializer* vs) {
-    return context_tracker.allocate(key, vs);
+    return contextTracker().allocate(key, vs);
   }
-  void releaseContext(ContextId id) { context_tracker.release(id); }
+  void releaseContext(ContextId id) { contextTracker().release(id); }
 } // namespace np::log

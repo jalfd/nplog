@@ -38,7 +38,7 @@ namespace np::log {
   };
 
   struct NPLOG_EXPORT Serializer {
-    explicit Serializer(MessageBuffer* buffer) noexcept;
+    explicit Serializer(MessageBuffer* buffer, bool resume = false) noexcept;
     ~Serializer() noexcept = default;
 
     void prologue(std::string_view file,

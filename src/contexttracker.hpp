@@ -25,5 +25,7 @@ namespace np::log {
     MessageBuffer buffer;
     size_t dirty_index = 0;
   };
+
+  ContextTracker& contextTracker();
 } // namespace np::log
 #endif

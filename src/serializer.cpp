@@ -171,7 +171,7 @@ namespace np::log {
     ValueSerializer vs;
   };
 
-  Serializer::Serializer(MessageBuffer* buffer) noexcept : buffer(buffer) {}
+  Serializer::Serializer(MessageBuffer* buffer, bool resume) noexcept : buffer(buffer), is_empty(!resume) {}
 
   void Serializer::prologue(std::string_view file,
     int line,

@@ -4,3 +4,4 @@
 #include <nplog/macros.hpp>
 #include <nplog/scopedmessage.hpp>
 #include <nplog/serializer.hpp>
+#include <nplog/scopedcontext.hpp>

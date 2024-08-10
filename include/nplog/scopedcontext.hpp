@@ -1,5 +1,5 @@
-#ifndef NP_LOG_SCOPEDMESSAGE_HPP
-#define NP_LOG_SCOPEDMESSAGE_HPP
+#ifndef NP_LOG_SCOPEDCONTEXT_HPP
+#define NP_LOG_SCOPEDCONTEXT_HPP
 
 #include <nplog/export.hpp>
 #include <nplog/formatter.hpp>
@@ -15,7 +15,7 @@ namespace np::log {
 
   struct ScopedContext {
     template <typename T>
-    ScopedContext(const char* key, T&& value) {
+    [[nodiscard]] ScopedContext(const char* key, T&& value) {
       ValueSerializer vs;
       id = allocateContext(key, &vs);
       np::log::format(value, vs);
