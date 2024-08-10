@@ -2,18 +2,19 @@
 #include "messagebuffer.hpp"
 #include "configimpl.hpp"
 #include "loggroupprops.hpp"
+#include "stringinterner.hpp"
 
 namespace np::log {
   ScopedMessageBase::ScopedMessageBase(std::string_view file,
     int line,
     Fields enabled_fields,
     level_type level,
-    std::string_view m,
+    const char* m,
     MessageBuffer* buffer,
     std::string_view log_name,
     std::string_view group_props_data) noexcept
     : message_buffer(buffer), serializer(buffer), message_level(level) {
-    serializer.prologue(file, line, enabled_fields, level, log_name, m);
+    serializer.prologue(file, line, enabled_fields, level, log_name, global_interner.intern(m));
     if (!group_props_data.empty()) {
       serializer.startObject("group");
       serializer.valueSerializer().writeLiteral(group_props_data);
@@ -31,7 +32,7 @@ namespace np::log {
       has_props = true;
       serializer.startObject("props");
     }
-    serializer.writeKey(name);
+    serializer.writeJsonKey(global_interner.intern(name.data()));
     return serializer.valueSerializer();
   }
   ScopedMessage::ScopedMessage(LogGroup& group,
@@ -39,7 +40,7 @@ namespace np::log {
     int line,
     unsigned global_version,
     level_type level,
-    std::string_view m) noexcept
+    const char* m) noexcept
     : ScopedMessageBase(file,
       line,
       enabledFields(global_version),

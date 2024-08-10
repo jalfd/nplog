@@ -1,6 +1,7 @@
 #include "contexttracker.hpp"
 #include <nplog/serializer.hpp>
 #include "messagebuffer.hpp"
+#include "stringinterner.hpp"
 
 namespace np::log {
   ContextTracker::ContextTracker() = default;
@@ -13,7 +14,7 @@ namespace np::log {
   ContextId ContextTracker::allocate(const char* key, ValueSerializer* vs) {
     auto buf = acquireBuffer();
     const auto id = context_entries.size();
-    context_entries.push_back(std::pair{key, buf});
+    context_entries.push_back(std::pair{global_interner.intern(key), buf});
     *vs = ValueSerializer(buf);
     return id;
   }
@@ -30,7 +31,7 @@ namespace np::log {
     // are there any unserialized entries
     if (new_entries > 0) {
       // first, gather a list of new keys
-      std::vector<std::pair<const char*, bool>> keys;
+      std::vector<std::pair<std::string_view, bool>> keys;
       keys.resize(new_entries);
       std::transform(context_entries.begin() + static_cast<decltype(context_entries)::difference_type>(dirty_index),
         context_entries.end(),
@@ -66,7 +67,7 @@ namespace np::log {
       std::for_each(context_entries.begin() + static_cast<decltype(context_entries)::difference_type>(dirty_index),
         context_entries.end(),
         [s = Serializer(&buffer)](const auto pair) mutable {
-          s.writeKey(reinterpret_cast<const char*>(pair.first));
+          s.writeJsonKey(pair.first);
           s.valueSerializer().writeLiteral(pair.second->contents());
         });
 

@@ -182,7 +182,7 @@ namespace np::log {
     auto vs = valueSerializer();
 
     vs.writeLiteral("{\"message\":");
-    vs.write(msg);
+    vs.writeLiteral(msg);
 
     HeaderFields hf(*this);
 
@@ -205,6 +205,14 @@ namespace np::log {
     if (!is_empty) { vs.writeLiteral(","); }
     is_empty = false;
     vs.write(name);
+    buffer->append(':');
+  }
+
+  void Serializer::writeJsonKey(std::string_view name) noexcept {
+    auto vs = valueSerializer();
+    if (!is_empty) { vs.writeLiteral(","); }
+    is_empty = false;
+    vs.writeLiteral(name);
     buffer->append(':');
   }
 

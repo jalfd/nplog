@@ -206,7 +206,7 @@ TEST_CASE("Serializer") {
   SECTION("Log with no properties") {
     np::log::MessageBuffer buf;
     np::log::Serializer s(&buf);
-    s.prologue("file.cc", 1, static_cast<np::log::Fields>(-1), 20, {}, "msg");
+    s.prologue("file.cc", 1, static_cast<np::log::Fields>(-1), 20, {}, "\"msg\"");
     s.epilogue();
 
     std::string msg = buf.contents().data();
@@ -222,7 +222,7 @@ TEST_CASE("Serializer") {
   SECTION("Log prologue is correctly encoded") {
     np::log::MessageBuffer buf;
     np::log::Serializer s(&buf);
-    s.prologue("file\".cc", 1, static_cast<np::log::Fields>(-1), 2, {}, "msg\\");
+    s.prologue("file\".cc", 1, static_cast<np::log::Fields>(-1), 2, {}, "\"msg\\\\\"");
     s.epilogue();
 
     auto result = parseLogMessage(std::move(buf));
@@ -232,7 +232,7 @@ TEST_CASE("Serializer") {
   SECTION("Log with one property") {
     np::log::MessageBuffer buf;
     np::log::Serializer s(&buf);
-    s.prologue("file.cc", 1, static_cast<np::log::Fields>(-1), 2, {}, "msg");
+    s.prologue("file.cc", 1, static_cast<np::log::Fields>(-1), 2, {}, "\"msg\"");
     s.startObject("props");
     s.writeKey("a");
     s.valueSerializer().write(3);
@@ -251,7 +251,7 @@ TEST_CASE("Serializer") {
   SECTION("Log with multiple properties") {
     np::log::MessageBuffer buf;
     np::log::Serializer s(&buf);
-    s.prologue("file", 1, static_cast<np::log::Fields>(-1), 2, {}, "msg");
+    s.prologue("file", 1, static_cast<np::log::Fields>(-1), 2, {}, "\"msg\"");
     s.startObject("props");
     s.writeKey("a");
     s.valueSerializer().write(3);
@@ -269,7 +269,7 @@ TEST_CASE("Serializer") {
   SECTION("property keys are correctly encoded") {
     np::log::MessageBuffer buf;
     np::log::Serializer s(&buf);
-    s.prologue("file", 1, static_cast<np::log::Fields>(-1), 2, {}, "msg");
+    s.prologue("file", 1, static_cast<np::log::Fields>(-1), 2, {}, "\"msg\"");
     s.startObject("props");
     s.writeKey("\"");
     s.valueSerializer().write(3);
@@ -285,7 +285,7 @@ TEST_CASE("Serializer") {
     SECTION("forward slashes") {
       np::log::MessageBuffer buf;
       np::log::Serializer s(&buf);
-      s.prologue("foo/bar/file.cc", 1, static_cast<np::log::Fields>(-1), 2, {}, "msg");
+      s.prologue("foo/bar/file.cc", 1, static_cast<np::log::Fields>(-1), 2, {}, "\"msg\"");
       s.epilogue();
 
       auto result = parseLogMessage(std::move(buf));
@@ -294,7 +294,7 @@ TEST_CASE("Serializer") {
     SECTION("backslashes") {
       np::log::MessageBuffer buf;
       np::log::Serializer s(&buf);
-      s.prologue("foo\\bar\\file.cc", 1, static_cast<np::log::Fields>(-1), 2, {}, "msg");
+      s.prologue("foo\\bar\\file.cc", 1, static_cast<np::log::Fields>(-1), 2, {}, "\"msg\"");
       s.epilogue();
 
       auto result = parseLogMessage(std::move(buf));

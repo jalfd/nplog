@@ -20,7 +20,7 @@ namespace np::log {
 
   private:
     void clearCachedContext() noexcept;
-    std::vector<std::pair<const char*, MessageBuffer*>> context_entries;
+    std::vector<std::pair<std::string_view, MessageBuffer*>> context_entries;
     std::vector<const char*> serialized_keys;
     MessageBuffer buffer;
     size_t dirty_index = 0;

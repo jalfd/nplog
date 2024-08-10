@@ -12,7 +12,7 @@ namespace np::log {
       int line,
       Fields enabled_fields,
       level_type level,
-      std::string_view m,
+      const char* m,
       MessageBuffer* buffer,
       std::string_view log_name,
       std::string_view group_props_data) noexcept;
@@ -37,7 +37,7 @@ namespace np::log {
   };
 
   struct NPLOG_EXPORT ScopedMessage : private ScopedMessageBase {
-    ScopedMessage(LogGroup& group, std::string_view file, int line, unsigned global_version, level_type level, std::string_view m) noexcept;
+    ScopedMessage(LogGroup& group, std::string_view file, int line, unsigned global_version, level_type level, const char* m) noexcept;
 
     ~ScopedMessage() noexcept;
 

@@ -49,6 +49,7 @@ namespace np::log {
       std::string_view msg) noexcept;
     void epilogue() noexcept;
     void writeKey(std::string_view name) noexcept;
+    void writeJsonKey(std::string_view name) noexcept;
 
     ValueSerializer valueSerializer() noexcept;
 
