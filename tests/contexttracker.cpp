@@ -47,7 +47,7 @@ TEST_CASE("ContextTracker") {
         }
       }
 
-      AND_WHEN("another context entry is inserted") {
+      AND_WHEN("a different context entry is inserted") {
         const auto id2 = ct.allocate("bar", &vs);
         vs.write("hello");
 
@@ -60,10 +60,9 @@ TEST_CASE("ContextTracker") {
 
         AND_WHEN("the first context entry is removed") {
           ct.release(id);
-          THEN("the context contains only the second entry") {
+          THEN("the removed entry and all subsequent ones are removed") {
             const auto result = parseContextFragment(ct.context().contents());
-            CHECK(result.size() == 1);
-            CHECK(result.at("bar") == pj::value("hello"));
+            CHECK(result.size() == 0);
           }
         }
       }
@@ -80,12 +79,12 @@ TEST_CASE("ContextTracker") {
 
         AND_WHEN("the first entry is removed") {
           ct.release(id);
-          THEN("the context contains only the second entry") {
+          THEN("the removed entry and all subsequent ones are removed") {
             const auto result = parseContextFragment(ct.context().contents());
-            CHECK(result.size() == 1);
-            CHECK(result.at("foo") == pj::value("hello"));
+            CHECK(result.size() == 0);
           }
         }
+
         AND_WHEN("the second entry is removed") {
           ct.release(id2);
           THEN("the context contains only the first entry") {

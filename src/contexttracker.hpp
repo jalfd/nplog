@@ -1,8 +1,8 @@
 #ifndef NP_CONTEXTTRACKER_HPP
 #define NP_CONTEXTTRACKER_HPP
 
+#include <vector>
 #include <nplog/export.hpp>
-#include <unordered_map>
 #include <nplog/scopedcontext.hpp>
 #include "messagebuffer.hpp"
 
@@ -19,9 +19,11 @@ namespace np::log {
     const MessageBuffer& context();
 
   private:
-    std::unordered_map<ContextId, MessageBuffer*> context_entries;
+    void clearCachedContext() noexcept;
+    std::vector<std::pair<const char*, MessageBuffer*>> context_entries;
+    std::vector<const char*> serialized_keys;
     MessageBuffer buffer;
-    bool dirty = false;
+    size_t dirty_index = 0;
   };
 } // namespace np::log
 #endif

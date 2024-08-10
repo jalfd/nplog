@@ -11,36 +11,76 @@ namespace np::log {
   }
 
   ContextId ContextTracker::allocate(const char* key, ValueSerializer* vs) {
-    dirty = true;
     auto buf = acquireBuffer();
-    const auto id = reinterpret_cast<ContextId>(key);
-    context_entries.insert(std::pair{id, buf});
-    context_entries[id] = buf;
+    const auto id = context_entries.size();
+    context_entries.push_back(std::pair{key, buf});
     *vs = ValueSerializer(buf);
     return id;
   }
 
   void ContextTracker::release(ContextId id) {
-    const auto it = context_entries.find(id);
-    if (it == context_entries.end()) { return; }
-    dirty = true;
-    releaseBuffer(it->second);
-    context_entries.erase(it);
+    if (id >= context_entries.size()) { return; }
+
+    context_entries.resize(id);
+    clearCachedContext();
   }
 
   const MessageBuffer& ContextTracker::context() {
-    if (dirty) {
-      buffer.clear();
-      Serializer s(&buffer);
-      for (const auto& [key, value] : context_entries) {
-        s.writeKey(reinterpret_cast<const char*>(key));
-        s.valueSerializer().writeLiteral(value->contents());
+    const auto new_entries = context_entries.size() - dirty_index;
+    // are there any unserialized entries
+    if (new_entries > 0) {
+      // first, gather a list of new keys
+      std::vector<std::pair<const char*, bool>> keys;
+      keys.resize(new_entries);
+      std::transform(context_entries.begin() + static_cast<decltype(context_entries)::difference_type>(dirty_index),
+        context_entries.end(),
+        std::back_inserter(keys),
+        [](auto pair) { return std::pair{pair.first, false}; });
+
+      std::sort(keys.begin(), keys.end(), [](auto lhs, auto rhs) { return lhs.first < rhs.first; });
+      keys.erase(std::unique(keys.begin(), keys.end()), keys.end());
+
+      const auto has_conflict = [&]() {
+        // now, see if any of these conflict with any of the existing keys
+        for (size_t i = 0, j = 0; i < keys.size() && j < serialized_keys.size();) {
+          const auto new_key = keys[i].first;
+          const auto existing_key = serialized_keys[i];
+          if (new_key == existing_key) { return true; }
+
+          if (new_key < existing_key) {
+            ++i;
+          } else {
+            ++j;
+          }
+        }
+        return false;
+      }();
+
+      if (has_conflict) {
+        // clear serialized cache and retry
+        clearCachedContext();
+        return context();
       }
-      dirty = false;
+
+      // finally, append new entries
+      std::for_each(context_entries.begin() + static_cast<decltype(context_entries)::difference_type>(dirty_index),
+        context_entries.end(),
+        [s = Serializer(&buffer)](const auto pair) mutable {
+          s.writeKey(reinterpret_cast<const char*>(pair.first));
+          s.valueSerializer().writeLiteral(pair.second->contents());
+        });
+
+        dirty_index = context_entries.size();
     }
 
     return buffer;
   }
+
+void ContextTracker::clearCachedContext() noexcept {
+  dirty_index = 0;
+  buffer.clear();
+  serialized_keys.clear();
+}
 
   thread_local ContextTracker context_tracker;
 

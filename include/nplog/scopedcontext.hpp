@@ -6,10 +6,9 @@
 #include <nplog/serializer.hpp>
 #include <memory>
 #include <stddef.h>
-namespace np::log {
-  struct MessageBuffer;
 
-  using ContextId = uintptr_t;
+namespace np::log {
+  using ContextId = size_t;
 
   NPLOG_EXPORT ContextId allocateContext(const char* key, ValueSerializer* vs);
   NPLOG_EXPORT void releaseContext(ContextId id);
