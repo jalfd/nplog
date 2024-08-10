@@ -47,6 +47,8 @@ endif ()
 
 
 add_library(nplog
+    src/contexttracker.cpp
+    src/contexttracker.hpp
     src/loggroup.cpp
     src/serializer.cpp
     src/scopedmessage.cpp

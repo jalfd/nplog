@@ -12,7 +12,7 @@ namespace np::log {
   struct Serializer;
   struct ValueSerializer;
 
-  struct LogProp { // FIXME: move to detail
+  struct LogProp { // FIXME: move to detail; FIXME: rename to LazyLogProp (because it requires value to stay alive)
     template <typename T>
     LogProp(const char* name, const T& value) noexcept
       : name(name), value(&value), format_func([](const void* value, ValueSerializer& vs) noexcept {

@@ -8,8 +8,11 @@
 namespace np::log {
   struct MessageBuffer;
   struct NPLOG_EXPORT ValueSerializer {
+    ValueSerializer() noexcept;
     explicit ValueSerializer(MessageBuffer* buffer) noexcept;
     ~ValueSerializer() noexcept = default;
+    ValueSerializer(ValueSerializer&& other) noexcept;
+    ValueSerializer& operator=(ValueSerializer&& other) noexcept;
 
     void write(double val) noexcept;
     void write(long double val) noexcept;
@@ -31,7 +34,7 @@ namespace np::log {
     template <typename T>
     void writeFloatingPoint(T val, const char* format) noexcept;
 
-    MessageBuffer* buffer;
+    MessageBuffer* buffer = nullptr;
   };
 
   struct NPLOG_EXPORT Serializer {
