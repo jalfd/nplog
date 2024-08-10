@@ -35,8 +35,16 @@ if (NP_LIBRARY_DEV)
 endif()
 
 if (NOT WIN32) #FIXME
-add_definitions(-gdwarf-4)
+#add_definitions(-gdwarf-4)
 endif()
+
+# HACK: Workaround to allow LTO to work with debug symbols MacOS
+# see https://gitlab.kitware.com/cmake/cmake/-/issues/25202
+if (APPLE)
+add_link_options("LINKER:-object_path_lto,$<TARGET_PROPERTY:NAME>_lto.o")
+add_link_options("LINKER:-cache_path_lto,${CMAKE_BINARY_DIR}/LTOCache")
+endif ()
+
 
 add_library(nplog
     src/loggroup.cpp
@@ -78,6 +86,19 @@ set_target_properties(nplog PROPERTIES
     INTERPROCEDURAL_OPTIMIZATION TRUE
 )
 
+if (APPLE)
+find_program(DSYMUTIL dsymutil)
+if (DSYMUTIL)
+    foreach(var LINK_EXECUTABLE CREATE_SHARED_LIBRARY)
+      LIST(APPEND CMAKE_CXX_${var} "${DSYMUTIL} <TARGET>")
+    endforeach()
+endif()
+
+endif()
+
+# FIXME: on macos it seems we may need to run dsymutil ourselves:
+# https://gitlab.kitware.com/cmake/cmake/-/issues/20256
+
 include(GenerateExportHeader)
 GENERATE_EXPORT_HEADER(nplog
     EXPORT_FILE_NAME
@@ -90,9 +111,9 @@ endif()
 
 target_compile_options(nplog PRIVATE
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
-    -Werror -pedantic-errors -Wall -Wextra -Wconversion -O3>
+    -Werror -pedantic-errors -Wall -Wextra -Wconversion>
     $<$<CXX_COMPILER_ID:MSVC>:
-    /W4 /WX /Ob2 /Zo>)
+    /W4 /WX>)
 
 add_subdirectory(tests)
 
