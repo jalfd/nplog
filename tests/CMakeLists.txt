@@ -11,9 +11,9 @@ add_executable(tests
     config.cpp
     messagebuffer.cpp
     loggroupprops.cpp
-    bm-header.cc
-    bm-params.cc
-    bm-buffer.cc
+    bm-header.cpp
+    bm-params.cpp
+    bm-buffer.cpp
 )
 target_link_libraries(tests PRIVATE picojson Catch2::Catch2WithMain nplog)
 
