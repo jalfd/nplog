@@ -17,14 +17,9 @@ int main() {
   LOG(mylog, np::log::Debug, "logging a message", WITH(np::log::Trace, fortytwo));
   LOG(mylog, np::log::Debug, "logging a message", WITH("myval", fortytwo));
 
-  np::LogGroup otherlog(
-    nullptr, nullptr, {{"name", std::string_view("yoyo")}, {"loggerprop1", 1.234}});
-  LOG(otherlog, np::log::Info, "Wooosh", WITH("myval", fortytwo));
-  LOG(otherlog, np::log::Info, "Wooosh2");
-
   np::log::ScopedContext scoped("hello", std::string_view("world"));
-  LOG(otherlog, np::log::Info, "with some context");
+  LOG(mylog, np::log::Info, "with some context");
 
   np::log::ScopedContext scoped2("hello hello", std::string_view("world again"));
-  LOG(otherlog, np::log::Info, "with more context");
+  LOG(mylog, np::log::Info, "with more context");
 }

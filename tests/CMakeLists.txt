@@ -12,7 +12,6 @@ add_executable(tests
     loggroup.cpp
     config.cpp
     messagebuffer.cpp
-    loggroupprops.cpp
     bm-header.cpp
     bm-params.cpp
     bm-buffer.cpp

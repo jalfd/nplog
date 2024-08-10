@@ -4,7 +4,6 @@
 #include <picojson/picojson.h>
 #include <vector>
 #include <catch2/catch_test_macros.hpp>
-#include "../src/loggroupprops.hpp" // FIXME: better access from tests
 
 namespace pj = picojson;
 
@@ -43,7 +42,7 @@ bool operator==(const std::vector<char>& result, const std::string& expected) {
 TEST_CASE("ScopedMessageBase") {
   np::log::MessageBuffer buf;
   SECTION("ScopedMessage writes message to the buffer") {
-    np::log::ScopedMessageBase msg("file", 3, static_cast<np::log::Fields>(0), 1, "hello", &buf, "name", {});
+    np::log::ScopedMessageBase msg("file", 3, static_cast<np::log::Fields>(0), 1, "hello", &buf, "name");
     msg.endMessage();
     const auto obj = parseLogMessage(buf);
 
@@ -52,7 +51,7 @@ TEST_CASE("ScopedMessageBase") {
   }
 
   SECTION("ScopedMessage writes header fields to the buffer") {
-    np::log::ScopedMessageBase msg("file", 3, static_cast<np::log::Fields>(-1), 1, "hello", &buf, "name", {});
+    np::log::ScopedMessageBase msg("file", 3, static_cast<np::log::Fields>(-1), 1, "hello", &buf, "name");
     msg.endMessage();
     const auto obj = parseLogMessage(buf);
 
@@ -63,7 +62,7 @@ TEST_CASE("ScopedMessageBase") {
   }
 
   SECTION("ScopedMessage writes properties with standard types to the buffer") {
-    np::log::ScopedMessageBase msg("", 0, {}, 0, "", &buf, "", {});
+    np::log::ScopedMessageBase msg("", 0, {}, 0, "", &buf, "");
     msg.addProp("number", 42);
     msg.addProp("string", std::string_view("42"));
     msg.endMessage();
@@ -78,7 +77,7 @@ TEST_CASE("ScopedMessageBase") {
 
   SECTION("ScopedMessage writes properties with custom types to the buffer") {
     testns::CustomPropType p;
-    np::log::ScopedMessageBase msg("", 0, {}, 0, "", &buf,"", {});
+    np::log::ScopedMessageBase msg("", 0, {}, 0, "", &buf,"");
     msg.addProp("p", p);
     msg.endMessage();
     const auto obj = parseLogMessage(buf);
