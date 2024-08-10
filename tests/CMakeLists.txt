@@ -6,6 +6,7 @@ add_executable(tests
     macros.cpp
     common.cpp
     scopedmessage.cpp
+    stringinterner.cpp
     formatter.cpp
     serializer.cpp
     loggroup.cpp

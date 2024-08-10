@@ -52,6 +52,8 @@ add_library(nplog
     src/loggroup.cpp
     src/serializer.cpp
     src/scopedmessage.cpp
+    src/stringinterner.cpp
+    src/stringinterner.hpp
     src/formatter.cpp
     src/messagebuffer.cpp
     src/common.cpp
