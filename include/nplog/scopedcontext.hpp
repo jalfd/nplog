@@ -8,8 +8,8 @@
 #include <stddef.h>
 namespace np::log {
   struct MessageBuffer;
-  using ContextSnapshot = std::shared_ptr<MessageBuffer>;
-
+  struct ContextSnapshotData;
+  using ContextSnapshot = std::shared_ptr<ContextSnapshotData>;
   using ContextId = uintptr_t;
 
   NPLOG_EXPORT ContextId allocateContext(const char* key, ValueSerializer* vs);
