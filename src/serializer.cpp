@@ -223,6 +223,16 @@ namespace np::log {
     is_empty = false;
   }
 
+  ValueSerializer::ValueSerializer() noexcept = default;
+
+  ValueSerializer::ValueSerializer(ValueSerializer&& other) noexcept{ std::swap(buffer, other.buffer); }
+
+  ValueSerializer& ValueSerializer::operator=(ValueSerializer&& other) noexcept{
+    buffer = nullptr;
+    std::swap(buffer, other.buffer);
+    return *this;
+  }
+
   ValueSerializer::ValueSerializer(MessageBuffer* buffer) noexcept : buffer(buffer) {}
 
   void ValueSerializer::write(double val) noexcept { writeFloatingPoint(val, "%.12g"); }
