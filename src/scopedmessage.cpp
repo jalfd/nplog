@@ -14,12 +14,12 @@ namespace np::log {
     std::string_view log_name) noexcept
     : message_buffer(buffer), serializer(buffer), message_level(level) {
     serializer.prologue(file, line, enabled_fields, level, log_name, global_interner.intern(m));
-    const auto& context = contextTracker().context();
-    if (!context.contents().empty()) {
-      serializer.startObject("context");
-      serializer.valueSerializer().writeLiteral(context.contents());
-      serializer.endObject();
-    }
+    // auto& ct = contextTracker();
+    // if (ct.hasContext()) {
+    //   serializer.startObject("context");
+    //   serializer.valueSerializer().writeLiteral(ct.context().contents());
+    //   serializer.endObject();
+    // }
   }
 
   void ScopedMessageBase::endMessage() noexcept {

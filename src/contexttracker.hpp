@@ -16,6 +16,7 @@ namespace np::log {
     ContextId allocate(const char* key, ValueSerializer* vs);
     void release(ContextId id);
 
+    bool hasContext() const noexcept;
     const MessageBuffer& context();
 
   private:

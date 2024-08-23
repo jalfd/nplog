@@ -26,6 +26,11 @@ namespace np::log {
     clearCachedContext();
   }
 
+  bool ContextTracker::hasContext() const noexcept
+  {
+    return !context_entries.empty();
+  }
+
   const MessageBuffer& ContextTracker::context() {
     const auto new_entries = context_entries.size() - dirty_index;
     // are there any unserialized entries
