@@ -11,14 +11,22 @@ namespace np::log {
       fwrite(msg.message.data(), sizeof(char), msg.message.size(), stderr);
     };
 
+#ifdef __cpp_lib_atomic_shared_ptr
+    auto config = std::atomic(std::make_shared<LogConfig>());
+#else
     auto config = std::make_shared<LogConfig>();
+#endif
 
     std::shared_ptr<LogConfig> getConfig(unsigned known_global_version) noexcept {
       thread_local unsigned cached_version = 0;
       thread_local std::shared_ptr<LogConfig> cached_ptr;
 
       if (!isCurrent(cached_version, known_global_version)) {
+#ifdef __cpp_lib_atomic_shared_ptr
+        cached_ptr = config.load(std::memory_order_acquire);
+#else
         cached_ptr = std::atomic_load_explicit(&config, std::memory_order_acquire);
+#endif
         cached_version = currentVersion();
       }
 
@@ -27,13 +35,17 @@ namespace np::log {
   } // namespace
 
   unsigned currentVersion() noexcept {
-    return std::atomic_load_explicit(&config_timestamp, std::memory_order_acquire);
+    return config_timestamp.load(std::memory_order_acquire);
   }
 
   void applyConfig(LogConfig cfg) noexcept {
     const auto new_cfg = std::make_shared<LogConfig>(std::move(cfg));
     if (!cfg.sink) { cfg.sink = stderr_log_sink; }
+#ifdef __cpp_lib_atomic_shared_ptr
+    config.store(new_cfg, std::memory_order_release);
+#else
     std::atomic_store_explicit(&config, new_cfg, std::memory_order_release);
+#endif
     std::atomic_fetch_add_explicit(&config_timestamp, 1u, std::memory_order_release);
   }
 
