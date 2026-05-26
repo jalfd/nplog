@@ -1,9 +1,9 @@
+#include <catch2/catch_approx.hpp>
+#include <catch2/catch_test_macros.hpp>
 #include <nplog/formatter.hpp>
-#include "../src/messagebuffer.hpp"
 #include <nplog/serializer.hpp>
 #include <numeric>
-#include <catch2/catch_test_macros.hpp>
-#include <catch2/catch_approx.hpp>
+#include "../src/messagebuffer.hpp"
 
 TEST_CASE("Formatter works for built-in numeric types") {
   SECTION("short") {
@@ -59,13 +59,15 @@ TEST_CASE("Formatter works for built-in numeric types") {
     np::log::MessageBuffer b;
     np::log::ValueSerializer srl(&b);
     np::log::format(std::numeric_limits<float>::min(), srl);
-    REQUIRE(Catch::Approx(std::numeric_limits<float>::min()) == std::stof(std::string(b.contents())));
+    REQUIRE(
+      Catch::Approx(std::numeric_limits<float>::min()) == std::stof(std::string(b.contents())));
   }
   SECTION("double") {
     np::log::MessageBuffer b;
     np::log::ValueSerializer srl(&b);
     np::log::format(std::numeric_limits<double>::min(), srl);
-    REQUIRE(Catch::Approx(std::numeric_limits<double>::min()) == std::stod(std::string(b.contents())));
+    REQUIRE(
+      Catch::Approx(std::numeric_limits<double>::min()) == std::stod(std::string(b.contents())));
   }
   SECTION("long double") {
     np::log::MessageBuffer b;
@@ -110,4 +112,35 @@ TEST_CASE("Formatter can be extended for custom types") {
 
   np::log::format(TestType(), srl);
   REQUIRE(TestType::count == 1);
+}
+
+TEST_CASE("Missing Functionality") {
+  SKIP("Not implemented yet");
+  SECTION("ValueSerializer accepts char literals") {
+    np::log::MessageBuffer b;
+    np::log::ValueSerializer srl(&b);
+    // srl.writeLiteral('x');
+    REQUIRE(std::string(b.contents()) == "x");
+  }
+
+  SECTION("ValueSerializer writes arrays") {
+    SKIP("Not implemented yet");
+    np::log::MessageBuffer b;
+    np::log::ValueSerializer srl(&b);
+    // srl.startArray();
+    // srl.writeArrayElement(41);
+    // srl.writeArrayElement("42");
+    // srl.endArray();
+    REQUIRE(std::string(b.contents()) == "[41,\"42\"]");
+  }
+
+  SECTION("ValueSerializer writes nested custom types") {
+    SKIP("Not implemented yet");
+    np::log::MessageBuffer b;
+    np::log::ValueSerializer srl(&b);
+    // srl.startArray();
+    // srl.writeArrayElement(TestType());
+    // srl.endArray();
+    REQUIRE(std::string(b.contents()) == "[]");
+  }
 }
