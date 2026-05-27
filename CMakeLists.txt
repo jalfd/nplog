@@ -117,7 +117,7 @@ target_compile_options(nplog PRIVATE
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
     -Werror -pedantic-errors -Wall -Wextra -Wconversion>
     $<$<CXX_COMPILER_ID:MSVC>:
-    /W4 /WX>)
+    /W4 /WX /wd4251>)
 
 add_subdirectory(tests)
 
