@@ -5,6 +5,7 @@
 #include <shared_mutex>
 #include <unordered_map>
 #include <vector>
+#include <iterator>
 #include "messagebuffer.hpp"
 
 namespace np::log {
