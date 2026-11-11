@@ -1,10 +1,13 @@
 cmake_minimum_required(VERSION 3.27)
-enable_testing()
 
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/vcpkg/scripts/buildsystems/vcpkg.cmake"
   CACHE STRING "Vcpkg toolchain file")
 
 project(nplog LANGUAGES CXX VERSION 0.1.0)
+
+if (PROJECT_IS_TOP_LEVEL)
+    enable_testing()
+endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -20,13 +23,8 @@ option(NP_CHECK_CONVERSIONS "Check for overflows in various internal conversions
 option(NP_LIBRARY_DEV "Enable compiler flags useful to nplog project developers" OFF)
 
 find_package(Threads REQUIRED)
-find_package(Catch2 REQUIRED)
 find_package(date CONFIG REQUIRED)
-find_path(PICOJSON_INCLUDE_DIRS "picojson/picojson.h")
 
-# Wrap up picojson in an ad-hoc imported target
-add_library(picojson INTERFACE IMPORTED)
-target_include_directories(picojson INTERFACE ${PICOJSON_INCLUDE_DIRS})
 
 if (NP_LIBRARY_DEV)
     if (NOT WIN32)
@@ -119,9 +117,17 @@ target_compile_options(nplog PRIVATE
     $<$<CXX_COMPILER_ID:MSVC>:
     /W4 /WX /wd4251>)
 
-add_subdirectory(tests)
+if (PROJECT_IS_TOP_LEVEL)
+    find_package(Catch2 REQUIRED)
+    find_path(PICOJSON_INCLUDE_DIRS "picojson/picojson.h")
+    # Wrap up picojson in an ad-hoc imported target
+    add_library(picojson INTERFACE IMPORTED)
+    target_include_directories(picojson INTERFACE ${PICOJSON_INCLUDE_DIRS})
 
-if ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang") AND NPLOG_LLVM_COVERAGE)
+    add_subdirectory(tests)
+endif()
+
+if ((PROJECT_IS_TOP_LEVEL AND (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang") AND NPLOG_LLVM_COVERAGE))
     find_program(LLVM_PROFDATA
         "llvm-profdata"
         PATHS ${NPLOG_LLVM_BIN_DIR}
